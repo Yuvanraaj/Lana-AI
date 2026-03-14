@@ -36,6 +36,13 @@ export default function ResumeParse() {
     }
   }, [result]);
 
+  // Wake up Render backend on page mount (prevents cold-start timeout)
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/health`).catch(() => {
+      // Silently ignore errors - just waking up the backend
+    });
+  }, []);
+
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
     setError("");
@@ -58,10 +65,16 @@ export default function ResumeParse() {
     formData.append("resume", file);
     
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60000); // 60 second timeout for backend startup
+      
       const res = await fetch(`${API_BASE_URL}/api/parse-resume`, {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeout);
       
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to parse resume.");
@@ -145,7 +158,16 @@ export default function ResumeParse() {
       }
     } catch (err) {
       console.error('Error parsing resume:', err);
-      setError(err.message);
+      
+      // Provide helpful error messages
+      let errorMsg = err.message;
+      if (err.name === 'AbortError') {
+        errorMsg = 'Backend startup timeout. Please wait 30-60 seconds and try again (free tier cold-start).';
+      } else if (err.message.includes('Failed to fetch')) {
+        errorMsg = 'Failed to connect to backend. Please wait a moment and try again.';
+      }
+      
+      setError(errorMsg);
       setParseStage("");
     } finally {
       setLoading(false);
