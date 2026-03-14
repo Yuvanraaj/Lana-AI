@@ -2,12 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
 
 function AnamAvatar({ onStatusChange, onInterviewEnd, role: interviewRole, sessionId }) {
-  // Use API_BASE_URL from config, which handles both dev and production
-  const backendBase = API_BASE_URL || (
-    (typeof window !== 'undefined' && (window.location.hostname === 'localhost'))
-      ? 'http://localhost:8001'
-      : ''
-  );
+  // Use API_BASE_URL from config, which is properly set for dev and production
+  const backendBase = API_BASE_URL;
 
   // Role configuration for avatar - must be defined before fetchSessionToken uses it
   const role = 'interviewer';

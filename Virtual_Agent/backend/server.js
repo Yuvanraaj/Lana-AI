@@ -24,6 +24,7 @@ const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
+  'https://virtual-agent1-goin.vercel.app', // Production Vercel URL
   process.env.FRONTEND_URL || '', // e.g., https://your-project.vercel.app
 ].filter(Boolean);
 

@@ -1,7 +1,10 @@
-// Use environment variable for backend URL in production, fallback to localhost for development
+// Backend URL configuration for dev and production
 const isDev = import.meta.env.DEV;
-// In development, use relative paths so Vite proxy handles it
-// In production, use the env variable or absolute path
-const defaultBackend = isDev ? "" : "/api";
 
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || defaultBackend;
+// In development: empty string (use relative paths)
+// In production: use environment variable OR hardcoded backend URL
+const defaultBackend = isDev 
+  ? "" 
+  : (import.meta.env.VITE_API_BASE_URL || "https://interview-bot-backend.onrender.com");
+
+export const API_BASE_URL = defaultBackend;
