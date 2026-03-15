@@ -8,37 +8,51 @@ export default function FinalCTA() {
   const ctaText = getCtaVariant();
 
   const handleStart = () => {
-    trackEvent('cta_click', { variant: ctaText, location: 'footer' });
+    trackEvent('cta_click', { variant: ctaText, location: 'final' });
     setLocation('/start');
   };
 
   return (
-    <section id="final-cta" className="py-20" style={{ background: 'var(--bg-secondary)' }}>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-3xl sm:text-4xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
-          Ready to stop guessing and start improving?
+    <section id="final-cta" className="py-20" style={{ background: 'var(--bg-primary)' }}>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 className="text-3xl sm:text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>
+          Stop practicing blind.
+          <br />
+          Start getting real feedback.
         </h2>
-        <p className="mx-auto text-base sm:text-lg mb-10" style={{ color: 'var(--text-secondary)', opacity: 0.9 }}>
-          Jump straight into a full mock interview, get your report, and follow a clear improvement plan.
+
+        <p className="mt-4 text-base sm:text-lg" style={{ color: 'var(--text-secondary)', maxWidth: 680, margin: '0 auto' }}>
+          Take your first interview right now. No signup, no credit card. Just honest feedback that actually matches how FAANG recruiters score.
         </p>
 
         <button
-          onClick={handleStart}
-          className="px-10 py-4 rounded-full font-semibold text-lg"
+          className="glow-btn mt-10"
           style={{
+            padding: '18px 32px',
+            borderRadius: '999px',
             background: 'linear-gradient(90deg, var(--accent), var(--accent-2))',
             color: 'white',
-            boxShadow: '0 20px 40px rgba(44, 154, 255, 0.25)',
-            transition: 'transform 0.2s ease'
+            fontSize: '1.05rem',
+            fontWeight: 700
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+          onClick={handleStart}
         >
-          {ctaText}
+          Start Your Free Interview Now
         </button>
 
-        <p className="mt-6 text-sm" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-          No credit card required. Work at your pace — your progress is saved automatically.
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl mx-auto text-left" style={{ color: 'var(--text-secondary)' }}>
+          <div>
+            <p>✓ 99.8% uptime (runs 24/7)</p>
+            <p>✓ Sub-10ms latency (feels real-time)</p>
+          </div>
+          <div>
+            <p>✓ 200+ dynamically generated questions</p>
+            <p>✓ FAANG-aligned scoring rubric</p>
+          </div>
+        </div>
+
+        <p className="mt-10 text-sm" style={{ color: 'rgba(255,255,255,0.75)' }}>
+          Your progress saves automatically. Come back anytime to continue improving.
         </p>
       </div>
     </section>

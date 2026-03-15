@@ -12,78 +12,108 @@ export default function HeroSection() {
     setLocation('/start');
   };
 
+  const handleSeeHow = () => {
+    trackEvent('cta_click', { variant: 'see_how', location: 'hero' });
+    document.getElementById('how')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8" style={{ background: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      {/* Subtle animated background */}
+    <section
+      id="hero"
+      className="relative flex items-center justify-center"
+      style={{
+        minHeight: '100vh',
+        background: 'radial-gradient(circle at top, rgba(0, 212, 255, 0.18), transparent 55%), var(--bg-primary)',
+        color: 'var(--text-primary)'
+      }}
+    >
       <div className="absolute inset-0 overflow-hidden" style={{ pointerEvents: 'none' }}>
-        <div style={{
-          position: 'absolute',
-          top: '-50%',
-          right: '-10%',
-          width: '500px',
-          height: '500px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(44, 154, 255, 0.15) 0%, transparent 70%)',
-          opacity: 0.5
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: '-20%',
-          left: '-5%',
-          width: '400px',
-          height: '400px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0, 224, 255, 0.1) 0%, transparent 70%)',
-          opacity: 0.4
-        }} />
+        <div
+          style={{
+            position: 'absolute',
+            top: '-40%',
+            right: '-15%',
+            width: '620px',
+            height: '620px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0, 212, 255, 0.14), transparent 70%)',
+            opacity: 0.65
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-40%',
+            left: '-20%',
+            width: '720px',
+            height: '720px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(0, 195, 255, 0.12), transparent 70%)',
+            opacity: 0.5
+          }}
+        />
       </div>
 
-      <div className="relative max-w-5xl mx-auto text-center z-10">
-        {/* Main Headline (2 lines) */}
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6" style={{ color: 'var(--text-primary)' }}>
-          Practice interviews with AI-powered scoring
-          <br />
-          Get real feedback in 8 minutes
-        </h1>
+      <div className="relative w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-center text-center gap-6">
+          <p className="text-sm font-semibold tracking-wide" style={{ color: 'rgba(255,255,255,0.75)' }}>
+            One click away from interview confidence
+          </p>
 
-        {/* CTA */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button
-            onClick={handleStart}
-            className="px-10 py-4 rounded-full font-semibold text-lg"
-            style={{
-              background: 'linear-gradient(90deg, var(--accent), var(--accent-2))',
-              color: 'white',
-              boxShadow: '0 20px 40px rgba(44, 154, 255, 0.25)',
-              transition: 'transform 0.2s ease'
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            {ctaText}
-          </button>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-tight" style={{ color: 'var(--text-primary)' }}>
+            Ace Your Interview in <span style={{ color: 'var(--accent)' }}>Minutes</span>,
+            <br />
+            <span style={{ color: 'var(--accent-2)' }}>Not Months</span>
+          </h1>
 
-          <button
-            onClick={() => {
-              document.getElementById('pain')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-            className="px-10 py-4 rounded-full font-semibold text-lg"
-            style={{
-              background: 'transparent',
-              border: '2px solid rgba(255,255,255,0.2)',
-              color: 'var(--text-secondary)',
-              transition: 'background 0.2s ease'
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-          >
-            See how it works
-          </button>
+          <p className="max-w-3xl text-lg sm:text-xl" style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+            Meet Lana: Your 24/7 AI interview coach that interviews you, scores you like real recruiters do, and gives you a personalized roadmap to get hired.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+              onClick={handleStart}
+              className="glow-btn"
+              style={{
+                padding: '18px 36px',
+                borderRadius: '999px',
+                background: 'linear-gradient(90deg, var(--accent), var(--accent-2))',
+                color: 'white',
+                fontSize: '1.05rem',
+                fontWeight: 700
+              }}
+            >
+              Start Free Interview →
+            </button>
+
+            <button
+              onClick={handleSeeHow}
+              className="text-sm font-semibold"
+              style={{
+                color: 'rgba(255,255,255,0.88)',
+                textDecoration: 'underline',
+                textUnderlineOffset: '6px'
+              }}
+            >
+              See How It Works
+            </button>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl">
+            {[
+              { value: '8 min', label: 'Complete interview with feedback' },
+              { value: '32% avg', label: 'Score improvement (1st to 2nd)' },
+              { value: '200+', label: 'Dynamically generated questions' }
+            ].map((item) => (
+              <div key={item.label} className="stat-card">
+                <div className="counter" style={{ fontSize: '2rem' }}>{item.value}</div>
+                <p className="mt-2" style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                  {item.label}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-
-        <p className="mt-10 text-sm sm:text-base max-w-2xl mx-auto" style={{ color: 'var(--text-secondary)', opacity: 0.85 }}>
-          No installs. No subscriptions. Just one mock interview that gives you an actionable report you can act on today.
-        </p>
       </div>
     </section>
   );

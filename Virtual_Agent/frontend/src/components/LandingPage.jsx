@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import HeroSection from './HeroSection';
 import PainSection from './PainSection';
-import SolutionSection from './SolutionSection';
-import HowItWorks from './HowItWorks';
-import CTASection from './CTASection';
+import ThreeStepProcess from './ThreeStepProcess';
+import FinalCTA from './FinalCTA';
 
 export default function LandingPage() {
   // Enable smooth scrolling for the entire page
@@ -19,9 +18,8 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <PainSection />
-        <SolutionSection />
-        <HowItWorks />
-        <CTASection />
+        <ThreeStepProcess />
+        <FinalCTA />
       </main>
     </div>
   );

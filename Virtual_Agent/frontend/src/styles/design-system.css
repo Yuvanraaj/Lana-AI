@@ -31,10 +31,21 @@
   --blue-600: #2563eb;
 
   /* Text Colors */
-  --text-primary: #ffffff;
-  --text-secondary: #e2e8f0;
-  --text-tertiary: #cbd5e1;
-  --text-muted: #94a3b8;
+  --text-primary: #E8F0FE;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+  --text-muted: #7d8fa6;
+
+  /* Brand Accent */
+  --accent: #00D4FF; /* bright cyan */
+  --accent-2: #0099FF; /* bright blue */
+  --success: #00FF88;
+  --warning: #FFB800;
+
+  /* Backgrounds */
+  --bg-primary: #0A1F3F;
+  --bg-secondary: #0F2341;
+  --card-bg: rgba(255, 255, 255, 0.06);
 
   /* Typography */
   --font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -112,10 +123,168 @@ html, body, #root {
 
 body {
   font-family: var(--font-family-primary);
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--bg-primary) 0%, rgba(13, 38, 79, 0.95) 40%, var(--bg-primary) 100%);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(0, 212, 255, 0);
+  }
+}
+
+@keyframes counterFill {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mockupMouth {
+  0%, 100% { transform: scaleY(0.95); }
+  50% { transform: scaleY(1.05); }
+}
+
+@keyframes mockupScore {
+  0% { opacity: 0; transform: translateX(-14px); }
+  60% { opacity: 0; transform: translateX(-14px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mockupFeedback {
+  0% { opacity: 0; transform: translateY(20px); }
+  60% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Utility classes */
+.fade-in-up {
+  animation: fadeInUp 0.65s ease-out both;
+}
+
+.glow-btn {
+  box-shadow: 0 16px 28px rgba(0, 212, 255, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glow-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px rgba(0, 212, 255, 0.35);
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-2xl);
+  padding: 1.5rem;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.3);
+}
+
+.counter {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  animation: counterFill 1.2s ease-out both;
+}
+
+.counter + p {
+  margin-top: 0.35rem;
+  color: var(--text-secondary);
+}
+
+.mockup {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: radial-gradient(circle at 20% 30%, rgba(0, 212, 255, 0.18), transparent 60%);
+  box-shadow: 0 28px 54px rgba(0, 0, 0, 0.35);
+}
+
+.mockup-inner {
+  position: absolute;
+  inset: 0;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mockup-mouth {
+  width: 80px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.9);
+  animation: mockupMouth 1.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.mockup-score {
+  position: absolute;
+  right: 1.5rem;
+  top: 1.5rem;
+  background: rgba(0, 0, 0, 0.48);
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: var(--radius-xl);
+  padding: 0.6rem 1rem;
+  color: white;
+  font-weight: 700;
+  opacity: 0;
+  animation: mockupScore 2.2s ease-out forwards;
+}
+
+.mockup-feedback {
+  position: absolute;
+  bottom: 1.75rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.2rem;
+  opacity: 0;
+  animation: mockupFeedback 2.6s ease-out forwards;
+}
+
+.mockup-feedback h4 {
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
+}
+
+.mockup-feedback p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
 }
 
 /* ==========================================
