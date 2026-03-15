@@ -8,6 +8,7 @@ env.local
 .env
 .env.local
 backend/data/engine_session.json
+backend/data/interview_platform.db
 backend/uploads/
 .vscode/
 .DS_Store
