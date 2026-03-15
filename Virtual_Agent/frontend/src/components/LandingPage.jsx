@@ -1,12 +1,10 @@
 import React, { useEffect } from 'react';
 import HeroSection from './HeroSection';
-import PainSection from './PainSection';
-import SolutionSection from './SolutionSection';
-import HowItWorks from './HowItWorks';
-import DemoPreview from './DemoPreview';
-import WhyLanaUnique from './WhyLanaUnique';
-import UnderTheHood from './UnderTheHood';
-import CTASection from './CTASection';
+import PainStat from './PainStat';
+import SocialProof from './SocialProof';
+import SampleOutput from './SampleOutput';
+import ThreeStepProcess from './ThreeStepProcess';
+import FinalCTA from './FinalCTA';
 
 export default function LandingPage() {
   // Enable smooth scrolling for the entire page
@@ -21,13 +19,11 @@ export default function LandingPage() {
     <div className="min-h-screen text-[var(--text-primary)]" style={{ background: 'var(--bg-primary)' }}>
       <main>
         <HeroSection />
-        <PainSection />
-        <SolutionSection />
-        <HowItWorks />
-        <DemoPreview />
-        <WhyLanaUnique />
-        <UnderTheHood />
-        <CTASection />
+        <PainStat />
+        <SocialProof />
+        <SampleOutput />
+        <ThreeStepProcess />
+        <FinalCTA />
       </main>
     </div>
   );
