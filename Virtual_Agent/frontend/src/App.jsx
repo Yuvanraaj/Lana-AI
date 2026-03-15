@@ -11,6 +11,7 @@ import ResumeParse from "./pages/ResumeParse";
 import Chatbot from "./pages/Chatbot";
 import AnalyticsPage from "./pages/Analytics";
 import ProgressDashboard from "./pages/ProgressDashboard";
+import JudgeView from "./pages/JudgeView";
 
 // Note: UserProfile and ProgressDashboard handle their own authentication checks
 // in their useEffect hooks, so we don't need a wrapper component here
@@ -32,6 +33,7 @@ function Router() {
         <Route path="/resume-parse" component={ResumeParse} />
         <Route path="/chatbot" component={Chatbot} />
         <Route path="/analytics" component={AnalyticsPage} />
+        <Route path="/judge" component={JudgeView} />
       </Switch>
     </div>
   );

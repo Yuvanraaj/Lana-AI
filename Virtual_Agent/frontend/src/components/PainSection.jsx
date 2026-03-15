@@ -97,7 +97,7 @@ export default function PainSection() {
           textAlign: 'center'
         }}>
           <p style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 600 }}>
-            What if you had real-time feedback from an AI that understands how actual recruiters score candidates?
+            Imagine getting instant, actionable feedback that mirrors what real hiring teams look for.
           </p>
         </div>
       </div>

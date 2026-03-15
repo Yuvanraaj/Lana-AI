@@ -68,10 +68,10 @@ export default function InterviewHistory({ userId, onSelectSession }) {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600 bg-green-50';
-    if (score >= 60) return 'text-blue-600 bg-blue-50';
-    if (score >= 40) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
+    if (score >= 80) return 'text-green-400 bg-green-500/20';
+    if (score >= 60) return 'text-blue-400 bg-blue-500/20';
+    if (score >= 40) return 'text-yellow-400 bg-yellow-500/20';
+    return 'text-red-400 bg-red-500/20';
   };
 
   const getScoreBgColor = (score) => {
@@ -102,11 +102,11 @@ export default function InterviewHistory({ userId, onSelectSession }) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg shadow p-6 border border-slate-700/50">
         <div className="flex justify-center items-center h-40">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-600 mx-auto mb-2" />
-            <p className="text-gray-600">Loading interview history...</p>
+            <p className="text-gray-400">Loading interview history...</p>
           </div>
         </div>
       </div>
@@ -115,9 +115,9 @@ export default function InterviewHistory({ userId, onSelectSession }) {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow p-6 border border-red-200">
-        <p className="text-red-600 font-semibold mb-2">Error Loading History</p>
-        <p className="text-gray-600 text-sm mb-4">{error}</p>
+      <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg shadow p-6 border border-red-500/30">
+        <p className="text-red-400 font-semibold mb-2">Error Loading History</p>
+        <p className="text-gray-400 text-sm mb-4">{error}</p>
         <button
           onClick={fetchHistory}
           className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition font-semibold"
@@ -149,17 +149,17 @@ export default function InterviewHistory({ userId, onSelectSession }) {
   return (
     <div className="space-y-4">
       {/* Header with controls */}
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg shadow p-4 border border-slate-700/50">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h3 className="text-lg font-bold text-gray-900">Interview History</h3>
-            <p className="text-sm text-gray-600">Total: {sortedSessions.length} interview{sortedSessions.length !== 1 ? 's' : ''}</p>
+            <h3 className="text-lg font-bold text-white">Interview History</h3>
+            <p className="text-sm text-gray-400">Total: {sortedSessions.length} interview{sortedSessions.length !== 1 ? 's' : ''}</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="px-4 py-2 border border-slate-600 rounded-lg bg-slate-800 text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             >
               <option value="date">Sort by: Latest</option>
               <option value="score">Sort by: Score</option>
@@ -178,10 +178,10 @@ export default function InterviewHistory({ userId, onSelectSession }) {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-900/50 to-slate-800/50 backdrop-blur-sm rounded-lg shadow overflow-hidden border border-slate-700/50">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-slate-800/70 border-b border-slate-700/50">
               <tr>
                 <th className="px-4 py-3 text-left">
                   <input
@@ -191,15 +191,15 @@ export default function InterviewHistory({ userId, onSelectSession }) {
                     title="Select up to 2 interviews to compare"
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Role</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Score</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Duration</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Status</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">Action</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Date</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Role</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300">Score</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-gray-300">Duration</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300">Status</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-300">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-slate-700/50">
               {sortedSessions.map((session) => {
                 const sessionId = session.id || session.sessionId;
                 const isSelected = selectedSessions.includes(sessionId);
@@ -211,7 +211,7 @@ export default function InterviewHistory({ userId, onSelectSession }) {
                 return (
                   <tr
                     key={sessionId}
-                    className={`hover:bg-gray-50 transition ${isSelected ? 'bg-blue-50' : ''}`}
+                    className={`hover:bg-slate-700/30 transition ${isSelected ? 'bg-indigo-500/20' : ''}`}
                   >
                     <td className="px-4 py-3">
                       <input
@@ -224,15 +224,15 @@ export default function InterviewHistory({ userId, onSelectSession }) {
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-white">
                         {formatDate(createdAt)}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-400">
                         {formatTime(createdAt)}
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium capitalize">
+                      <span className="inline-block px-3 py-1 bg-indigo-500/30 text-indigo-300 rounded-full text-sm font-medium capitalize border border-indigo-500/50">
                         {role}
                       </span>
                     </td>
@@ -241,11 +241,11 @@ export default function InterviewHistory({ userId, onSelectSession }) {
                         {Math.round(score)}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">
+                    <td className="px-4 py-3 text-sm text-gray-400">
                       {formatDuration(session.duration_seconds || session.duration)}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-semibold">
+                      <span className="inline-block px-2 py-1 bg-green-500/30 text-green-300 rounded text-xs font-semibold border border-green-500/50">
                         ✓ Completed
                       </span>
                     </td>

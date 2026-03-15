@@ -137,129 +137,258 @@ export default function ProgressDashboard() {
       alignItems: 'flex-end',
       justifyContent: 'space-around',
       height: '200px',
-      padding: '1rem',
-      gap: '0.5rem'
+      padding: '1.5rem',
+      gap: '0.8rem',
+      background: 'linear-gradient(180deg, rgba(168, 85, 247, 0.05), rgba(99, 102, 241, 0.03))',
+      borderRadius: '0.75rem',
+      border: '1px solid rgba(168, 85, 247, 0.1)'
     }}>
-      {scores.map((score, idx) => (
-        <div key={idx} style={{
-          flex: 1,
-          height: `${(score / 100) * 150}px`,
-          background: score >= 75 ? 'rgba(16, 185, 129, 0.6)' : score >= 60 ? 'rgba(245, 158, 11, 0.6)' : 'rgba(239, 68, 68, 0.6)',
-          borderRadius: '0.25rem',
-          transition: 'all 0.3s',
-          cursor: 'pointer',
-          position: 'relative'
-        }} 
-        onMouseOver={(e) => e.target.style.opacity = '0.8'}
-        onMouseOut={(e) => e.target.style.opacity = '1'}
-        title={`Session ${idx + 1}: ${score}`}
-        />
-      ))}
+      {scores.map((score, idx) => {
+        let bgGradient, glowColor;
+        if (score >= 80) {
+          bgGradient = 'linear-gradient(180deg, rgba(168, 85, 247, 0.9), rgba(99, 102, 241, 0.7))';
+          glowColor = '0 0 20px rgba(168, 85, 247, 0.8)';
+        } else if (score >= 70) {
+          bgGradient = 'linear-gradient(180deg, rgba(99, 102, 241, 0.9), rgba(59, 130, 246, 0.7))';
+          glowColor = '0 0 15px rgba(99, 102, 241, 0.7)';
+        } else if (score >= 60) {
+          bgGradient = 'linear-gradient(180deg, rgba(59, 130, 246, 0.8), rgba(6, 182, 212, 0.6))';
+          glowColor = '0 0 12px rgba(59, 130, 246, 0.6)';
+        } else {
+          bgGradient = 'linear-gradient(180deg, rgba(239, 68, 68, 0.8), rgba(236, 72, 153, 0.6))';
+          glowColor = '0 0 10px rgba(239, 68, 68, 0.5)';
+        }
+        
+        return (
+          <div 
+            key={idx} 
+            style={{
+              flex: 1,
+              height: `${(score / 100) * 150}px`,
+              background: bgGradient,
+              borderRadius: '0.5rem',
+              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              cursor: 'pointer',
+              position: 'relative',
+              boxShadow: glowColor,
+              border: '1px solid rgba(255, 255, 255, 0.2)'
+            }} 
+            onMouseOver={(e) => {
+              e.target.style.transform = 'translateY(-8px) scale(1.05)';
+              e.target.style.boxShadow = glowColor.replace('0.8', '1.2').replace('0.7', '1').replace('0.6', '0.9').replace('0.5', '0.8');
+            }}
+            onMouseOut={(e) => {
+              e.target.style.transform = 'translateY(0) scale(1)';
+              e.target.style.boxShadow = glowColor;
+            }}
+            title={`Session ${idx + 1}: ${score}`}
+          >
+            <div style={{
+              position: 'absolute',
+              top: '-1.5rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              color: 'var(--text-secondary)',
+              opacity: 0,
+              transition: 'opacity 0.3s',
+              pointerEvents: 'none'
+            }} className="score-tooltip">
+              {score}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 
-  const ProgressMetric = ({ label, value }) => (
-    <div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        marginBottom: '0.5rem'
-      }}>
-        <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{label}</span>
-        <span style={{ fontWeight: 600, color: 'var(--accent)' }}>{value.toFixed(1)} / 100</span>
-      </div>
-      <div style={{
-        height: '0.5rem',
-        background: 'rgba(44, 154, 255, 0.1)',
-        borderRadius: '0.25rem',
-        overflow: 'hidden'
-      }}>
+  const ProgressMetric = ({ label, value }) => {
+    let bgGradient, glowColor;
+    if (value >= 80) {
+      bgGradient = 'linear-gradient(90deg, rgba(168, 85, 247, 0.9), rgba(99, 102, 241, 0.7))';
+      glowColor = '0 0 20px rgba(168, 85, 247, 0.8), 0 0 40px rgba(99, 102, 241, 0.6)';
+    } else if (value >= 70) {
+      bgGradient = 'linear-gradient(90deg, rgba(99, 102, 241, 0.9), rgba(6, 182, 212, 0.7))';
+      glowColor = '0 0 20px rgba(99, 102, 241, 0.8), 0 0 40px rgba(6, 182, 212, 0.6)';
+    } else if (value >= 60) {
+      bgGradient = 'linear-gradient(90deg, rgba(6, 182, 212, 0.9), rgba(34, 197, 94, 0.7))';
+      glowColor = '0 0 20px rgba(6, 182, 212, 0.8), 0 0 40px rgba(34, 197, 94, 0.6)';
+    } else {
+      bgGradient = 'linear-gradient(90deg, rgba(34, 197, 94, 0.9), rgba(239, 68, 68, 0.7))';
+      glowColor = '0 0 20px rgba(34, 197, 94, 0.8), 0 0 40px rgba(239, 68, 68, 0.6)';
+    }
+
+    return (
+      <div>
         <div style={{
-          height: '100%',
-          width: `${Math.min(value, 100)}%`,
-          background: value >= 75 ? '#10b981' : value >= 60 ? '#f59e0b' : '#ef4444',
-          transition: 'width 0.3s'
-        }} />
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginBottom: '0.5rem'
+        }}>
+          <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{label}</span>
+          <span style={{ fontWeight: 600, color: 'var(--accent)' }}>{value.toFixed(1)} / 100</span>
+        </div>
+        <div style={{
+          height: '0.5rem',
+          background: 'rgba(44, 154, 255, 0.1)',
+          borderRadius: '0.25rem',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${Math.min(value, 100)}%`,
+            background: bgGradient,
+            boxShadow: glowColor,
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: '0.25rem'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.boxShadow = glowColor.replace('0.8', '1.2').replace('0.7', '1').replace('0.6', '0.9');
+            e.currentTarget.style.filter = 'brightness(1.2)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.boxShadow = glowColor;
+            e.currentTarget.style.filter = 'brightness(1)';
+          }}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const SkillBar = ({ label, value, benchmark }) => (
-    <div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '0.5rem'
-      }}>
-        <span style={{ fontSize: '0.95rem', fontWeight: 500 }}>{label}</span>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+  const SkillBar = ({ label, value, benchmark }) => {
+    let bgGradient, glowColor;
+    if (value >= 80) {
+      bgGradient = 'linear-gradient(90deg, rgba(168, 85, 247, 0.9), rgba(99, 102, 241, 0.7))';
+      glowColor = '0 0 20px rgba(168, 85, 247, 0.8), 0 0 40px rgba(99, 102, 241, 0.6)';
+    } else if (value >= 70) {
+      bgGradient = 'linear-gradient(90deg, rgba(99, 102, 241, 0.9), rgba(6, 182, 212, 0.7))';
+      glowColor = '0 0 20px rgba(99, 102, 241, 0.8), 0 0 40px rgba(6, 182, 212, 0.6)';
+    } else if (value >= 60) {
+      bgGradient = 'linear-gradient(90deg, rgba(6, 182, 212, 0.9), rgba(34, 197, 94, 0.7))';
+      glowColor = '0 0 20px rgba(6, 182, 212, 0.8), 0 0 40px rgba(34, 197, 94, 0.6)';
+    } else {
+      bgGradient = 'linear-gradient(90deg, rgba(34, 197, 94, 0.9), rgba(239, 68, 68, 0.7))';
+      glowColor = '0 0 20px rgba(34, 197, 94, 0.8), 0 0 40px rgba(239, 68, 68, 0.6)';
+    }
+
+    return (
+      <div>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '0.5rem'
+        }}>
+          <span style={{ fontSize: '0.95rem', fontWeight: 500 }}>{label}</span>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <span style={{
+              padding: '0.2rem 0.6rem',
+              background: value >= benchmark ? 'rgba(168, 85, 247, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+              color: value >= benchmark ? 'rgba(168, 85, 247, 1)' : 'rgba(239, 68, 68, 1)',
+              borderRadius: '0.25rem',
+              fontSize: '0.8rem',
+              fontWeight: 600
+            }}>
+              {value} / 100
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              vs {benchmark} target
+            </span>
+          </div>
+        </div>
+        <div style={{
+          height: '0.75rem',
+          background: 'rgba(44, 154, 255, 0.1)',
+          borderRadius: '0.375rem',
+          overflow: 'hidden',
+          position: 'relative'
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${Math.min(value, 100)}%`,
+            background: bgGradient,
+            boxShadow: glowColor,
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: '0.375rem'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.boxShadow = glowColor.replace('0.8', '1.2').replace('0.7', '1').replace('0.6', '0.9');
+            e.currentTarget.style.filter = 'brightness(1.2)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.boxShadow = glowColor;
+            e.currentTarget.style.filter = 'brightness(1)';
+          }}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const TopicCoverageBar = ({ topic, coverage }) => {
+    let bgGradient, glowColor;
+    if (coverage >= 80) {
+      bgGradient = 'linear-gradient(90deg, rgba(168, 85, 247, 0.9), rgba(99, 102, 241, 0.7))';
+      glowColor = '0 0 20px rgba(168, 85, 247, 0.8), 0 0 40px rgba(99, 102, 241, 0.6)';
+    } else if (coverage >= 70) {
+      bgGradient = 'linear-gradient(90deg, rgba(99, 102, 241, 0.9), rgba(6, 182, 212, 0.7))';
+      glowColor = '0 0 20px rgba(99, 102, 241, 0.8), 0 0 40px rgba(6, 182, 212, 0.6)';
+    } else if (coverage >= 60) {
+      bgGradient = 'linear-gradient(90deg, rgba(6, 182, 212, 0.9), rgba(34, 197, 94, 0.7))';
+      glowColor = '0 0 20px rgba(6, 182, 212, 0.8), 0 0 40px rgba(34, 197, 94, 0.6)';
+    } else {
+      bgGradient = 'linear-gradient(90deg, rgba(34, 197, 94, 0.9), rgba(239, 68, 68, 0.7))';
+      glowColor = '0 0 20px rgba(34, 197, 94, 0.8), 0 0 40px rgba(239, 68, 68, 0.6)';
+    }
+
+    return (
+      <div>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginBottom: '0.5rem'
+        }}>
+          <span style={{ fontSize: '0.95rem', fontWeight: 500 }}>{topic}</span>
           <span style={{
             padding: '0.2rem 0.6rem',
-            background: value >= benchmark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
-            color: value >= benchmark ? '#10b981' : '#f59e0b',
+            background: coverage >= 75 ? 'rgba(168, 85, 247, 0.2)' : coverage >= 50 ? 'rgba(99, 102, 241, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+            color: coverage >= 75 ? 'rgba(168, 85, 247, 1)' : coverage >= 50 ? 'rgba(99, 102, 241, 1)' : 'rgba(239, 68, 68, 1)',
             borderRadius: '0.25rem',
             fontSize: '0.8rem',
             fontWeight: 600
           }}>
-            {value} / 100
-          </span>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-            vs {benchmark} target
+            {coverage}%
           </span>
         </div>
-      </div>
-      <div style={{
-        height: '0.75rem',
-        background: 'rgba(44, 154, 255, 0.1)',
-        borderRadius: '0.375rem',
-        overflow: 'hidden',
-        position: 'relative'
-      }}>
         <div style={{
-          height: '100%',
-          width: `${Math.min(value, 100)}%`,
-          background: `linear-gradient(90deg, var(--accent), var(--accent-2))`,
-          transition: 'width 0.3s'
-        }} />
-      </div>
-    </div>
-  );
-
-  const TopicCoverageBar = ({ topic, coverage }) => (
-    <div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        marginBottom: '0.5rem'
-      }}>
-        <span style={{ fontSize: '0.95rem', fontWeight: 500 }}>{topic}</span>
-        <span style={{
-          padding: '0.2rem 0.6rem',
-          background: coverage >= 75 ? 'rgba(16, 185, 129, 0.2)' : coverage >= 50 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-          color: coverage >= 75 ? '#10b981' : coverage >= 50 ? '#f59e0b' : '#ef4444',
+          height: '0.6rem',
+          background: 'rgba(44, 154, 255, 0.1)',
           borderRadius: '0.25rem',
-          fontSize: '0.8rem',
-          fontWeight: 600
+          overflow: 'hidden'
         }}>
-          {coverage}%
-        </span>
+          <div style={{
+            height: '100%',
+            width: `${Math.min(coverage, 100)}%`,
+            background: bgGradient,
+            boxShadow: glowColor,
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            borderRadius: '0.25rem'
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.boxShadow = glowColor.replace('0.8', '1.2').replace('0.7', '1').replace('0.6', '0.9');
+            e.currentTarget.style.filter = 'brightness(1.2)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.boxShadow = glowColor;
+            e.currentTarget.style.filter = 'brightness(1)';
+          }}
+          />
+        </div>
       </div>
-      <div style={{
-        height: '0.6rem',
-        background: 'rgba(44, 154, 255, 0.1)',
-        borderRadius: '0.25rem',
-        overflow: 'hidden'
-      }}>
-        <div style={{
-          height: '100%',
-          width: `${Math.min(coverage, 100)}%`,
-          background: coverage >= 75 ? '#10b981' : coverage >= 50 ? '#f59e0b' : '#ef4444',
-          transition: 'width 0.3s'
-        }} />
-      </div>
-    </div>
-  );
+    );
+  };
 
   const StrengthItem = ({ label, score }) => (
     <div style={{
@@ -1197,6 +1326,10 @@ export default function ProgressDashboard() {
         @keyframes slideDown {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
+        }
+        
+        div:hover .score-tooltip {
+          opacity: 1 !important;
         }
       `}</style>
     </div>

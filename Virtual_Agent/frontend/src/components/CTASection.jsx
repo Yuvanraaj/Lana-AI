@@ -48,7 +48,7 @@ export default function CTASection() {
         {/* Trust/Social Proof */}
         <div className="mt-12 text-center">
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '2rem' }}>
-            Used by engineers and students preparing for roles at:
+            Trusted by thousands of people practicing for real engineering interviews.
           </p>
           
           <div style={{
@@ -59,13 +59,11 @@ export default function CTASection() {
             alignItems: 'center'
           }}>
             {[
-              { name: 'Amazon', emoji: '🟠' },
-              { name: 'Google', emoji: '🔵' },
-              { name: 'Microsoft', emoji: '🟦' },
-              { name: 'Meta', emoji: '🔵' },
-              { name: 'Apple', emoji: '🍎' },
-              { name: 'LinkedIn', emoji: '🔵' }
-            ].map((company, idx) => (
+              { label: 'Live mock interviews', icon: '🎤' },
+              { label: 'Recruiter-style scoring', icon: '📊' },
+              { label: 'Actionable feedback', icon: '📝' },
+              { label: '7-day improvement plan', icon: '📅' }
+            ].map((item, idx) => (
               <div
                 key={idx}
                 style={{
@@ -80,7 +78,7 @@ export default function CTASection() {
                   gap: '0.5rem'
                 }}
               >
-                <span>{company.emoji}</span> {company.name}
+                <span>{item.icon}</span> {item.label}
               </div>
             ))}
           </div>

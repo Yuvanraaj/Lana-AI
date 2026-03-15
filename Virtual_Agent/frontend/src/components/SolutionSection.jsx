@@ -44,15 +44,15 @@ export default function SolutionSection() {
     <section id="solution" className="py-16 lg:py-24" style={{ background: 'var(--bg-primary)' }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
-            <span style={{ fontSize: '0.875rem', color: '#10b981', fontWeight: 500 }}>The Complete Solution</span>
+          <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }} />
+            <span style={{ fontSize: '0.875rem', color: '#ef4444', fontWeight: 500 }}>The Complete Solution</span>
           </div>
           
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
             Everything You Need to Land Your Next Role
           </h2>
-          <div style={{ height: 6, width: 120, margin: '1.5rem auto 0', borderRadius: 4, background: 'linear-gradient(90deg, #10b981, #34d399)' }} />
+          <div style={{ height: 6, width: 120, margin: '1.5rem auto 0', borderRadius: 4, background: 'linear-gradient(90deg, #ef4444, #f87171)' }} />
           
           <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', maxWidth: '650px', margin: '1.5rem auto 0' }}>
             All-in-one interview prep: realistic practice + professional scoring + actionable feedback + improvement planning.
@@ -65,8 +65,8 @@ export default function SolutionSection() {
               key={index}
               className="rounded-xl p-6 transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
               style={{
-                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(52, 211, 153, 0.04))',
-                border: '1px solid rgba(16, 185, 129, 0.2)',
+                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(248, 113, 113, 0.04))',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
               }}
             >
               <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
@@ -84,10 +84,10 @@ export default function SolutionSection() {
               <div style={{
                 padding: '0.6rem 0.8rem',
                 borderRadius: '0.375rem',
-                background: 'rgba(16, 185, 129, 0.1)',
-                borderLeft: '3px solid #10b981',
+                background: 'rgba(239, 68, 68, 0.1)',
+                borderLeft: '3px solid #ef4444',
                 fontSize: '0.85rem',
-                color: '#10b981',
+                color: '#ef4444',
                 fontWeight: 500
               }}>
                 ✓ {feature.benefit}

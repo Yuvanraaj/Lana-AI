@@ -346,7 +346,7 @@ export default function Login() {
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    placeholder="e.g., ajith_kumar"
+                    placeholder="Enter the username"
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -458,21 +458,6 @@ export default function Login() {
                   </div>
                 )}
 
-                {/* SUCCESS MESSAGE */}
-                {success && (
-                  <div style={{
-                    padding: '0.75rem',
-                    background: 'rgba(16, 185, 129, 0.15)',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
-                    borderRadius: '0.5rem',
-                    color: '#a7f3d0',
-                    fontSize: '0.9rem',
-                    marginBottom: '1rem'
-                  }}>
-                    ✓ {success}
-                  </div>
-                )}
-
                 {/* SIGN IN BUTTON */}
                 <button
                   type="submit"
@@ -499,6 +484,27 @@ export default function Login() {
                     '🔓 Sign In'
                   )}
                 </button>
+
+                {/* SUCCESS MESSAGE */}
+                {success && (
+                  <div style={{
+                    padding: '1rem',
+                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(99, 102, 241, 0.1))',
+                    border: '1px solid rgba(168, 85, 247, 0.4)',
+                    borderRadius: '0.75rem',
+                    color: '#d8b4fe',
+                    fontSize: '0.95rem',
+                    marginTop: '1rem',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    animation: 'fadeIn 0.3s ease-in-out'
+                  }}>
+                    <span style={{ fontSize: '1.2rem' }}>✓</span>
+                    <span>{success}</span>
+                  </div>
+                )}
               </form>
 
               {/* LINKS & ALTERNATIVES */}
@@ -593,7 +599,7 @@ export default function Login() {
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g., Ajith Kumar"
+                    placeholder="Enter your full name"
                     style={{
                       width: '100%',
                       padding: '0.75rem',
@@ -664,7 +670,7 @@ export default function Login() {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="e.g., ajith_kumar"
+                      placeholder="Enter the username"
                       style={{
                         width: '100%',
                         padding: '0.75rem',
@@ -842,21 +848,6 @@ export default function Login() {
                   </div>
                 )}
 
-                {/* SUCCESS */}
-                {success && (
-                  <div style={{
-                    padding: '0.75rem',
-                    background: 'rgba(16, 185, 129, 0.15)',
-                    border: '1px solid rgba(16, 185, 129, 0.3)',
-                    borderRadius: '0.5rem',
-                    color: '#a7f3d0',
-                    fontSize: '0.9rem',
-                    marginBottom: '1rem'
-                  }}>
-                    ✓ {success}
-                  </div>
-                )}
-
                 {/* CREATE ACCOUNT BUTTON */}
                 <button
                   type="submit"
@@ -883,6 +874,27 @@ export default function Login() {
                     '✨ Create Account'
                   )}
                 </button>
+
+                {/* SUCCESS MESSAGE */}
+                {success && (
+                  <div style={{
+                    padding: '1rem',
+                    background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(99, 102, 241, 0.1))',
+                    border: '1px solid rgba(168, 85, 247, 0.4)',
+                    borderRadius: '0.75rem',
+                    color: '#d8b4fe',
+                    fontSize: '0.95rem',
+                    marginTop: '1rem',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    animation: 'fadeIn 0.3s ease-in-out'
+                  }}>
+                    <span style={{ fontSize: '1.2rem' }}>✓</span>
+                    <span>{success}</span>
+                  </div>
+                )}
               </form>
 
               {/* BACK TO LOGIN */}
@@ -957,32 +969,7 @@ export default function Login() {
             </p>
           </div>
 
-          {/* BENEFITS SECTION */}
-          <div style={{
-            marginTop: '3rem',
-            padding: '1.5rem',
-            background: 'rgba(44, 154, 255, 0.1)',
-            borderRadius: '1rem',
-            border: '1px solid rgba(44, 154, 255, 0.2)'
-          }}>
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-primary)' }}>
-              📊 Why sign in?
-            </h3>
-            <ul style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-              fontSize: '0.85rem',
-              color: 'var(--text-secondary)',
-              listStyle: 'none',
-              padding: 0
-            }}>
-              <li>✓ <strong>Keep your data.</strong> Your password is securely hashed before storage.</li>
-              <li>✓ <strong>Track progress.</strong> Full history of all interviews and sessions across devices.</li>
-              <li>✓ <strong>Get insights.</strong> Personalized analytics and trend analysis over time.</li>
-              <li>✓ <strong>Sync anywhere.</strong> Access your interview prep from any device, anytime.</li>
-            </ul>
-          </div>
+
         </div>
       </div>
 
