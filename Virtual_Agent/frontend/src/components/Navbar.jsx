@@ -60,20 +60,23 @@ export default function Navbar() {
                     border: '1px solid rgba(44, 154, 255, 0.2)',
                   }}
                 >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" style={{
-                    background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
-                    color: 'white'
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-extrabold shadow rockstar-avatar" style={{
+                    background: 'radial-gradient(circle at 70% 30%, #fde68a 60%, #fbbf24 100%)',
+                    color: '#3b2f13',
+                    border: '2px solid #fbbf24',
+                    boxShadow: '0 0 6px 2px #fbbf24',
+                    position: 'relative',
+                    overflow: 'hidden'
                   }}>
-                    {userName ? userName.charAt(0).toUpperCase() : '👤'}
+                    <span style={{ position: 'absolute', left: 2, top: 2, fontSize: '1.1rem', opacity: 0.7, filter: 'drop-shadow(0 0 1px #fff)' }}>🎸</span>
+                    <span style={{ zIndex: 2, fontWeight: 900, letterSpacing: 1 }}>{userName ? userName.charAt(0).toUpperCase() : 'R'}</span>
                   </div>
                   <div className="hidden sm:flex flex-col text-left">
                     <span style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
                       {userName || 'User'}
                     </span>
                   </div>
-                  <svg className={`w-4 h-4 transition-transform duration-300`} style={{ color: 'var(--accent)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                  </svg>
+                  {/* Arrow removed as requested */}
                 </button>
 
                 {/* Dropdown Menu */}
