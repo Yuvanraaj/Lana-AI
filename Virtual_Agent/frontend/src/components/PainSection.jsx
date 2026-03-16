@@ -3,102 +3,68 @@ import React from 'react';
 export default function PainSection() {
   const painPoints = [
     {
-      icon: '😰',
+      icon: '�',
       title: 'Interview Anxiety Without Real Feedback',
-      description: 'You practice alone. You think you sound good. Then real interviewers say your answers lacked structure or technical depth. You\'re back to square one.',
-      iconColor: 'text-red-500',
-      impact: 'Result: Lost offers. Wasted months.'
+      subtitle: 'You think you sound good, but interviews say otherwise.',
+      description: 'You rehearse answers alone, then get told your responses lacked structure or depth. It feels like starting over every single time.'
     },
     {
       icon: '🎲',
-      title: 'Guessing What "Good" Looks Like',
-      description: "LeetCode covers algorithms. YouTube covers concepts. But nobody tells you: am I communicating well? Do I follow STAR format? Am I hitting the company's keywords?",
-      iconColor: 'text-yellow-500',
-      impact: 'Result: Inconsistent performance. No clear improvement path.'
+      title: 'No One Tells You What "Good" Looks Like',
+      subtitle: 'You follow tutorials, but not the scorecard.',
+      description: 'Algorithms and concepts are only half the story — interviewers care about communication, frameworks, and demonstrating impact.'
     },
     {
-      icon: '⏸️',
-      title: 'Slow Feedback Loop',
-      description: 'Real interviews are 1-2 per month. Mock interviews with humans cost $50+ each. By the time you know what to fix, weeks have passed.',
-      iconColor: 'text-blue-500',
-      impact: 'Result: Slow iteration. Interview window closes.'
+      icon: '⏱️',
+      title: 'Slow Feedback = Stagnant Growth',
+      subtitle: 'Weeks pass before you know what to improve.',
+      description: 'Mock interviews are expensive and infrequent. By the time feedback arrives, the window has already closed.'
     }
   ];
 
   return (
-    <section id="pain" className="py-16 lg:py-24" style={{ background: 'var(--bg-secondary)' }}>
+    <section id="pain" className="py-20 lg:py-28" style={{ background: 'var(--bg-secondary)' }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold" style={{ color: 'var(--text-primary)' }}>
             The Struggle Is Real
           </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '650px', margin: '1rem auto 0' }}>
-            Here's what you're probably experiencing right now:
+          <p className="mt-6 mx-auto max-w-2xl text-lg sm:text-xl" style={{ color: 'var(--text-secondary)' }}>
+            Most candidates miss out not because of lack of skill, but because of hidden habits and blind spots. Uncover yours and unlock your true potential.
           </p>
-          <div style={{ height: 6, width: 120, margin: '1.5rem auto 0', borderRadius: 4, background: 'linear-gradient(90deg, var(--accent), var(--accent-2))' }} />
+          <div className="mt-8 flex items-center justify-center">
+            <div style={{ height: '4px', width: '96px', borderRadius: '2px', background: 'linear-gradient(90deg, var(--accent), #8b5cf6, #ec4899)' }} />
+          </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid gap-8 lg:grid-cols-3">
           {painPoints.map((point, index) => (
-            <div 
+            <article
               key={index}
-              className="rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02]"
+              className="relative overflow-hidden rounded-3xl border border-white/10 p-8 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,0,0,0.08), rgba(255,100,100,0.04))',
-                border: '1px solid rgba(255,100,100,0.15)',
-                padding: '1.5rem'
+                background: 'linear-gradient(135deg, #1e3a8a 0%, #6366f1 50%, #7c3aed 100%)'
               }}
             >
-              <div className="mb-4 flex items-center justify-between">
-                <div style={{ fontSize: '2.5rem' }}>{point.icon}</div>
-                <div style={{
-                  fontSize: '0.7rem',
-                  fontWeight: 600,
-                  color: 'white',
-                  background: 'rgba(239, 68, 68, 0.8)',
-                  padding: '0.3rem 0.6rem',
-                  borderRadius: '0.25rem'
-                }}>
-                  THE PAIN
+              <div className="relative z-10 flex items-start gap-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 shadow-sm flex-shrink-0">
+                  <span style={{ fontSize: '1.8rem' }}>{point.icon}</span>
+                </div>
+                <div className="text-left">
+                  <h3 className="text-xl font-semibold" style={{ color: 'white' }}>
+                    {point.title}
+                  </h3>
+                  <p className="mt-1 text-sm font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                    {point.subtitle}
+                  </p>
                 </div>
               </div>
-              
-              <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-                {point.title}
-              </h3>
-              
-              <p className="leading-relaxed mb-4" style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+
+              <p className="mt-6 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.8)' }}>
                 {point.description}
               </p>
-
-              <div style={{
-                padding: '0.75rem 1rem',
-                borderRadius: '0.5rem',
-                background: 'rgba(239, 68, 68, 0.1)',
-                borderLeft: '3px solid rgba(239, 68, 68, 0.5)',
-                color: 'var(--text-secondary)',
-                fontSize: '0.85rem',
-                fontWeight: 500,
-                lineHeight: '1.5'
-              }}>
-                {point.impact}
-              </div>
-            </div>
+            </article>
           ))}
-        </div>
-
-        {/* Bridge statement */}
-        <div style={{
-          marginTop: '4rem',
-          padding: '2rem',
-          borderRadius: '1rem',
-          background: 'linear-gradient(135deg, rgba(44, 154, 255, 0.1), rgba(0, 224, 255, 0.05))',
-          border: '2px solid var(--accent)',
-          textAlign: 'center'
-        }}>
-          <p style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 600 }}>
-            Imagine getting instant, actionable feedback that mirrors what real hiring teams look for.
-          </p>
         </div>
       </div>
     </section>

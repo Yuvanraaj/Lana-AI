@@ -56,14 +56,9 @@ export default function HeroSection() {
 
       <div className="relative w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-center text-center gap-6">
-          <p className="text-sm font-semibold tracking-wide" style={{ color: 'rgba(255,255,255,0.75)' }}>
-            One click away from interview confidence
-          </p>
-
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-tight" style={{ color: 'var(--text-primary)' }}>
-            Ace Your Interview in <span style={{ color: 'var(--accent)' }}>Minutes</span>,
-            <br />
-            <span style={{ color: 'var(--accent-2)' }}>Not Months</span>
+            Ace Your Interview in <span style={{ color: 'var(--accent)' }}>Minutes</span>,<br />
+            <span style={{ color: 'var(--accent)' }}>Not Months</span>
           </h1>
 
           <p className="max-w-3xl text-lg sm:text-xl" style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
@@ -75,11 +70,11 @@ export default function HeroSection() {
               onClick={handleStart}
               className="glow-btn"
               style={{
-                padding: '18px 36px',
-                borderRadius: '999px',
+                padding: '16px 32px',
+                borderRadius: '50px',
                 background: 'linear-gradient(90deg, var(--accent), var(--accent-2))',
                 color: 'white',
-                fontSize: '1.05rem',
+                fontSize: '1rem',
                 fontWeight: 700
               }}
             >
@@ -99,15 +94,20 @@ export default function HeroSection() {
             </button>
           </div>
 
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl">
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-4xl">
             {[
               { value: '8 min', label: 'Complete interview with feedback' },
               { value: '32% avg', label: 'Score improvement (1st to 2nd)' },
               { value: '200+', label: 'Dynamically generated questions' }
             ].map((item) => (
-              <div key={item.label} className="stat-card">
-                <div className="counter" style={{ fontSize: '2rem' }}>{item.value}</div>
-                <p className="mt-2" style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+              <div key={item.label} style={{
+                padding: '1.5rem',
+                border: '1px solid rgba(0, 212, 255, 0.2)',
+                borderRadius: '1rem',
+                background: 'rgba(0, 212, 255, 0.05)'
+              }}>
+                <div style={{ fontSize: '2rem', fontWeight: 700, color: 'white' }}>{item.value}</div>
+                <p className="mt-2" style={{ color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.95rem' }}>
                   {item.label}
                 </p>
               </div>

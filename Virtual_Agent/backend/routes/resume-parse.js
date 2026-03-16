@@ -22,68 +22,6 @@ try {
   pdfParse = null;
 }
 
-/* --------------------------- 🧠 Local Heuristic Analyzer -------------------------- */
-async function analyzeLocally(sampleText) {
-  const text = (sampleText || '').replace(/\r/g, ' ').replace(/\n+/g, ' ').trim();
-  const lc = text.toLowerCase();
-
-  // Basic Info
-  const email = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0] || null;
-  const phone = text.match(/(\+\d{1,3}[\s-]?)?(\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4})/)?.[0] || null;
-
-  // Skills extraction
-  const skillsList = [
-    'python','javascript','java','c++','c#','sql','mongodb','postgres','mysql',
-    'docker','kubernetes','aws','azure','gcp','react','vue','angular','node','express',
-    'typescript','graphql','rest api','html','css','tailwind','tensorflow','pytorch',
-    'machine learning','data science','nlp','spark','hadoop','git','linux','bash','jenkins','terraform'
-  ];
-  const foundSkills = {};
-  skillsList.forEach(s => {
-    const re = new RegExp(`\\b${s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')}\\b`, 'i');
-    if (re.test(lc)) foundSkills[s] = (foundSkills[s] || 0) + 1;
-  });
-  const topSkills = Object.keys(foundSkills).sort((a, b) => foundSkills[b] - foundSkills[a]).slice(0, 12);
-
-  const years = parseInt(lc.match(/(\d{1,2})\+?\s+(years|yrs)/)?.[1] || '0', 10);
-  const projectsCount = (lc.match(/project(s)?/g) || []).length;
-
-  const strengths = [
-    ...topSkills.slice(0, 6).map(s => `Experienced with ${s}`),
-    ...(years >= 3 ? [`${years}+ years of experience`] : []),
-    ...(projectsCount ? [`${projectsCount} projects mentioned`] : [])
-  ];
-
-  const weaknesses = [];
-  if (!topSkills.length) weaknesses.push('Few technical skills detected');
-  if (!projectsCount) weaknesses.push('No explicit projects described');
-  if (!years) weaknesses.push('Years of experience unclear');
-
-  const suggestions = [];
-  if (!projectsCount) suggestions.push('Add project details with measurable outcomes.');
-  if (!topSkills.includes('aws') && !topSkills.includes('azure') && !topSkills.includes('gcp'))
-    suggestions.push('Upskill in cloud platforms (AWS/Azure/GCP).');
-
-  const score = Math.max(20, Math.min(95, 50 + topSkills.length * 3 + Math.min(20, projectsCount * 3) + Math.min(10, years)));
-
-  return {
-    name: null,
-    email,
-    phone,
-    education: [],
-    experience: [],
-    skills: topSkills,
-    projects: [],
-    strengths,
-    weaknesses,
-    suggestions,
-    score,
-    overall_feedback: strengths.length
-      ? `Candidate shows strengths in ${strengths.slice(0, 3).join(', ')}.`
-      : 'Candidate should add measurable achievements and skills.'
-  };
-}
-
 /* ------------------------- 🖼️ PDF OCR Conversion Helper -------------------------- */
 function pdfToPngs(pdfPath, numPages = 5) {
   const outDir = path.join(path.dirname(pdfPath), `pdf_images_${Date.now()}`);
@@ -156,8 +94,7 @@ router.post('/', upload.single('resume'), async (req, res) => {
     }
 
     if (!text || text.length < 50) {
-      const fallback = await analyzeLocally(text);
-      return res.json({ success: true, feedback: fallback, fallback: true, message: 'Could not extract usable text. Returned local heuristic result.' });
+      return res.status(400).json({ error: 'Could not extract usable text from resume. Please ensure the file is valid and contains readable content.' });
     }
 
     // Use OpenAI SDK to produce a strict JSON analysis following the schema.
@@ -184,17 +121,50 @@ Carefully read the full resume text provided and return ONLY a valid JSON object
   "recommended_roles": [ "string" ]
 }
 
-Guidelines:
+SCORING GUIDELINES (Score 0-100):
+- Score 90-100: Exceptional resume with clear career progression, 5+ years experience, technical depth, quantified achievements, strong education, multiple projects. No gaps.
+- Score 80-89: Strong resume with 3-5 years experience, good technical skills (5+ listed), multiple achievements with metrics, relevant education, 1-2 projects. Minor gaps.
+- Score 70-79: Solid resume with 1-3 years experience OR 5+ years with limited technical depth. 3-4 key skills, some quantified results, relevant background, basic structure.
+- Score 60-69: Fair resume with vague experience description, limited technical skills (2-3), missing metrics/impact data, basic education, inconsistent formatting.
+- Score 50-59: Weak resume with <1 year experience OR minimal skills mentioned, very few achievements, missing date ranges or company info, gaps not explained.
+- Score 0-49: Very weak resume with almost no content, unverifiable information, critical red flags, or extremely sparse data.
+
+REALISTIC SCORING FACTORS:
+- +15 pts: 5+ years demonstrated experience
+- +10 pts: 3-5 years demonstrated experience
+- +5 pts: <2 years or entry-level with projects
+- +15 pts: 6+ technical skills clearly listed and relevant
+- +10 pts: 4-5 technical skills mentioned
+- +5 pts: 2-3 technical skills mentioned
+- +20 pts: Multiple achievements quantified with metrics (%, $, time, users, etc.)
+- +12 pts: Some achievements quantified
+- +5 pts: Achievements listed but not quantified
+- +10 pts: Advanced degree (MS/MBA) or strong certifications
+- +5 pts: Bachelor's degree or basic certifications
+- +8 pts: 2+ notable projects with technologies listed
+- +5 pts: 1 project mentioned
+- +5 pts: Clean formatting, no spelling errors
+- -10 pts: Spelling/grammar errors
+- -15 pts: Unexplained employment gaps
+- -10 pts: No contact info or email
+- -5 pts: Weak or irrelevant summary
+
+REALISTIC SCORING COMPARISON:
+- A fresh graduate with internship: 25-35
+- Junior dev (1-2 yrs) with basic skills: 40-55
+- Mid-level dev (3-4 yrs) with good portfolio: 60-75
+- Senior dev (5+ yrs) strong background: 75-90
+- Principal/Lead (10+ yrs) multi-company: 85-100
+
+OTHER FIELDS:
 - "strengths": List 4-6 specific, evidence-based strengths from the resume (e.g., "5+ years of hands-on Python development across 3 companies").
 - "weaknesses": List 3-5 honest gaps or red flags (e.g., "No quantified achievements — metrics like % improvement or $ impact are absent").
-- "suggestions": List 4-6 actionable, specific improvements the candidate can make right now (e.g., "Add a summary section targeting your desired role", "Quantify at least 3 bullet points per job with metrics").
-- "score": Rate the resume from 0-100 based on completeness, impact, ATS-friendliness, clarity, and role-fit. Be realistic, not generous.
-- "overall_feedback": Write 3-4 sentences summarizing the candidate's profile, their readiness, and what would make this resume stand out.
-- "ats_keywords": Extract the most important technical and domain keywords for ATS optimization.
-- "career_level": Assess the seniority level based on total experience.
-- "recommended_roles": Suggest 3-5 job titles this candidate should be applying for.
+- "suggestions": List 4-6 actionable, specific improvements (e.g., "Add a summary section targeting your desired role", "Quantify at least 3 bullet points per job").
+- "overall_feedback": Write 3-4 sentences with specific, realistic assessment.
+- "career_level": Assess seniority based on total experience and scope.
+- "recommended_roles": 3-5 specific job titles matching their actual skills/experience.
 If data is missing, use null or [].
-`;
+CRITICAL: Score must vary significantly based on actual resume content. Do NOT give all resumes the same score.`;
 
     try {
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -202,9 +172,9 @@ If data is missing, use null or [].
         model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Please analyze this resume thoroughly and return the JSON assessment:\n\n${text}` }
+          { role: 'user', content: `Please analyze this resume thoroughly and return the JSON assessment with a realistic, differentiated score based on the content:\n\n${text}` }
         ],
-        temperature: 0.2,
+        temperature: 0.3,
         max_tokens: 2000
       });
 
@@ -228,9 +198,8 @@ If data is missing, use null or [].
       }
 
       if (!parsed) {
-        console.warn('[PARSE] OpenAI returned non-JSON output; falling back to local heuristic');
-        const fallback = await analyzeLocally(text);
-        return res.json({ success: true, feedback: fallback, fallback: true, message: 'Failed to parse OpenAI JSON. Fallback used.' });
+        console.error('[PARSE] OpenAI returned non-JSON output');
+        return res.status(500).json({ error: 'Failed to parse resume analysis. Please try again.' });
       }
 
       const normalized = {
@@ -254,13 +223,12 @@ If data is missing, use null or [].
       return res.json({ success: true, feedback: normalized, fallback: false });
     } catch (err) {
       console.error('OpenAI parser error:', err.message || err);
-      const fallback = await analyzeLocally(text);
-      return res.json({ success: true, feedback: fallback, fallback: true, message: 'OpenAI failed — local fallback used.' });
+      res.status(500).json({ error: 'Failed to analyze resume with OpenAI', details: err.message });
+      return;
     }
   } catch (err) {
     console.error('Parser error:', err);
-    const fallback = await analyzeLocally('');
-    res.status(500).json({ error: 'Server error', details: err.message, fallback });
+    res.status(500).json({ error: 'Server error processing resume', details: err.message });
   } finally {
     try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch {}
     for (const d of tempDirs) { try { fs.rmSync(d, { recursive: true, force: true }); } catch {} }

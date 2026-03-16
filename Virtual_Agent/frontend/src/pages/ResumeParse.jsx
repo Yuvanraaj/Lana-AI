@@ -666,41 +666,6 @@ export default function ResumeParse() {
                       <span style={{ color: '#f59e0b', flexShrink: 0, fontWeight: 600 }}>•</span>
                       <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{w}</span>
                     </div>
-                    {/* CONCRETE EXAMPLE - BASED ON CONTENT */}
-                    {i === 0 && (
-                      <div style={{
-                        padding: '0.75rem',
-                        background: 'rgba(255,255,255,0.05)',
-                        borderRadius: '0.5rem',
-                        marginBottom: '0.75rem',
-                        fontSize: '0.9rem',
-                        color: 'var(--text-secondary)',
-                        fontFamily: 'monospace',
-                        borderLeft: '3px solid var(--accent)'
-                      }}>
-                        <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>Example improvement:</div>
-                        <div>"Improved Q&A response latency by 30% by optimizing Spring Boot services and database indices, reducing backend load from 85% to 45%."</div>
-                      </div>
-                    )}
-                    <button
-                      onClick={() => copyToClipboard(
-                        i === 0 ? "Improved Q&A response latency by 30% by optimizing Spring Boot services and database indices, reducing backend load from 85% to 45%."
-                              : "Check the suggested improvements above"
-                      )}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: 'rgba(44, 154, 255, 0.1)',
-                        border: '1px solid rgba(44, 154, 255, 0.2)',
-                        borderRadius: '0.375rem',
-                        color: 'var(--accent)',
-                        fontWeight: 500,
-                        fontSize: '0.8rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s'
-                      }}
-                    >
-                      📋 Copy sample
-                    </button>
                   </div>
                 ))}
 
@@ -878,9 +843,9 @@ export default function ResumeParse() {
               </div>
             </CollapsibleSection>
 
-            {/* RESUME DATA - READ ONLY */}
+            {/* RESUME DATA */}
             <CollapsibleSection
-              title="Your Resume Data (Read-only)"
+              title="Your Resume Data"
               icon="📂"
               isExpanded={expandedSections.data}
               onToggle={() => toggleSection('data')}

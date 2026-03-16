@@ -1,34 +1,43 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { API_BASE_URL } from '../config';
 
-function AnamAvatar({ onStatusChange, onInterviewEnd, role: interviewRole, sessionId }) {
+const AnamAvatar = forwardRef(function AnamAvatar({ onStatusChange, onInterviewEnd, role: interviewRole, sessionId }, ref) {
   // Use API_BASE_URL from config, which is properly set for dev and production
   const backendBase = API_BASE_URL;
 
+  // Get the role label and custom JD from localStorage (set by SelectMode)
+  const roleLabel = localStorage.getItem('selectedRoleLabel') || 'SDE-1 Product';
+  const customJD = localStorage.getItem('selectedJD') || '';
+  const isCustomRole = roleLabel === 'Custom Role' && customJD;
+  
+  // Build the role description section of the prompt
+  const roleDescriptionSection = isCustomRole 
+    ? `CANDIDATE TARGET ROLE (CUSTOM - PRE-SELECTED):
+The candidate has selected a CUSTOM role with the following description:
+"${customJD}"
+
+In the OPENING, you MUST read back this custom role description to confirm with the candidate that you understand their target role correctly.`
+    : `CANDIDATE TARGET ROLE (PRE-SELECTED):
+The candidate has already selected their target role: ${roleLabel}
+Do NOT ask them to select a role - it is already set. Proceed with the interview for ${roleLabel}.`;
+  
   // Role configuration for avatar - must be defined before fetchSessionToken uses it
   const role = 'interviewer';
   const prompt = `You are Anam, an AI technical interviewer for software roles.
 
-OPENING:
-First, greet the candidate professionally and ask them to confirm their target role from these options:
-- SDE-1 Backend
-- SDE-1 Frontend  
-- SDE-1 Fullstack
-- SDE-1 Product
-- DevOps Engineer
-- Data Engineer
-- Custom (if they have another role in mind, ask them to briefly describe it)
+${roleDescriptionSection}
 
-If they choose "Custom", ask them to describe the role in 2-3 sentences.
+OPENING:
+Greet the candidate professionally and ask them to confirm their name. Then ${isCustomRole ? 'read back the custom role description to confirm you understand their target role correctly, and ask for confirmation.' : 'briefly acknowledge their selected role and begin the interview immediately.'} 
 
 INTERVIEW FLOW:
 1. Collect candidate information:
-   - Ask for their name
-   - Ask for years of experience
-   - Confirm the target role they chose
+   - Ask for and confirm their name
+   - ${isCustomRole ? 'Read back and confirm the custom role description with them' : `Ask for their years of experience in the field related to ${roleLabel}`}
+   - Ask for their years of experience relevant to their target role
    
-2. Conduct a structured technical interview:
-   - Ask 3-5 technical questions specific to their chosen role
+2. Conduct a structured technical interview ${isCustomRole ? 'based on the custom role description' : `for ${roleLabel}`}:
+   - Ask 3-5 technical questions specific to the role
    - Ask 1-2 behavioral questions using STAR format (Situation, Task, Action, Result)
    - Ask ONE question at a time
    - Wait for their complete answer before proceeding
@@ -37,29 +46,44 @@ INTERVIEW FLOW:
 3. Maintain professional interview tone:
    - Be supportive and constructive
    - If answers are unclear, ask one brief clarifying follow-up
-   - Keep all questions strictly relevant to their confirmed target role
+   - Keep all questions strictly relevant to the role domain
    - Never discuss topics unrelated to the interview
    - Total duration should be 30-40 minutes
 
+SESSION ENDING:
+When the candidate indicates they want to end the session (e.g., "I'm done", "End interview", "Stop"), you MUST:
+1. IMMEDIATELY stop asking any questions
+2. Thank them for their time and responses
+3. Provide HONEST and DETAILED verbal feedback on their interview performance:
+   - Mention their ACTUAL strengths clearly
+   - Mention specific WEAKNESSES and areas needing improvement
+   - Be direct, professional, and constructive (not just positive)
+   - Do NOT sugarcoat - give real feedback they can act on
+   - Total feedback should be 3-4 sentences covering both strengths AND weaknesses
+4. Wish them well with a professional and warm closing greeting
+5. Then output the JSON result with no additional text
+
+Example closing (HONEST VERSION): "Thank you for this interview. You demonstrated strong communication skills and solid problem-solving approach. However, I noticed your technical depth could be stronger - you struggled with the advanced concepts and system design questions. I recommend deepening your technical foundation and practicing more complex problems. Best of luck with your preparation!"
+
 EVALUATION AND JSON RESULT:
-When you have asked all questions OR the candidate indicates they are done, you MUST return ONLY a valid JSON object with NO extra text before or after:
+When the candidate indicates they are done OR after providing session-ending feedback, you MUST return ONLY a valid JSON object with NO extra text before or after:
 
 {
   "candidate_name": "<string>",
-  "target_role": "<string>",
+  "target_role": "${isCustomRole ? customJD : roleLabel}",
   "duration_minutes": <number>,
   "overall_rating": "<one of: Poor | Average | Good | Very Good | Excellent>",
   "overall_score": <number from 0 to 100>,
-  "summary": "<2-4 sentence high-level summary of performance>",
+  "summary": "<HONEST 2-4 sentence detailed summary: include BOTH strengths AND significant weaknesses. Be specific and direct. Do NOT sugarcoat.>",
   "strengths": [
-    "<bullet point 1>",
-    "<bullet point 2>",
-    "<bullet point 3>"
+    "<actual strength demonstrated>",
+    "<actual strength demonstrated>",
+    "<actual strength demonstrated>"
   ],
   "areas_of_improvement": [
-    "<bullet point 1>",
-    "<bullet point 2>",
-    "<bullet point 3>"
+    "<specific weakness or area needing work>",
+    "<specific weakness or area needing work>",
+    "<specific weakness or area needing work>"
   ],
   "recommendation": "<one of: Strong Hire | Hire | Borderline | No Hire>"
 }
@@ -112,6 +136,71 @@ CRITICAL JSON RULES:
 
   // Store for transcript monitoring cleanup
   let transcriptCheckInterval = null;
+
+  // Store to track if result has been received
+  const resultReceivedRef = useRef(false);
+  const storedResultRef = useRef(null);
+  const interviewEndedRef = useRef(false);
+
+  // Expose endInterview and speakFeedback methods to parent component
+  useImperativeHandle(ref, () => ({
+    endInterview: async () => {
+      console.log('📞 Ending interview...');
+      const client = clientRef.current;
+      if (client && typeof client.speak === 'function') {
+        try {
+          // Send signal to Anam to end the interview
+          await client.speak('I want to end the interview now.');
+          console.log('✅ End interview signal sent to Anam');
+          
+          // Wait for result to be captured (up to 10 seconds)
+          let waitCount = 0;
+          while (waitCount < 20 && !resultReceivedRef.current) {
+            await new Promise(r => setTimeout(r, 500));
+            waitCount++;
+          }
+          
+          if (resultReceivedRef.current) {
+            console.log('✅ Interview result captured successfully');
+          } else {
+            console.warn('⚠️ Timeout waiting for interview result');
+          }
+        } catch (err) {
+          console.warn('⚠️ Failed to end interview:', err);
+        }
+      }
+    },
+    
+    speakFeedback: async (feedbackSummary) => {
+      console.log('🗣️ Speaking feedback...');
+      const client = clientRef.current;
+      if (client && typeof client.speak === 'function' && feedbackSummary) {
+        try {
+          // Build spoken feedback from the summary
+          const feedback = `
+Thank you for completing the interview. Here is your detailed feedback:
+
+Your overall score is ${feedbackSummary.overallScore} out of 100, rated as ${feedbackSummary.rating}.
+
+${feedbackSummary.summary}
+
+Your main strengths are: ${feedbackSummary.strengths?.join(', ') || 'Good performance'}.
+
+Areas to focus on for improvement: ${feedbackSummary.improvements?.join(', ') || 'Continue practicing'}.
+
+My recommendation: ${feedbackSummary.recommendation}.
+
+Keep practicing and best of luck with your interview preparation!
+          `.trim();
+          
+          await client.speak(feedback);
+          console.log('✅ Spoke feedback to candidate');
+        } catch (err) {
+          console.warn('⚠️ Failed to speak feedback:', err);
+        }
+      }
+    }
+  }), []);
 
   // Set desired role for the Anam persona. Stored in localStorage and used when
   // requesting an engine session from the backend. Exposed as window.__anamSetRole
@@ -400,30 +489,129 @@ CRITICAL JSON RULES:
           // Set up transcript monitoring to detect JSON interview result
           const checkForInterviewResult = () => {
             try {
-              // Try to access transcript from various SDK properties
+              // Try multiple methods to get Anam's transcript/response
               const client = clientRef.current;
               let transcript = '';
               
+              // Check if user said "End Interview" in transcript
               if (client?.getTranscript && typeof client.getTranscript === 'function') {
-                transcript = client.getTranscript();
-              } else if (client?.transcript) {
+                try {
+                  transcript = client.getTranscript() || '';
+                } catch (e) { /* ignore */ }
+              }
+              if (!transcript && client?.transcript) {
+                transcript = client.transcript || '';
+              }
+              if (!transcript && window.__anam_transcript) {
+                transcript = window.__anam_transcript || '';
+              }
+              
+              // Check if user said "End Interview" or similar phrases
+              const endPhrases = [
+                'end interview',
+                'end the interview', 
+                'end session',
+                'stop interview',
+                'i want to end',
+                'finish interview'
+              ];
+              
+              const lowerTranscript = transcript.toLowerCase();
+              const userSaidEnd = endPhrases.some(phrase => lowerTranscript.includes(phrase));
+              
+              if (userSaidEnd && !interviewEndedRef.current) {
+                console.log('🎯 Detected "End Interview" in user speech - auto-ending interview');
+                interviewEndedRef.current = true;
+                // Auto-end the interview
+                if (client && typeof client.speak === 'function') {
+                  client.speak('I will end the interview now and provide your feedback.').catch(() => {});
+                }
+              }
+              
+              // Now check for result
+              transcript = '';
+              let foundResult = false;
+              
+              // Method 1: SDK getTranscript function
+              if (client?.getTranscript && typeof client.getTranscript === 'function') {
+                try {
+                  transcript = client.getTranscript();
+                  console.log('[TRANSCRIPT] Method 1 (getTranscript):', transcript?.substring(0, 100) + '...');
+                } catch (e) { console.warn('[TRANSCRIPT] getTranscript failed:', e); }
+              }
+              
+              // Method 2: Direct transcript property
+              if (!foundResult && client?.transcript) {
                 transcript = client.transcript;
-              } else if (window.__anam_transcript) {
+                console.log('[TRANSCRIPT] Method 2 (direct property):', transcript?.substring(0, 100) + '...');
+              }
+              
+              // Method 3: Window global variable
+              if (!foundResult && window.__anam_transcript) {
                 transcript = window.__anam_transcript;
-              } else if (client?.conversationHistory) {
+                console.log('[TRANSCRIPT] Method 3 (window global):', transcript?.substring(0, 100) + '...');
+              }
+              
+              // Method 4: Conversation history
+              if (!foundResult && client?.conversationHistory) {
                 transcript = Array.isArray(client.conversationHistory) 
                   ? client.conversationHistory.map(msg => msg.text || msg).join('\n')
                   : client.conversationHistory;
+                console.log('[TRANSCRIPT] Method 4 (conversationHistory):', transcript?.substring(0, 100) + '...');
+              }
+              
+              // Method 5: Check window for any stored result
+              if (window.__anam_result) {
+                try {
+                  const result = JSON.parse(window.__anam_result);
+                  console.log('✅ Found stored result in window.__anam_result:', result);
+                  if (!resultReceivedRef.current) {
+                    resultReceivedRef.current = true;
+                    storedResultRef.current = result;
+                    if (onInterviewEnd) onInterviewEnd(result);
+                  }
+                  if (transcriptCheckInterval) clearInterval(transcriptCheckInterval);
+                  return;
+                } catch (e) { console.warn('[RESULT] Failed to parse stored result:', e); }
               }
               
               // Check if we have new content to process
               if (transcript && transcript.length > 0) {
-                // Look for JSON pattern in transcript
-                const jsonMatch = transcript.match(/\{[\s\S]*"candidate_name"[\s\S]*"recommendation"[\s\S]*\}/);
+                console.log('[TRANSCRIPT] Full transcript length:', transcript.length);
+                
+                // Look for JSON pattern - try multiple patterns
+                let jsonMatch = null;
+                
+                // Pattern 1: Strict pattern with all required fields
+                jsonMatch = transcript.match(/\{[\s\S]*?"candidate_name"[\s\S]*?"recommendation"[\s\S]*?\}/);
+                
+                // Pattern 2: If strict doesn't work, try more flexible pattern
+                if (!jsonMatch) {
+                  jsonMatch = transcript.match(/\{[\s\S]*?"overall_score"[\s\S]*?\}/);
+                  console.log('[JSON] Trying flexible pattern...');
+                }
+                
+                // Pattern 3: Look for JSON at the very end (most likely where result would be)
+                if (!jsonMatch) {
+                  const lastBrace = transcript.lastIndexOf('}');
+                  const firstBrace = transcript.lastIndexOf('{', lastBrace);
+                  if (firstBrace > -1 && lastBrace > firstBrace) {
+                    const potentialJson = transcript.substring(firstBrace, lastBrace + 1);
+                    try {
+                      JSON.parse(potentialJson);
+                      jsonMatch = [potentialJson];
+                      console.log('[JSON] Found JSON at end of transcript');
+                    } catch (e) { console.warn('[JSON] Potential JSON at end is invalid'); }
+                  }
+                }
+                
                 if (jsonMatch) {
                   try {
                     const result = JSON.parse(jsonMatch[0]);
-                    console.log('✅ Parsed interview result:', result);
+                    console.log('✅ Parsed interview result from transcript:', result);
+                    window.__anam_result = JSON.stringify(result); // Store for later
+                    storedResultRef.current = result;
+                    resultReceivedRef.current = true;
                     
                     // Call parent callback with the parsed interview result
                     if (onInterviewEnd) {
@@ -435,9 +623,18 @@ CRITICAL JSON RULES:
                       clearInterval(transcriptCheckInterval);
                       transcriptCheckInterval = null;
                     }
+                    foundResult = true;
                   } catch (parseErr) {
                     console.warn('⚠️ Found JSON pattern but parsing failed:', parseErr);
+                    console.log('[DEBUG] Problematic JSON:', jsonMatch[0]?.substring(0, 200));
                   }
+                }
+                
+                if (!foundResult) {
+                  // Log hints if we still don't have a result
+                  if (transcript.includes('"overall_score"')) console.log('[HINT] Transcript contains score field but JSON pattern not matching');
+                  if (transcript.includes('"candidate_name"')) console.log('[HINT] Transcript contains candidate_name field');
+                  if (transcript.includes('{')) console.log('[HINT] Transcript contains braces');
                 }
               }
             } catch (err) {
@@ -445,8 +642,8 @@ CRITICAL JSON RULES:
             }
           };
           
-          // Start polling for interview result every 2 seconds
-          transcriptCheckInterval = setInterval(checkForInterviewResult, 2000);
+          // Start polling for interview result more frequently
+          transcriptCheckInterval = setInterval(checkForInterviewResult, 1000);
           
           // If attached, start the interview flow:
           // - ask name
@@ -469,26 +666,27 @@ CRITICAL JSON RULES:
 
           const startInterview = async () => {
             try {
-              // Non-blocking interview flow: we do NOT use window.prompt or
-              // request microphone permission automatically. This prevents any
-              // browser pop-ups. Instead we use sensible defaults and log
-              // instructions to the console for manual interaction.
-              await speakText('Hello. I am your Virtual Interview Prep.');
-              await speakText('I will ask you a few questions out loud. If you want to answer aloud, you can enable your microphone manually.');
-              console.info('Anam Interview: The assistant will ask questions aloud. To answer by voice, grant microphone access manually in the browser UI.');
-              const name = 'Candidate';
-              await speakText(`Nice to meet you, ${name}. I will ask questions for a role-based practice.`);
-              // No prompts: choose role from localStorage if the user previously set one,
-              // otherwise default to 'general'. This avoids prompt popups.
-              const roleInput = (localStorage.getItem('anam_desired_role') || 'general').toLowerCase();
-              const roleKey = roleInput.includes('front') ? 'frontend' : roleInput.includes('back') ? 'backend' : roleInput.includes('devops') ? 'devops' : roleInput.includes('data') ? 'data' : 'general';
-
-              // We removed hardcoded questions to keep the component minimal and
-              // non-opinionated. By default the avatar simply announces readiness
-              // and waits. Developers can invoke role-specific questions manually
-              // from the console with window.__anamAsk([...questions]).
-              await speakText('I am ready. When you want me to ask role specific questions, call window.__anamAsk(arrayOfQuestions) from the console.');
-              console.info('AnamAvatar: ready. Use window.__anamAsk(["Question 1","Question 2"]) to have Anam ask custom questions.');
+              // Interview flow with pre-selected role from SelectMode
+              // No role selection dialog - proceed directly with interview
+              await speakText('Hello. I am Anam, your professional job interviewer.');
+              await speakText('What is your name?');
+              
+              // Brief pause to let user respond
+              await new Promise(r => setTimeout(r, 2000));
+              
+              // Acknowledge the role and start interview
+              if (isCustomRole) {
+                await speakText('I see you have selected a custom role. Let me confirm I understand your target role correctly.');
+                await speakText('Your target role: ' + customJD);
+                await speakText('Is this correct?');
+                await new Promise(r => setTimeout(r, 2000));
+              } else {
+                await speakText('Great. I will interview you for the ' + roleLabel + ' role.');
+                await new Promise(r => setTimeout(r, 1000));
+              }
+              
+              // Begin interview
+              await speakText('Thank you. Let us begin your interview.');
 
               // Developer helper: speak an array of custom questions (non-blocking)
               try {
@@ -565,15 +763,8 @@ CRITICAL JSON RULES:
         const ok = await initAnam();
         if (ok) {
           console.log('✅ Anam avatar initialized successfully');
-          // Strict interview flow: greet, ask name, ask position, begin interview
-          if (window.__anamClient && typeof window.__anamClient.speak === 'function') {
-            await window.__anamClient.speak('Hello, I am Anam, your professional job interviewer.');
-            await window.__anamClient.speak('What is your name?');
-            await window.__anamClient.speak('What position are you applying for?');
-            setTimeout(async () => {
-              await window.__anamClient.speak('Thank you. Let us begin your interview. First question: Can you tell me about yourself and your background relevant to this position?');
-            }, 2500);
-          }
+          console.log(`📋 Interview Role: ${isCustomRole ? 'Custom - ' + customJD : roleLabel}`);
+          console.log('💬 Anam is ready. Grant microphone permission to answer questions by voice.');
         } else {
           console.error('❌ Failed to initialize Anam avatar');
         }
@@ -610,5 +801,6 @@ CRITICAL JSON RULES:
       </div>
     </div>
   );
-}
+});
+
 export default AnamAvatar;

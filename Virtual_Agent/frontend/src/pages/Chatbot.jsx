@@ -4,26 +4,8 @@ import { API_BASE_URL } from "../config";
 import ResultModal from "../components/ResultModal";
 
 // SUGGESTED PROMPTS - GROUPED BY CATEGORY
-const SUGGESTED_PROMPTS_BY_CATEGORY = {
-  "Mock Interview": [
-    { text: "Start a mock interview for a Software Engineer role", mode: "mock" },
-    { text: "Give me a system design question", mode: "mock" },
-    { text: "Start an HR round for PM role", mode: "mock" },
-  ],
-  "Tech Q&A": [
-    { text: "What are common React interview questions?", mode: "qa" },
-    { text: "Explain SOLID principles", mode: "qa" },
-    { text: "How do I approach DSA problems?", mode: "qa" },
-  ],
-  "Behavioral": [
-    { text: "How do I answer 'Tell me about yourself'?", mode: "behavioral" },
-    { text: "How do I talk about failures in interviews?", mode: "behavioral" },
-  ],
-  "Career": [
-    { text: "How should I negotiate my salary?", mode: "career" },
-    { text: "How do I communicate salary expectations?", mode: "career" },
-  ],
-};
+// Removed all predefined questions - now just a normal chatbot
+const SUGGESTED_PROMPTS_BY_CATEGORY = {};
 
 const BotAvatar = () => (
   <div style={{
