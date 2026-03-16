@@ -9,6 +9,7 @@ export default function Interview() {
   const [sessionId, setSessionId] = useState(null);
   const [role, setRole] = useState(null);
   const [jobDescription, setJobDescription] = useState(null);
+  const [resumeData, setResumeData] = useState(null); // NEW: Store resume data for Anam
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [interviewStartTime] = useState(Date.now());
@@ -54,25 +55,58 @@ export default function Interview() {
     try {
       setLoading(true);
       const isGuest = localStorage.getItem('isGuest') === 'true';
+      
+      let finalJobDescription = selectedJD;
+      let finalRole = selectedRole;
+      let parsedResumeData = null;
+      
+      // Handle resume-based interview
+      if (selectedRole === 'resume-based') {
+        console.log('[Interview] Processing resume-based interview...');
+        parsedResumeData = JSON.parse(localStorage.getItem('resumeData') || '{}');
+        console.log('[Interview] Resume data:', parsedResumeData);
+        setResumeData(parsedResumeData);
+        
+        // Create job description from resume data
+        finalJobDescription = parsedResumeData.name || 'Resume-based candidate';
+        
+        // Use a valid role preset (sde1-fullstack) but Anam will use resume data
+        finalRole = 'sde1-fullstack'; // Use valid preset but Anam personalizes via resumeData prop
+        console.log('[Interview] Role set to:', finalRole, '(resume-based mode)');
+        
+        localStorage.removeItem('resumeData');
+      }
+      
+      console.log('[Interview] Creating session with role:', finalRole, 'description:', finalJobDescription?.substring(0, 50));
+      
       const res = await fetch(`${API_BASE_URL}/api/interview/session/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: localStorage.getItem('userId') || 'demo-user',
-          role: selectedRole,
-          jobDescription: selectedJD,
+          role: finalRole,
+          jobDescription: finalJobDescription,
           isGuest: isGuest
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to create session');
+      console.log('[Interview] Response status:', res.status);
+      
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('[Interview] Server error:', errorData);
+        throw new Error(`Server error: ${errorData.error || res.statusText}`);
+      }
+      
       const data = await res.json();
+      console.log('[Interview] Session created successfully:', data);
 
       setSessionId(data.sessionId);
-      setRole(selectedRole);
-      setJobDescription(selectedJD);
+      setRole(finalRole);
+      setJobDescription(finalJobDescription);
       console.log('✓ Interview session created:', data.sessionId);
     } catch (err) {
+      console.error('[Interview] Full error:', err);
       setError(err.message);
       console.error('Session creation error:', err);
       throw err;
@@ -217,6 +251,7 @@ export default function Interview() {
                         onInterviewEnd={finishInterview}
                         role={role}
                         sessionId={sessionId}
+                        resumeData={resumeData}
                       />
                     </div>
                   ) : (
@@ -232,27 +267,6 @@ export default function Interview() {
 
               {/* Interview Info Panel */}
               <div className="space-y-6">
-                {/* Interview Stats */}
-                <div className="bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border border-indigo-500/30 rounded-lg p-6">
-                  <h3 className="font-semibold mb-4 text-indigo-300">Interview Info</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-gray-400 text-sm">Role</p>
-                      <p className="text-white font-semibold">SDE-1 Product</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Session ID</p>
-                      <p className="text-white font-mono text-xs break-all">{sessionId?.substring(0, 12)}...</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Duration</p>
-                      <p className="text-white font-semibold">
-                        {Math.round((Date.now() - interviewStartTime) / 60000)} min
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
                 {/* Tips */}
                 <div className="bg-white/5 border border-white/10 rounded-lg p-6">
                   <h3 className="font-semibold mb-3">Interview Tips</h3>

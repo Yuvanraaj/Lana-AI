@@ -55,12 +55,29 @@ const secondaryTools = [
     border: "border-emerald-500/30 hover:border-emerald-400",
     glow: "hover:shadow-emerald-500/20",
   },
+  {
+    label: "Code Practice",
+    path: "/code-practice",
+    description: "Random LeetCode problems with real-time coding.",
+    outcomes: [
+      "Practice coding with LeetCode problems",
+      "Support for multiple programming languages",
+      "Challenge yourself with random difficulty levels"
+    ],
+    icon: "💻",
+    badge: "CODING",
+    badgeColor: "from-orange-500 to-red-500",
+    gradient: "from-orange-600/20 to-red-600/20",
+    border: "border-orange-500/30 hover:border-orange-400",
+    glow: "hover:shadow-orange-500/20",
+  },
 ];
 
 export default function SelectMode() {
   const [, navigate] = useLocation();
   const [hovered, setHovered] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showModeChoice, setShowModeChoice] = useState(false); // NEW: Choose Role vs Resume
   const [showRoleSelector, setShowRoleSelector] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [customJD, setCustomJD] = useState('');
@@ -76,7 +93,7 @@ export default function SelectMode() {
   ];
 
   const handleInterviewClick = () => {
-    setShowRoleSelector(true);
+    setShowModeChoice(true); // NEW: Show choice first instead of directly showing role selector
   };
 
   const handleRoleSelect = (roleId) => {
@@ -103,8 +120,130 @@ export default function SelectMode() {
     }
   };
 
+  const handleChooseRole = () => {
+    setShowModeChoice(false);
+    setShowRoleSelector(true);
+  };
+
+  const handleChooseResume = () => {
+    setShowModeChoice(false);
+    localStorage.setItem('interviewMode', 'resume');
+    navigate('/resume-parse');
+  };
+
   return (
     <div>
+      {/* Mode Choice Modal - NEW */}
+      {showModeChoice && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary)',
+            borderRadius: '12px',
+            padding: '2rem',
+            maxWidth: '700px',
+            width: '90%',
+            border: '1px solid var(--border-color)'
+          }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', textAlign: 'center' }}>
+              Choose Interview Type
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', textAlign: 'center' }}>
+              How would you like to be interviewed?
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+              {/* Role-Based Option */}
+              <button
+                onClick={handleChooseRole}
+                style={{
+                  padding: '2rem',
+                  borderRadius: '10px',
+                  border: '2px solid rgba(44, 154, 255, 0.4)',
+                  background: 'rgba(44, 154, 255, 0.05)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  textAlign: 'center'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent)';
+                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.4)';
+                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.05)';
+                }}
+              >
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>👔</div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>By Role</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                  Choose a target role (Backend, Frontend, DevOps, etc.) and be interviewed for that position.
+                </p>
+              </button>
+
+              {/* Resume-Based Option */}
+              <button
+                onClick={handleChooseResume}
+                style={{
+                  padding: '2rem',
+                  borderRadius: '10px',
+                  border: '2px solid rgba(34, 197, 94, 0.4)',
+                  background: 'rgba(34, 197, 94, 0.05)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s',
+                  textAlign: 'center'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = '#22c55e';
+                  e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+                  e.currentTarget.style.background = 'rgba(34, 197, 94, 0.05)';
+                }}
+              >
+                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>📄</div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>By Resume</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
+                  Upload your resume and be interviewed based on your actual background and experience.
+                </p>
+              </button>
+            </div>
+
+            {/* Cancel Button */}
+            <div style={{ textAlign: 'center' }}>
+              <button
+                onClick={() => setShowModeChoice(false)}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  fontWeight: 600,
+                  transition: 'all 0.2s'
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Role Selector Modal */}
       {showRoleSelector && (
         <div style={{
@@ -283,10 +422,10 @@ export default function SelectMode() {
 
             {/* Main Headline - SPECIFIC VALUE PROP */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4 leading-tight" style={{ color: 'var(--text-primary)' }}>
-              AI Copilot for Cracking
+              Prepare Smarter.
               <br />
               <span style={{ background: 'linear-gradient(90deg, var(--accent), var(--accent-2))', backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent' }}>
-                Tech Interviews
+                Crack Tech Interviews with AI
               </span>
             </h1>
 

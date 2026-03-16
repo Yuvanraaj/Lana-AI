@@ -70,6 +70,15 @@ try {
   console.warn('[INIT] Could not mount analytics route:', e.message);
 }
 
+// Mount LeetCode practice route
+try {
+  const leetcodeRoute = require('./routes/leetcode');
+  app.use('/api/leetcode', leetcodeRoute);
+  console.log('[INIT] Mounted /api/leetcode route');
+} catch (e) {
+  console.warn('[INIT] Could not mount leetcode route:', e.message);
+}
+
 // Ensure uploads directory exists for multer
 try {
   const uploadsDir = path.join(__dirname, 'uploads');
@@ -84,14 +93,17 @@ try {
 // --- OpenAI Chat Route (using official SDK) ---
 app.post('/api/openai-proxy', async (req, res) => {
   try {
+    console.log('[OpenAI Proxy] Request received');
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
+      console.error('[OpenAI Proxy] OPENAI_API_KEY not configured');
       return res.status(500).json({ error: 'OPENAI_API_KEY not configured on server' });
     }
 
     const openai = new OpenAI({ apiKey });
     const { stream, messages, model = 'gpt-4o-mini', temperature = 0.7, max_tokens = 800 } = req.body;
 
+    console.log('[OpenAI Proxy] Creating completion with model:', model);
     if (stream) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
@@ -117,10 +129,11 @@ app.post('/api/openai-proxy', async (req, res) => {
         temperature,
         max_tokens
       });
+      console.log('[OpenAI Proxy] Completion successful, sending response');
       res.json(completion);
     }
   } catch (err) {
-    console.error('OpenAI error:', err.message);
+    console.error('[OpenAI Proxy] Error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });

@@ -452,6 +452,40 @@ export default function ResumeParse() {
                 flexWrap: 'wrap',
                 marginBottom: '1.5rem'
               }}>
+                {/* Start Interview Button (if in resume mode) */}
+                {localStorage.getItem('interviewMode') === 'resume' && (
+                  <button
+                    onClick={() => {
+                      console.log('[ResumeParse] Starting interview with resume data...');
+                      localStorage.setItem('resumeData', JSON.stringify(result));
+                      localStorage.setItem('selectedRole', 'resume-based');
+                      localStorage.setItem('selectedRoleLabel', 'Resume-Based Interview');
+                      console.log('[ResumeParse] Stored resume data and role');
+                      localStorage.removeItem('interviewMode');
+                      navigate('/interview');
+                    }}
+                    style={{
+                      padding: '0.75rem 1.5rem',
+                      background: 'linear-gradient(90deg, #22c55e, #16a34a)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)'
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.boxShadow = '0 6px 20px rgba(34, 197, 94, 0.3)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.boxShadow = '0 4px 12px rgba(34, 197, 94, 0.2)';
+                    }}
+                  >
+                    🚀 Start Interview
+                  </button>
+                )}
+
                 <button
                   onClick={() => alert('Copy feedback feature: would copy all suggestions to clipboard')}
                   style={{

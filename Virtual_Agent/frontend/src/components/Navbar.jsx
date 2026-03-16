@@ -41,9 +41,14 @@ export default function Navbar() {
           }}>
             🧠
           </div>
-          <span className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
-            Lana AI
-          </span>
+          <div className="flex flex-col items-start">
+            <span className="text-base font-bold" style={{ color: 'var(--text-primary)', lineHeight: 1 }}>
+              Lana AI
+            </span>
+            <span className="text-xs font-semibold" style={{ color: 'var(--accent)', letterSpacing: '0.5px', marginTop: '2px' }}>
+              Crack Tech Interviews
+            </span>
+          </div>
         </Link>
 
         {/* Right Section */}
