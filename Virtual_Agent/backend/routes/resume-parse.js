@@ -47,12 +47,21 @@ function pdfToPngs(pdfPath, numPages = 5) {
 
 /* ----------------------------- 🚀 Main Parse Route ------------------------------- */
 router.post('/', upload.single('resume'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+  console.log('[PARSE] === Resume Upload Started ===');
+  
+  if (!req.file) {
+    console.error('[PARSE] No file provided');
+    return res.status(400).json({ error: 'No file uploaded.' });
+  }
+
+  console.log('[PARSE] File received:', { originalName: req.file.originalname, size: req.file.size, path: req.file.path });
 
   const filePath = path.resolve(req.file.path);
   const ext = path.extname(req.file.originalname).toLowerCase();
   let text = '';
   const tempDirs = [];
+
+  console.log('[PARSE] Processing file:', { filePath, ext });
 
   try {
     // 📄 Step 1: Extract text
@@ -95,6 +104,16 @@ router.post('/', upload.single('resume'), async (req, res) => {
 
     if (!text || text.length < 50) {
       return res.status(400).json({ error: 'Could not extract usable text from resume. Please ensure the file is valid and contains readable content.' });
+    }
+
+    // 👌 Step 2: Verify OpenAI API Key
+    console.log('[PARSE] Verifying OpenAI configuration...');
+    console.log('[PARSE] OPENAI_API_KEY exists:', !!process.env.OPENAI_API_KEY);
+    console.log('[PARSE] OPENAI_MODEL:', process.env.OPENAI_MODEL || 'gpt-4o-mini');
+
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('[PARSE] ERROR: OPENAI_API_KEY not found in environment');
+      return res.status(500).json({ error: 'OpenAI API key not configured on server', details: 'OPENAI_API_KEY environment variable is missing' });
     }
 
     // Use OpenAI SDK to produce a strict JSON analysis following the schema.
@@ -222,16 +241,21 @@ CRITICAL: Score must vary significantly based on actual resume content. Do NOT g
 
       return res.json({ success: true, feedback: normalized, fallback: false });
     } catch (err) {
-      console.error('OpenAI parser error:', err.message || err);
+      console.error('[PARSE] OpenAI parser error:', err.message || err);
+      console.error('[PARSE] Full error:', err);
       res.status(500).json({ error: 'Failed to analyze resume with OpenAI', details: err.message });
       return;
     }
   } catch (err) {
-    console.error('Parser error:', err);
+    console.error('[PARSE] Parser error:', err);
+    console.error('[PARSE] Error stack:', err.stack);
     res.status(500).json({ error: 'Server error processing resume', details: err.message });
+    return;
   } finally {
+    console.log('[PARSE] Cleanup: Removing temporary files');
     try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch {}
     for (const d of tempDirs) { try { fs.rmSync(d, { recursive: true, force: true }); } catch {} }
+    console.log('[PARSE] === Resume Upload Completed ===');
   }
 });
 

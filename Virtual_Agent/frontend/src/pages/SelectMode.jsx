@@ -79,8 +79,11 @@ export default function SelectMode() {
   const [showHistory, setShowHistory] = useState(false);
   const [showModeChoice, setShowModeChoice] = useState(false); // NEW: Choose Role vs Resume
   const [showRoleSelector, setShowRoleSelector] = useState(false);
+  const [showResumeUpload, setShowResumeUpload] = useState(false); // NEW: Resume upload modal
   const [selectedRole, setSelectedRole] = useState(null);
   const [customJD, setCustomJD] = useState('');
+  const [resumeUploading, setResumeUploading] = useState(false);
+  const [resumeError, setResumeError] = useState(null);
   const userId = localStorage.getItem('userId') || 'demo-user';
 
   const roles = [
@@ -127,8 +130,53 @@ export default function SelectMode() {
 
   const handleChooseResume = () => {
     setShowModeChoice(false);
-    localStorage.setItem('interviewMode', 'resume');
-    navigate('/resume-parse');
+    setShowResumeUpload(true);
+  };
+
+  const handleResumeUpload = async (file) => {
+    if (!file) return;
+
+    try {
+      setResumeUploading(true);
+      setResumeError(null);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('userId', userId);
+
+      console.log('[SelectMode] Uploading resume for analysis...');
+      const uploadRes = await fetch(`${API_BASE_URL}/api/parse-resume`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error(`Upload failed: ${uploadRes.statusText}`);
+      }
+
+      const result = await uploadRes.json();
+      console.log('[SelectMode] Resume analysis complete:', result);
+
+      if (result && result.name) {
+        // Store resume data and go directly to interview
+        localStorage.setItem('resumeData', JSON.stringify(result));
+        localStorage.setItem('selectedRole', 'resume-based');
+        localStorage.setItem('selectedRoleLabel', 'Resume-Based Interview');
+
+        setShowResumeUpload(false);
+        setShowModeChoice(false);
+        
+        console.log('[SelectMode] Starting interview with resume data...');
+        navigate('/interview');
+      } else {
+        throw new Error('No resume data returned');
+      }
+    } catch (e) {
+      console.error('[SelectMode] Resume upload error:', e);
+      setResumeError(e.message || 'Failed to upload resume');
+    } finally {
+      setResumeUploading(false);
+    }
   };
 
   return (
@@ -370,6 +418,127 @@ export default function SelectMode() {
                   transition: 'all 0.2s'
                 }}>
                 Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Resume Upload Modal - NEW */}
+      {showResumeUpload && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.7)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'var(--bg-secondary)',
+            borderRadius: '12px',
+            padding: '2rem',
+            maxWidth: '500px',
+            width: '90%',
+            border: '1px solid var(--border-color)'
+          }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
+              📄 Upload Your Resume
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              We'll analyze your resume and conduct a personalized interview based on your background.
+            </p>
+
+            {resumeError && (
+              <div style={{
+                padding: '1rem',
+                borderRadius: '8px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#fca5a5',
+                marginBottom: '1rem',
+                fontSize: '0.9rem'
+              }}>
+                ✗ {resumeError}
+              </div>
+            )}
+
+            <label style={{
+              display: 'block',
+              padding: '2rem',
+              borderRadius: '8px',
+              border: '2px dashed rgba(44, 154, 255, 0.4)',
+              background: 'rgba(44, 154, 255, 0.05)',
+              cursor: resumeUploading ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s',
+              textAlign: 'center',
+              opacity: resumeUploading ? 0.6 : 1
+            }}
+              onMouseEnter={(e) => {
+                if (!resumeUploading) {
+                  e.currentTarget.style.borderColor = 'var(--accent)';
+                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.1)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.4)';
+                e.currentTarget.style.background = 'rgba(44, 154, 255, 0.05)';
+              }}
+            >
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={(e) => handleResumeUpload(e.target.files?.[0])}
+                disabled={resumeUploading}
+                style={{ display: 'none' }}
+              />
+              <div style={{
+                fontSize: resumeUploading ? '1rem' : '2.5rem',
+                marginBottom: '0.5rem'
+              }}>
+                {resumeUploading ? '⏳ Analyzing...' : '📤'}
+              </div>
+              <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
+                {resumeUploading ? 'Analyzing your resume...' : 'Click to upload or drag & drop'}
+              </p>
+              <p style={{
+                margin: 0,
+                fontSize: '0.85rem',
+                color: 'var(--text-secondary)'
+              }}>
+                PDF, DOC, or DOCX (max 5MB)
+              </p>
+            </label>
+
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              marginTop: '1.5rem'
+            }}>
+              <button
+                onClick={() => {
+                  setShowResumeUpload(false);
+                  setResumeError(null);
+                }}
+                disabled={resumeUploading}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)',
+                  background: 'var(--bg-primary)',
+                  color: 'var(--text-primary)',
+                  cursor: resumeUploading ? 'not-allowed' : 'pointer',
+                  fontWeight: 600,
+                  transition: 'all 0.2s',
+                  opacity: resumeUploading ? 0.5 : 1
+                }}
+              >
+                Cancel
               </button>
             </div>
           </div>

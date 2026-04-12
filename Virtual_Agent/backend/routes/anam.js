@@ -71,11 +71,11 @@ router.post('/session', async (req, res) => {
   const anamUrl = process.env.ANAM_TRANSCRIBE_URL || 'https://api.anam.ai/v1/auth/session-token';
   const payload = req.body || {};
   if (!payload.personaConfig) {
-    const persona = {};
-    if (process.env.ANAM_AVATAR_ID) persona.avatarId = process.env.ANAM_AVATAR_ID;
-    if (process.env.ANAM_VOICE_ID) persona.voiceId = process.env.ANAM_VOICE_ID;
-    if (process.env.ANAM_LLM_ID) persona.llmId = process.env.ANAM_LLM_ID;
-    persona.name = persona.name || 'Cara';
+    const persona = {
+      avatarId: process.env.ANAM_AVATAR_ID,
+      voiceId: process.env.ANAM_VOICE_ID,
+      llmId: process.env.ANAM_LLM_ID
+    };
     payload.personaConfig = persona;
   }
 
@@ -114,7 +114,6 @@ router.get('/token', async (req, res) => {
     const authUrl = process.env.ANAM_TRANSCRIBE_URL || 'https://api.anam.ai/v1/auth/session-token';
     // Accept persona query params and pass systemPrompt and role if provided
     const personaConfig = {
-      name: req.query.name || 'Cara',
       avatarId: req.query.avatarId || process.env.ANAM_AVATAR_ID,
       voiceId: req.query.voiceId || process.env.ANAM_VOICE_ID,
       llmId: req.query.llmId || process.env.ANAM_LLM_ID
@@ -197,6 +196,16 @@ async function createEngineSession(personaConfig) {
   }
   console.log('[ENGINE HELPER] No valid cache. Proceeding to create new engine session.');
 
+  // Build default persona config if not provided
+  if (!personaConfig) {
+    personaConfig = {
+      avatarId: process.env.ANAM_AVATAR_ID,
+      voiceId: process.env.ANAM_VOICE_ID,
+      llmId: process.env.ANAM_LLM_ID
+    };
+    console.log('[ENGINE HELPER] Using default personaConfig from environment variables', { avatarId: personaConfig.avatarId?.substring(0, 15) + '...' });
+  }
+
   // 1. Get a session token
   let authBody = null;
   if (_anam_session_cache && _anam_session_cache.expiresAt > Date.now()) {
@@ -206,7 +215,7 @@ async function createEngineSession(personaConfig) {
     const authUrl = process.env.ANAM_TRANSCRIBE_URL || 'https://api.anam.ai/v1/auth/session-token';
     console.log(`[ENGINE HELPER] Getting new auth token from ${authUrl}...`);
     try {
-      const authResp = await axios.post(authUrl, personaConfig ? { personaConfig } : {}, {
+      const authResp = await axios.post(authUrl, { personaConfig }, {
         headers: { 'Authorization': `Bearer ${anamKey}`, 'Content-Type': 'application/json' }
       });
       authBody = authResp.data;
@@ -233,8 +242,9 @@ async function createEngineSession(personaConfig) {
   // 2. Create engine/session using the token
   const engineUrl = 'https://api.anam.ai/v1/engine/session';
   console.log(`[ENGINE HELPER] Creating engine session at ${engineUrl}...`);
+  console.log('[ENGINE HELPER] Request payload:', JSON.stringify({ personaConfig }, null, 2));
   try {
-    const engineResp = await axios.post(engineUrl, personaConfig ? { personaConfig } : {}, {
+    const engineResp = await axios.post(engineUrl, { personaConfig }, {
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
     });
 
