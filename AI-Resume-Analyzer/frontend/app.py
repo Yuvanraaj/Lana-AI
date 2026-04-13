@@ -447,14 +447,12 @@ st.markdown("""
     
     .section-header-title {
         font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-primary);
+        font-weight: 800;
+        color: #00D4FF !important; /* Force high-contrast solid cyan */
         letter-spacing: -0.02em;
         line-height: 1.2;
         margin: 0;
-        background: linear-gradient(135deg, #00D4FF 0%, #0099FF 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
     }
     
     /* ===== DIVIDER ===== */
@@ -720,27 +718,57 @@ st.markdown("""
         box-shadow: 0 0 20px rgba(0, 212, 255, 0.3), 0 4px 12px rgba(0, 212, 255, 0.2) !important;
     }
     
-    /* Admin Input Styling */
-    [data-testid="stForm"] .stTextInput > div > div > input {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%) !important;
-        border: 2px solid rgba(0, 212, 255, 0.25) !important;
-        border-radius: 0.875rem !important;
-        padding: 0.9375rem 1.25rem !important;
-        color: #E8F0FE !important;
-        font-size: 0.9375rem !important;
-        font-weight: 500 !important;
+    /* Admin Input Styling - Smooth Glassmorphism */
+    [data-testid="stForm"] div[data-baseweb="input"] {
+        border-radius: 1rem !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
         transition: all 0.3s ease !important;
+        overflow: hidden !important;
     }
     
-    [data-testid="stForm"] .stTextInput > div > div > input::placeholder {
-        color: rgba(203, 213, 225, 0.5) !important;
+    [data-testid="stForm"] div[data-baseweb="input"]:focus-within {
+        border-color: rgba(0, 212, 255, 0.3) !important;
+        box-shadow: 0 0 25px rgba(0, 212, 255, 0.15) !important;
+        background: rgba(255, 255, 255, 0.06) !important;
     }
     
-    [data-testid="stForm"] .stTextInput > div > div > input:focus {
+    /* Stripping all inner defaults to let the glass wrap everything perfectly */
+    [data-testid="stForm"] div[data-baseweb="base-input"],
+    [data-testid="stForm"] div[data-baseweb="base-input"] > input,
+    [data-testid="stForm"] .stTextInput > div > div, 
+    [data-testid="stForm"] .stTextInput input {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        color: #E8F0FE !important;
         outline: none !important;
-        border-color: #00D4FF !important;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%) !important;
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), inset 0 0 15px rgba(0, 212, 255, 0.1) !important;
+    }
+
+    [data-testid="stForm"] .stTextInput input {
+        font-size: 1.05rem !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.05em !important;
+        padding: 0.85rem 1.2rem !important;
+    }
+
+    [data-testid="stForm"] .stTextInput input::placeholder {
+        color: rgba(255, 255, 255, 0.25) !important;
+    }
+
+    /* Eye icon button blending */
+    [data-testid="stForm"] div[data-baseweb="base-input"] button {
+        background: transparent !important;
+        color: rgba(255, 255, 255, 0.4) !important;
+        padding-right: 0.5rem !important;
+        transition: color 0.3s !important;
+    }
+    
+    [data-testid="stForm"] div[data-baseweb="input"]:focus-within button {
+        color: rgba(0, 212, 255, 0.6) !important;
     }
     
     /* ===== METRIC STYLING ===== */
@@ -846,6 +874,8 @@ def fetch_analytics_data(token):
     response = requests.get(f"{API_URL}/admin/analytics", headers=headers)
     if response.status_code == 200:
         return response.json()
+    elif response.status_code == 401:
+        return {"error": "Unauthorized"}
     return None
 
 @st.cache_data(ttl=300)  # Cache for 5 minutes
@@ -855,18 +885,81 @@ def fetch_resumes_data(token, limit=100, offset=0):
     response = requests.get(f"{API_URL}/admin/resumes", headers=headers, params={"limit": limit, "offset": offset})
     if response.status_code == 200:
         return response.json()
+    elif response.status_code == 401:
+        return {"error": "Unauthorized"}
     return None
+
+@st.cache_data(ttl=3600)  # Cache for 1 hour
+def fetch_courses():
+    try:
+        response = requests.get(f"{API_URL}/courses", timeout=5)
+        if response.status_code == 200: return response.json()
+    except: pass
+    return {}
+
+@st.cache_data(ttl=3600)
+def fetch_videos():
+    try:
+        response = requests.get(f"{API_URL}/videos", timeout=5)
+        if response.status_code == 200: return response.json()
+    except: pass
+    return {}
+
+@st.cache_data(ttl=3600)
+def fetch_guides():
+    try:
+        response = requests.get(f"{API_URL}/guides", timeout=5)
+        if response.status_code == 200: return response.json()
+    except: pass
+    return {}
+
+@st.cache_data(ttl=3600)
+def fetch_tips():
+    try:
+        response = requests.get(f"{API_URL}/tips", timeout=5)
+        if response.status_code == 200: return response.json()
+    except: pass
+    return {}
+
 
 # ============================================================================
 # SESSION STATE INITIALIZATION
 # ============================================================================
 
+# Unified Auth: Read query parameters from portal
+if hasattr(st, "query_params"):
+    # Streamlit >= 1.30.0
+    portal_name = st.query_params.get("name", "")
+    portal_email = st.query_params.get("email", "")
+    portal_uid = st.query_params.get("uid", "")
+    portal_atoken = st.query_params.get("atoken", "")
+else:
+    # Streamlit < 1.30.0
+    query_params = st.experimental_get_query_params()
+    portal_name = query_params.get("name", [""])[0] if "name" in query_params else ""
+    portal_email = query_params.get("email", [""])[0] if "email" in query_params else ""
+    portal_uid = query_params.get("uid", [""])[0] if "uid" in query_params else ""
+    portal_atoken = query_params.get("atoken", [""])[0] if "atoken" in query_params else ""
+
 if 'current_page' not in st.session_state:
     st.session_state.current_page = 'Upload Resume'
 if 'analysis_result' not in st.session_state:
     st.session_state.analysis_result = None
-if 'admin_token' not in st.session_state:
-    st.session_state.admin_token = None
+
+# Set admin token from portal if provided
+if 'admin_token' not in st.session_state or st.session_state.admin_token is None:
+    if portal_atoken:
+        st.session_state.admin_token = portal_atoken
+    else:
+        st.session_state.admin_token = None
+
+# Store portal user info in session state
+if 'portal_user' not in st.session_state:
+    st.session_state.portal_user = {
+        "name": portal_name,
+        "email": portal_email,
+        "uid": portal_uid
+    }
 
 # ============================================================================
 # PREMIUM UTILITY FUNCTIONS
@@ -891,16 +984,13 @@ def render_header(title: str, subtitle: str = ""):
                 position: relative;
             }}
             .rockstar-page-title {{
-                font-size: 2rem;
-                font-weight: 900;
-                background: linear-gradient(135deg, #00FF88 0%, #00FFD4 25%, #00D4FF 50%, #0099FF 75%, #00FF88 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
+                font-size: 2.25rem;
+                font-weight: 950;
+                color: #00FF88 !important; /* Explosive high-contrast solid green/cyan */
                 margin: 0;
                 line-height: 1.1;
                 letter-spacing: -0.02em;
-                text-shadow: 0 0 30px rgba(0, 255, 136, 0.25);
+                text-shadow: 0 0 20px rgba(0, 255, 136, 0.5), 0 0 10px rgba(0, 212, 255, 0.3);
             }}
             .rockstar-page-subtitle {{
                 font-size: 1rem;
@@ -1007,6 +1097,8 @@ with st.sidebar:
 
     if st.button("📤 Upload Resume", use_container_width=True, key="nav_upload", help="Submit and analyze your resume"):
         st.session_state.current_page = "Upload Resume"
+        st.session_state.analysis_result = None
+        st.session_state.resume_id = None
         st.rerun()
     
     if st.button("📊 Dashboard", use_container_width=True, key="nav_dashboard", help="View your analysis dashboard"):
@@ -1048,17 +1140,34 @@ if st.session_state.current_page == "Upload Resume":
     st.markdown("<div class='section-header'><span class='section-header-title'>Submit Your Resume</span></div>", unsafe_allow_html=True)
     
     with st.form("resume_upload_form"):
-        st.markdown("""
-            <p style='font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 0 0 16px 0;'>Your Information</p>
+        # Information is automatically pulled from User Profile (Integration)
+        portal_name = st.session_state.portal_user.get("name", "")
+        portal_email = st.session_state.portal_user.get("email", "")
+        portal_uid = st.session_state.portal_user.get("uid", "")
+        
+        user_name = portal_name if portal_name else "Guest User"
+        email = portal_email if portal_email and "@" in portal_email else "guest@example.com"
+        phone = "Not Provided"
+        user_id = portal_uid if portal_uid else "guest"
+        
+        st.markdown(f"""
+            <div style='
+                background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 99, 255, 0.05) 100%);
+                border: 1.5px solid rgba(0, 212, 255, 0.3);
+                border-radius: 1rem;
+                padding: 1rem 1.5rem;
+                margin-bottom: 2rem;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            '>
+                <div style='font-size: 1.5rem;'>✓</div>
+                <div>
+                    <h4 style='margin: 0; color: #00D4FF; font-size: 1rem;'>Profile Synced</h4>
+                    <p style='margin: 0; color: #cbd5e1; font-size: 0.85rem;'>Proceeding as <strong style='color:#E8F0FE;'>{user_name}</strong></p>
+                </div>
+            </div>
         """, unsafe_allow_html=True)
-        
-        name_col, email_col = st.columns(2)
-        with name_col:
-            user_name = st.text_input("Full Name", placeholder="John Doe", key="upload_name")
-        with email_col:
-            email = st.text_input("Email Address", placeholder="john@example.com", key="upload_email")
-        
-        phone = st.text_input("Phone Number", placeholder="+1 (555) 000-0000", key="upload_phone")
         
         st.markdown("""
             <p style='font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 24px 0 16px 0;'>Upload Document</p>
@@ -1168,10 +1277,11 @@ if st.session_state.current_page == "Upload Resume":
                 '>
                     <div style='font-size: 1.5rem; text-shadow: 0 0 10px rgba(255, 62, 68, 0.5);'>⚠️</div>
                     <div>
-                        <p style='font-size: 0.9375rem; font-weight: 700; color: #FF3E44; margin: 0; text-shadow: 0 0 8px rgba(255, 62, 68, 0.4);'>Please fill in all fields</p>
-                        <p style='font-size: 0.75rem; color: #FFB800; margin: 0.25rem 0 0 0; font-weight: 600;'>Name, email, and resume are required</p>
+                        <p style='font-size: 0.9375rem; font-weight: 700; color: #FF3E44; margin: 0; text-shadow: 0 0 8px rgba(255, 62, 68, 0.4);'>Please select a resume</p>
+                        <p style='font-size: 0.75rem; color: #FFB800; margin: 0.25rem 0 0 0; font-weight: 600;'>A resume document is required</p>
                     </div>
                 </div>
+
                 <style>
                     @keyframes pulse-error {{
                         0%, 100% {{ box-shadow: 0 0 20px rgba(255, 62, 68, 0.3), inset 0 0 20px rgba(255, 62, 68, 0.1); }}
@@ -1226,7 +1336,7 @@ if st.session_state.current_page == "Upload Resume":
             with st.spinner(""):
                 try:
                     files = {'file': (uploaded_file.name, uploaded_file.getvalue())}
-                    data = {'user_name': user_name, 'email': email, 'phone': phone}
+                    data = {'user_name': user_name, 'email': email, 'phone': phone, 'user_id': user_id}
                     response = requests.post(f"{API_URL}/upload-resume", files=files, data=data)
                     
                     if response.status_code == 200:
@@ -2238,26 +2348,22 @@ elif st.session_state.current_page == "Dashboard":
         st.markdown("""
             <style>
                 .login-container {
-                    background: linear-gradient(135deg, rgba(0, 99, 255, 0.15) 0%, rgba(0, 212, 255, 0.1) 100%);
-                    border: 2px solid rgba(0, 212, 255, 0.3);
+                    background: rgba(15, 31, 63, 0.95);
+                    border: 2px solid rgba(0, 212, 255, 0.4);
                     border-radius: 1.5rem;
                     padding: 3rem 2rem;
                     margin: 2rem auto;
                     max-width: 500px;
-                    box-shadow: 0 0 40px rgba(0, 212, 255, 0.2), inset 0 0 20px rgba(0, 212, 255, 0.05);
-                    backdrop-filter: blur(10px);
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
                 }
                 
                 .login-title {
                     text-align: center;
-                    font-size: 2rem;
-                    font-weight: 700;
-                    background: linear-gradient(135deg, #00D4FF 0%, #0099FF 100%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    background-clip: text;
+                    font-size: 2.25rem;
+                    font-weight: 800;
+                    color: #FFFFFF !important;
                     margin-bottom: 0.5rem;
-                    text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+                    -webkit-text-fill-color: initial !important;
                 }
                 
                 .login-subtitle {
@@ -2370,59 +2476,53 @@ elif st.session_state.current_page == "Dashboard":
             # Use cached API calls for better performance
             analytics = fetch_analytics_data(st.session_state.admin_token)
             
+            if analytics and "error" in analytics and analytics["error"] == "Unauthorized":
+                st.session_state.admin_token = None
+                st.warning("⚠️ Admin Session Expired. Please log in again.")
+                st.rerun()
+                
             if analytics:
                 stats = analytics.get('stats', {})
+                st.markdown("<div class='section-header'><span class='section-header-title'>Feature Usage & Identify Stats</span></div>", unsafe_allow_html=True)
                 
-                st.markdown("<div class='section-header'><span class='section-header-title'>Key Metrics</span></div>", unsafe_allow_html=True)
-                
-                kpi_cols = st.columns(4)
-                metrics = [
-                    ("Total Resumes", stats.get('total_resumes', 0)),
-                    ("Avg Score", f"{stats.get('average_score', 0):.1f}"),
-                    ("Highest", f"{stats.get('highest_score', 0):.1f}"),
-                    ("Lowest", f"{stats.get('lowest_score', 0):.1f}"),
+                # First row of metrics (Identity)
+                kpi_cols1 = st.columns(4)
+                metrics1 = [
+                    ("Unique Users", stats.get('total_users', 0)),
+                    ("Authenticated", stats.get('auth_users', 0)),
+                    ("Guest Users", stats.get('guest_users', 0)),
+                    ("Total Features Run", stats.get('total_resumes', 0)),
                 ]
                 
-                for col, (label, value) in zip(kpi_cols, metrics):
+                def render_kpi(col, label, value):
                     with col:
-                        # Custom glowing KPI card
                         st.markdown(f"""
                         <div class='kpi-card' style='
                             background: linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, rgba(0, 99, 255, 0.03) 100%);
                             backdrop-filter: blur(10px);
                             border: 2px solid rgba(0, 212, 255, 0.3);
                             border-radius: 1.25rem;
-                            padding: 2rem 1.5rem;
+                            padding: 1.5rem 1rem;
                             text-align: center;
                             box-shadow: 0 0 30px rgba(0, 212, 255, 0.2), inset 0 0 20px rgba(0, 212, 255, 0.05);
                             transition: all 0.3s ease;
                             position: relative;
                             overflow: hidden;
+                            margin-bottom: 1rem;
                         '>
-                            <div style='
-                                position: absolute;
-                                top: -50%;
-                                right: -50%;
-                                width: 200px;
-                                height: 200px;
-                                background: radial-gradient(circle, rgba(0, 212, 255, 0.3) 0%, transparent 70%);
-                                border-radius: 50%;
-                                opacity: 0.3;
-                            '></div>
                             <div style='position: relative; z-index: 1;'>
                                 <div class='kpi-value' style='
-                                    font-size: 2.5rem;
+                                    font-size: 2rem;
                                     font-weight: 800;
                                     background: linear-gradient(135deg, #00D4FF 0%, #00E8FF 100%);
                                     -webkit-background-clip: text;
                                     -webkit-text-fill-color: transparent;
                                     background-clip: text;
-                                    margin: 0.75rem 0 0.25rem 0;
-                                    letter-spacing: -0.03em;
+                                    margin: 0.25rem 0;
                                     text-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
                                 '>{value}</div>
                                 <div class='kpi-label' style='
-                                    font-size: 0.75rem;
+                                    font-size: 0.70rem;
                                     font-weight: 700;
                                     color: #94a3b8;
                                     text-transform: uppercase;
@@ -2430,147 +2530,52 @@ elif st.session_state.current_page == "Dashboard":
                                 '>{label}</div>
                             </div>
                         </div>
-                    """, unsafe_allow_html=True)
+                        """, unsafe_allow_html=True)
+                
+                for col, (label, value) in zip(kpi_cols1, metrics1):
+                    render_kpi(col, label, value)
+                    
+                # Second row of metrics (Results)
+                kpi_cols2 = st.columns(4)
+                metrics2 = [
+                    ("Top Feature", "Resume Parser"),
+                    ("Avg Parse Score", f"{stats.get('average_score', 0):.1f}"),
+                    ("Highest Score", f"{stats.get('highest_score', 0):.1f}"),
+                    ("Lowest Score", f"{stats.get('lowest_score', 0):.1f}"),
+                ]
+                
+                for col, (label, value) in zip(kpi_cols2, metrics2):
+                    render_kpi(col, label, value)
+                
+
                 
                 st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
                 
-                # ANALYTICS VISUALIZATION - 2 Column Layout (Pie Chart + Bar Chart)
-                st.markdown("<div class='section-header'><span class='section-header-title'>Analytics</span></div>", unsafe_allow_html=True)
-                
-                # Get extended analytics data with roles and locations
-                analytics_data = analytics
-                
-                if analytics_data:
-                    top_roles = analytics_data.get('top_roles', [])
+                @st.fragment
+                def render_dashboard_analytics(analytics_data):
+                    st.markdown("<div class='section-header'><span class='section-header-title'>Analytics & Intelligence</span></div>", unsafe_allow_html=True)
+                    if not analytics_data:
+                        return
                     
-                    # Fetch resumes data once for both bar chart and resume records
+                    top_roles = analytics_data.get('top_roles', [])
                     resumes_response = fetch_resumes_data(st.session_state.admin_token)
                     
-                    # Display two columns: Left = Pie Chart, Right = Bar Chart
                     col1, col2 = st.columns(2)
-                    
-                    # LEFT COLUMN: Job Roles Distribution Pie Chart
                     with col1:
                         if top_roles:
                             role_names = [r['role_name'] for r in top_roles]
                             role_counts = [r['count'] for r in top_roles]
-                            
-                            # Color palette for roles
-                            colors_roles = ['#00D4FF', '#0099FF', '#00E8FF', '#00C0D0', '#FFB800']
-                            
-                            fig_roles = go.Figure(data=[go.Pie(
-                                labels=role_names,
-                                values=role_counts,
-                                marker=dict(
-                                    colors=colors_roles[:len(role_names)],
-                                    line=dict(color='#0A1F3F', width=3)
-                                ),
-                                textposition='inside',
-                                textinfo='percent',
-                                textfont=dict(size=13, color='#FFFFFF', family='Arial Black'),
-                                hovertemplate='<b style="color:#00FF88">%{label}</b><br>Count: %{value}<br>%{percent}<extra></extra>',
-                                hoverlabel=dict(bgcolor='rgba(15, 35, 65, 0.95)', bordercolor='#00FF88')
-                            )])
-                            
-                            fig_roles.update_layout(
-                                paper_bgcolor='rgba(10, 31, 63, 0)',
-                                plot_bgcolor='rgba(10, 31, 63, 0)',
-                                font=dict(color='#E8F0FE', family='Arial', size=10),
-                                height=400,
-                                showlegend=True,
-                                legend=dict(
-                                    x=0.5,
-                                    y=-0.15,
-                                    xanchor='center',
-                                    yanchor='top',
-                                    orientation='h',
-                                    font=dict(size=10, color='#00D4FF')
-                                ),
-                                margin=dict(l=10, r=10, t=10, b=60),
-                                hovermode='closest'
-                            )
-                            st.plotly_chart(fig_roles, use_container_width=True)
-                        else:
-                            st.info("No job roles data")
-                    
-                    # RIGHT COLUMN: Individual Resume Scores Bar Chart
+                            fig = go.Figure(data=[go.Pie(labels=role_names, values=role_counts, hole=.3)])
+                            fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#E8F0FE'))
+                            st.plotly_chart(fig, use_container_width=True)
                     with col2:
-                        if resumes_response:
-                            resumes = resumes_response.get('resumes', [])
-                            if resumes:
-                                # Prepare all resumes with their scores (limit to 20)
-                                resume_ids = [f"{i+1}" for i in range(min(20, len(resumes)))]
-                                scores = [resumes[i].get('score', 0) for i in range(min(20, len(resumes)))]
-                                
-                                # Color code based on score ranges
-                                bar_colors = []
-                                for score in scores:
-                                    if score >= 80:
-                                        bar_colors.append('#00FF88')  # Excellent - Green
-                                    elif score >= 60:
-                                        bar_colors.append('#00D4FF')  # Very Good - Cyan
-                                    elif score >= 40:
-                                        bar_colors.append('#FFB800')  # Good - Orange
-                                    else:
-                                        bar_colors.append('#FF3E44')  # Fair/Poor - Red
-                                
-                                fig_scores = go.Figure(data=[go.Bar(
-                                    x=resume_ids,
-                                    y=scores,
-                                    marker=dict(
-                                        color=bar_colors,
-                                        line=dict(color='#0A1F3F', width=2),
-                                        cornerradius='5px'
-                                    ),
-                                    text=[f"{int(score)}" for score in scores],
-                                    textposition='outside',
-                                    textfont=dict(size=12, color='#00D4FF', family='Arial Black'),
-                                    hovertemplate='<b style="color:#00FF88">Resume #%{x}</b><br><b>Score:</b> %{y}<extra></extra>',
-                                    hoverlabel=dict(bgcolor='rgba(15, 35, 65, 0.95)', bordercolor='#00D4FF', font=dict(size=12, color='#E8F0FE'))
-                                )])
-                                
-                                fig_scores.update_layout(
-                                    title=dict(
-                                        text="<b>Resume Scores</b>",
-                                        font=dict(size=14, color='#00D4FF', family='Arial Black'),
-                                        x=0.5,
-                                        xanchor='center',
-                                        y=0.95
-                                    ),
-                                    paper_bgcolor='rgba(10, 31, 63, 0)',
-                                    plot_bgcolor='rgba(10, 31, 63, 0.05)',
-                                    font=dict(color='#E8F0FE', family='Arial', size=10),
-                                    xaxis=dict(
-                                        title='Resume #',
-                                        title_font=dict(size=12, color='#00D4FF', family='Arial Black'),
-                                        tickfont=dict(size=10, color='#E8F0FE'),
-                                        showgrid=False,
-                                        zeroline=False
-                                    ),
-                                    yaxis=dict(
-                                        title='Score',
-                                        title_font=dict(size=12, color='#00D4FF', family='Arial Black'),
-                                        tickfont=dict(size=10, color='#E8F0FE'),
-                                        range=[0, 105],
-                                        showgrid=True,
-                                        gridwidth=1,
-                                        gridcolor='rgba(0, 212, 255, 0.1)',
-                                        zeroline=False
-                                    ),
-                                    height=400,
-                                    showlegend=False,
-                                    margin=dict(l=50, r=20, t=60, b=50),
-                                    hovermode='x unified',
-                                    bargap=0.2,
-                                    bargroupgap=0.1
-                                )
-                                st.plotly_chart(fig_scores, use_container_width=True)
-                            else:
-                                st.info("No resumes found")
-                        else:
-                            st.warning("⚠️ Unable to fetch resume scores")
-                else:
-                    st.info("📊 No analytics data available yet. Upload resumes to see distribution analysis.")
+                        if resumes_response and resumes_response.get('resumes'):
+                            scores = [r.get('score', 0) for r in resumes_response['resumes'][:10]]
+                            fig = go.Figure(data=[go.Bar(y=scores)])
+                            fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#E8F0FE'))
+                            st.plotly_chart(fig, use_container_width=True)
+                
+                render_dashboard_analytics(analytics)
                 
                 st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
                 st.markdown("<div class='section-header'><span class='section-header-title'>All Resume Records</span></div>", unsafe_allow_html=True)
@@ -2602,19 +2607,51 @@ elif st.session_state.current_page == "Dashboard":
                         
                         st.success(f"Showing {len(df)} records")
                         
-                        # Reorder columns to show location prominently
-                        cols_order = ['id', 'user_name', 'email', 'phone', 'city', 'country', 'file_name', 'upload_date', 'file_size']
+                        # Identify whether a user is Guest or Authenticated
+                        if 'portal_user_id' in df.columns:
+                            df['User Status'] = df['portal_user_id'].apply(lambda x: 'Guest' if not x or str(x).startswith('guest') else 'Authenticated')
+                        else:
+                            df['User Status'] = 'Unknown'
+                            
+                        # Reorder columns to show User ID, Authentication status, and Feature Score prominently
+                        cols_order = ['id', 'User Status', 'portal_user_id', 'user_name', 'email', 'score', 'city', 'country', 'file_name', 'upload_date', 'file_size']
                         available_cols = [col for col in cols_order if col in df.columns]
-                        df_display = df[available_cols]
+                        df_display = df[available_cols].copy()
+                        
+                        # Rename columns for the display table to look more professional
+                        rename_map = {'id': 'Use ID', 'portal_user_id': 'Auth ID', 'user_name': 'Candidate Name', 'score': 'AI Match Score', 'file_name': 'Resume File', 'city': 'Precise City', 'upload_date': 'Upload Date'}
+                        df_display.rename(columns={k:v for k,v in rename_map.items() if k in df_display.columns}, inplace=True)
                         
                         st.dataframe(df_display, use_container_width=True, height=400)
                         
-                        # Download option
-                        csv = df.to_csv(index=False)
+                        # Clean up the JSON string payloads for the downloadable report to be purely readable text lists
+                        download_df = df.copy()
+                        
+                        import json
+                        def safe_parse_json(val, key=None):
+                            if not val or pd.isna(val): return ""
+                            try:
+                                parsed = json.loads(val) if isinstance(val, str) else val
+                                if isinstance(parsed, list):
+                                    if len(parsed) > 0 and isinstance(parsed[0], dict) and key:
+                                        return ", ".join([str(item.get(key, '')) for item in parsed])
+                                    elif len(parsed) > 0 and isinstance(parsed[0], str):
+                                        return ", ".join(parsed)
+                                return str(parsed)
+                            except:
+                                return str(val)
+                                
+                        if 'extracted_skills' in download_df.columns:
+                            download_df['extracted_skills'] = download_df['extracted_skills'].apply(lambda x: safe_parse_json(x))
+                        if 'predicted_roles' in download_df.columns:
+                            download_df['predicted_roles'] = download_df['predicted_roles'].apply(lambda x: safe_parse_json(x, 'role'))
+                            
+                        # Download option with full detailed records
+                        csv = download_df.to_csv(index=False)
                         st.download_button(
-                            label="📥 Download All Records (CSV)",
+                            label="📥 Download Detailed Report (CSV)",
                             data=csv,
-                            file_name="all_resumes.csv",
+                            file_name="resume_analyzer_admin_report.csv",
                             mime="text/csv"
                         )
                     else:
@@ -2634,82 +2671,140 @@ elif st.session_state.current_page == "Resources":
         "Curated learning materials to improve your resume"
     )
     
+    analysis_result = st.session_state.get('analysis_result')
+    improvement_keywords = []
+    
+    if analysis_result:
+        raw_keywords = analysis_result.get('missing_keywords', [])
+        for kw in raw_keywords:
+            if isinstance(kw, dict) and 'keyword' in kw:
+                improvement_keywords.append(kw['keyword'])
+            elif isinstance(kw, str):
+                improvement_keywords.append(kw)
+                
+        st.success("🎯 Resources have been personalized based on your resume analysis!")
+        if improvement_keywords:
+            st.markdown("#### Suggested Areas for Improvement:")
+            st.markdown(" • " + " • ".join(improvement_keywords))
+    else:
+        st.info("💡 Get personalized course suggestions by analyzing your resume first!")
+        if st.button("🚀 Go to Resume Analyzer", use_container_width=True):
+            st.session_state.current_page = "Upload Resume"
+            st.session_state.analysis_result = None
+            st.session_state.resume_id = None
+            st.experimental_rerun()
+            
+        st.markdown("---")
+        manual_field = st.text_input("Looking for something specific? Enter a field to improve (e.g., Python, Marketing):")
+        if manual_field:
+            improvement_keywords = [kw.strip() for kw in manual_field.split(',')]
+            
+    # Filter helper function
+    def filter_resources(items_dict, keywords):
+        if not keywords: return items_dict
+        filtered = {}
+        for key, val in items_dict.items():
+            if any(kw.lower() in key.lower() or key.lower() in kw.lower() for kw in keywords):
+                filtered[key] = val
+        return filtered
+    
     tabs = st.tabs(["📖 Courses", "🎥 Videos", "📑 Guides", "⭐ Tips"])
     
     with tabs[0]:
         st.markdown("<div class='section-header'><span class='section-header-title'>Learning Platforms</span></div>", unsafe_allow_html=True)
-        try:
-            response = requests.get(f"{API_URL}/courses")
-            if response.status_code == 200:
-                courses = response.json()
-                for category, platforms in courses.items():
-                    st.markdown(f"#### {category}")
-                    cols = st.columns(3)
-                    for idx, (platform, url) in enumerate(platforms.items()):
-                        with cols[idx % 3]:
-                            st.markdown(f"""
-                            <div class='resource-card'>
-                                <div class='resource-title'>{platform}</div>
-                                <a href='{url}' target='_blank' style='color: var(--accent-primary);'>Explore →</a>
-                            </div>
-                            """, unsafe_allow_html=True)
-        except:
+        courses = fetch_courses()
+        if courses:
+            filtered_courses = filter_resources(courses, improvement_keywords)
+            
+            if improvement_keywords and len(filtered_courses) == 0:
+                st.caption("Generating dynamic learning paths for your specific skills...")
+                for kw in improvement_keywords:
+                    kw_encoded = kw.replace(" ", "+")
+                    filtered_courses[f"{kw.title()} Mastery Track"] = {
+                        "Coursera Specialization": f"https://www.coursera.org/search?query={kw_encoded}",
+                        "Udemy Hands-on Course": f"https://www.udemy.com/courses/search/?src=ukw&q={kw_encoded}",
+                        "edX Professional Cert": f"https://www.edx.org/search?q={kw_encoded}",
+                        "LinkedIn Learning": f"https://www.linkedin.com/learning/search?keywords={kw_encoded}"
+                    }
+            elif improvement_keywords and len(filtered_courses) < len(courses):
+                st.caption("Showing courses relevant to your improvement areas.")
+            
+            for category, platforms in filtered_courses.items():
+                st.markdown(f"#### {category}")
+                cols = st.columns(3)
+                for idx, (platform, url) in enumerate(platforms.items()):
+                    with cols[idx % 3]:
+                        st.markdown(f"""
+                        <div class='resource-card'>
+                            <div class='resource-title'>{platform}</div>
+                            <a href='{url}' target='_blank' style='color: var(--accent-primary);'>Explore →</a>
+                        </div>
+                        """, unsafe_allow_html=True)
+        else:
             st.info("Courses data unavailable")
     
     with tabs[1]:
         st.markdown("<div class='section-header'><span class='section-header-title'>Videos</span></div>", unsafe_allow_html=True)
-        try:
-            response = requests.get(f"{API_URL}/videos")
-            if response.status_code == 200:
-                videos = response.json()
-                cols = st.columns(2)
-                for idx, (topic, url) in enumerate(videos.items()):
-                    with cols[idx % 2]:
-                        st.markdown(f"""
-                        <div class='resource-card'>
-                            <div class='resource-title'>{topic}</div>
-                            <a href='{url}' target='_blank' style='color: var(--accent-primary);'>Watch →</a>
-                        </div>
-                        """, unsafe_allow_html=True)
-        except:
+        videos = fetch_videos()
+        if videos:
+            filtered_videos = filter_resources(videos, improvement_keywords)
+            
+            if improvement_keywords and len(filtered_videos) == 0:
+                st.caption("Generating customized dynamic video suggestions...")
+                for kw in improvement_keywords:
+                    kw_encoded = kw.replace(" ", "+")
+                    filtered_videos[f"{kw.title()} Full Course (Beginners)"] = f"https://www.youtube.com/results?search_query={kw_encoded}+full+course"
+                    filtered_videos[f"Advanced {kw.title()} Techniques"] = f"https://www.youtube.com/results?search_query=advanced+{kw_encoded}+tutorial"
+                    filtered_videos[f"Top {kw.title()} Interview Questions"] = f"https://www.youtube.com/results?search_query={kw_encoded}+interview+questions"
+                    filtered_videos[f"{kw.title()} Project Build"] = f"https://www.youtube.com/results?search_query={kw_encoded}+project+step+by+step"
+                    
+            elif improvement_keywords and len(filtered_videos) < len(videos):
+                st.caption("Showing videos relevant to your improvement areas.")
+            
+            cols = st.columns(2)
+            for idx, (topic, url) in enumerate(filtered_videos.items()):
+                with cols[idx % 2]:
+                    st.markdown(f"""
+                    <div class='resource-card'>
+                        <div class='resource-title'>{topic}</div>
+                        <a href='{url}' target='_blank' style='color: var(--accent-primary);'>Watch →</a>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
             st.info("Videos unavailable")
     
     with tabs[2]:
         st.markdown("<div class='section-header'><span class='section-header-title'>Guides</span></div>", unsafe_allow_html=True)
-        try:
-            response = requests.get(f"{API_URL}/guides")
-            if response.status_code == 200:
-                guides = response.json()
-                cols = st.columns(2)
-                for idx, (title, guide) in enumerate(guides.items()):
-                    with cols[idx % 2]:
-                        tags = guide.get('tags', [])
-                        st.markdown(f"""
-                        <div class='resource-card'>
-                            <div class='resource-title'>{title}</div>
-                            <div class='resource-description'>{guide.get('description', '')}</div>
-                            {''.join(f'<span class="resource-tag">{tag}</span>' for tag in tags)}
-                        </div>
-                        """, unsafe_allow_html=True)
-        except:
+        guides = fetch_guides()
+        if guides:
+            cols = st.columns(2)
+            for idx, (title, guide) in enumerate(guides.items()):
+                with cols[idx % 2]:
+                    tags = guide.get('tags', [])
+                    st.markdown(f"""
+                    <div class='resource-card'>
+                        <div class='resource-title'>{title}</div>
+                        <div class='resource-description'>{guide.get('description', '')}</div>
+                        {''.join(f'<span class="resource-tag">{tag}</span>' for tag in tags)}
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
             st.info("Guides unavailable")
     
     with tabs[3]:
         st.markdown("<div class='section-header'><span class='section-header-title'>Tips</span></div>", unsafe_allow_html=True)
-        try:
-            response = requests.get(f"{API_URL}/tips")
-            if response.status_code == 200:
-                tips_data = response.json()
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("#### ✅ Do This")
-                    for tip in tips_data.get('do', []):
-                        st.markdown(f"✓ {tip}")
-                with col2:
-                    st.markdown("#### ❌ Avoid This")
-                    for tip in tips_data.get('dont', []):
-                        st.markdown(f"✗ {tip}")
-        except:
+        tips_data = fetch_tips()
+        if tips_data:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("#### ✅ Do This")
+                for tip in tips_data.get('do', []):
+                    st.markdown(f"✓ {tip}")
+            with col2:
+                st.markdown("#### ❌ Avoid This")
+                for tip in tips_data.get('dont', []):
+                    st.markdown(f"✗ {tip}")
+        else:
             st.info("Tips unavailable")
 
 # ============================================================================

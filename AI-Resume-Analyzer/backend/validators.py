@@ -252,8 +252,9 @@ def validate_resume_upload_data(user_name: str, email: str, phone: str) -> tuple
         errors.append("Invalid email format")
     
     # Validate phone
-    if not validate_phone(phone):
-        errors.append("Invalid phone format")
+    if phone and phone != "Not Provided" and phone.strip() != "":
+        if not validate_phone(phone):
+            errors.append("Invalid phone format")
     
     return len(errors) == 0, errors
 

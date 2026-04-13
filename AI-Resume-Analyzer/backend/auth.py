@@ -10,7 +10,7 @@ from fastapi.security import HTTPBearer
 from pydantic import BaseModel, EmailStr
 import logging
 
-from config import JWT_SECRET_KEY, JWT_ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, ADMIN_EMAILS
+from config import JWT_SECRET_KEY, JWT_ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, ADMIN_EMAILS, PORTAL_SHARED_SECRET
 
 logger = logging.getLogger(__name__)
 
@@ -98,18 +98,19 @@ def create_refresh_token(data: dict) -> str:
 def verify_token(token: str) -> TokenData:
     """
     Verify and decode JWT token
-    
-    Args:
-        token: JWT token to verify
-        
-    Returns:
-        TokenData with decoded claims
-        
-    Raises:
-        HTTPException: If token is invalid or expired
+    Tries primary secret key first, then falls back to portal shared secret
     """
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        # Try primary secret key
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        except JWTError:
+            # Fallback to portal shared secret
+            if PORTAL_SHARED_SECRET:
+                payload = jwt.decode(token, PORTAL_SHARED_SECRET, algorithms=[JWT_ALGORITHM])
+            else:
+                raise
+        
         email: str = payload.get("email")
         
         if email is None:

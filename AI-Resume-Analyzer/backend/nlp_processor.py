@@ -82,7 +82,7 @@ Provide practical, actionable advice for job seeker improvement. Focus on specif
         
         # Call OpenAI GPT with enhanced system prompt for job seeker insights
         response = client.chat.completions.create(
-            model=OPENAI_MODEL,
+            model="gpt-4o-mini", # Explicitly use fastest structured model
             messages=[
                 {
                     "role": "system",
@@ -149,8 +149,8 @@ Provide detailed guidance with this EXACT structure:
                     "content": resume_context
                 }
             ],
-            temperature=0.6,
-            max_tokens=2000
+            temperature=0.2, # Lower temperature for faster/more deterministic result
+            max_tokens=1200 # Sufficient for structured JSON
         )
         
         # Parse response with detailed insights

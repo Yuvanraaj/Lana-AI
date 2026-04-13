@@ -62,7 +62,63 @@ function formatUserResponse(user) {
   };
 }
 
+const crypto = require('crypto');
+
+/**
+ * Sign a simple JWT-compatible token using a secret
+ */
+function signToken(payload, secret) {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const base64Header = Buffer.from(JSON.stringify(header)).toString('base64url');
+  const base64Payload = Buffer.from(JSON.stringify(payload)).toString('base64url');
+  const signature = crypto.createHmac('sha256', secret)
+    .update(`${base64Header}.${base64Payload}`)
+    .digest('base64url');
+  return `${base64Header}.${base64Payload}.${signature}`;
+}
+
 // ====== AUTH ENDPOINTS ======
+
+/**
+ * GET /api/analytics/portal-token
+ * Generate a token for unified login in integrated apps
+ */
+router.get('/portal-token', async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(401).json({ ok: false, error: 'Unauthorized' });
+    }
+
+    const db = require('../models/database').getDatabase();
+    const user = await new Promise((resolve, reject) => {
+      db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) => {
+        if (err) reject(err);
+        resolve(row);
+      });
+    });
+
+    if (!user) {
+      return res.status(404).json({ ok: false, error: 'User not found' });
+    }
+
+    const payload = {
+      email: user.email || `${user.username}@portal.local`,
+      user_id: user.id,
+      full_name: user.name || user.username,
+      role: user.role || 'user',
+      exp: Math.floor(Date.now() / 1000) + (30 * 60) // 30 mins
+    };
+
+    const secret = process.env.PORTAL_SHARED_SECRET || 'fallback_secret';
+    const token = signToken(payload, secret);
+
+    res.json({ ok: true, token });
+  } catch (err) {
+    console.error('Error generating portal token:', err);
+    res.status(500).json({ ok: false, error: 'Internal server error' });
+  }
+});
 
 /**
  * POST /api/analytics/user/check-username

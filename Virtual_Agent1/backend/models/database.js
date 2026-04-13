@@ -50,12 +50,20 @@ function initializeDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         last_login TIMESTAMP,
         password_changed_at TIMESTAMP,
+        role TEXT DEFAULT 'user',
         preferences TEXT
       )
     `, (err) => {
       if (err) {
         console.error('Error creating users table:', err);
         reject(err);
+      } else {
+        // Migration: Add role column if it doesn't exist
+        db.run("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'user'", (alterErr) => {
+          if (alterErr && !alterErr.message.includes("duplicate column name")) {
+            console.warn('[DB] Role column migration note:', alterErr.message);
+          }
+        });
       }
     });
 

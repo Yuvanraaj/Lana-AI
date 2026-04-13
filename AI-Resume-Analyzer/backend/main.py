@@ -263,6 +263,7 @@ async def upload_resume(
     user_name: str = Form(...),
     email: str = Form(...),
     phone: str = Form(...),
+    user_id: str = Form(default=None), # ID from the main portal
     city: str = Form(default="Unknown"),
     country: str = Form(default="Unknown"),
     latitude: float = Form(default=None),
@@ -322,31 +323,46 @@ async def upload_resume(
         # Save file with sanitized name
         file_path = save_uploaded_file(file, UPLOAD_DIR, safe_filename)
         
-        # Get location from IP if not provided (optional geolocation)
+        # Get location from IP if not provided (advanced fallback mechanism)
         client_ip = "Unknown"
         if city == "Unknown" or country == "Unknown":
-            try:
-                # Try to detect location from public IP
-                geo_response = requests.get(f"https://ipapi.co/json/", timeout=2)
-                if geo_response.status_code == 200:
-                    geo_data = geo_response.json()
-                    if city == "Unknown":
-                        city = geo_data.get("city", "Unknown")
-                    if country == "Unknown":
-                        country = geo_data.get("country_name", "Unknown")
-                    if latitude is None:
-                        latitude = geo_data.get("latitude")
-                    if longitude is None:
-                        longitude = geo_data.get("longitude")
-                    client_ip = geo_data.get("ip", "Unknown")
-                    logger.info(f"Location auto-detected: {city}, {country}")
-            except Exception as e:
-                logger.warning(f"Could not auto-detect location: {e}")
+            providers = [
+                {"url": "http://ip-api.com/json/", "city_key": "city", "country_key": "country", "lat_key": "lat", "lon_key": "lon", "ip_key": "query"},
+                {"url": "https://ipinfo.io/json", "city_key": "city", "country_key": "country", "loc_key": "loc", "ip_key": "ip"},
+                {"url": "https://ipapi.co/json/", "city_key": "city", "country_key": "country_name", "lat_key": "latitude", "lon_key": "longitude", "ip_key": "ip"}
+            ]
+            
+            for provider in providers:
+                try:
+                    geo_response = requests.get(provider["url"], timeout=3)
+                    if geo_response.status_code == 200:
+                        geo_data = geo_response.json()
+                        if city == "Unknown" and geo_data.get(provider["city_key"]):
+                            city = geo_data.get(provider["city_key"])
+                        if country == "Unknown" and geo_data.get(provider["country_key"]):
+                            country = geo_data.get(provider["country_key"])
+                        if latitude is None:
+                            if "loc_key" in provider and geo_data.get(provider["loc_key"]):
+                                loc_parts = geo_data.get(provider["loc_key"]).split(",")
+                                if len(loc_parts) == 2:
+                                    latitude = float(loc_parts[0])
+                                    longitude = float(loc_parts[1])
+                            elif "lat_key" in provider and geo_data.get(provider["lat_key"]):
+                                latitude = float(geo_data.get(provider["lat_key"]))
+                                longitude = float(geo_data.get(provider["lon_key"]))
+                        if client_ip == "Unknown" and geo_data.get(provider["ip_key"]):
+                            client_ip = geo_data.get(provider["ip_key"])
+                        
+                        logger.info(f"Location auto-detected via {provider['url']}: {city}, {country}")
+                        break
+                except Exception as e:
+                    logger.warning(f"Could not auto-detect location via {provider['url']}: {e}")
+                    continue
         
         # Insert resume record with location data
         resume_id = insert_resume(
             user_name, email, phone, safe_filename, file_path, file_size,
-            city=city, country=country, latitude=latitude, longitude=longitude, ip_address=client_ip
+            portal_user_id=user_id, city=city, country=country, latitude=latitude, longitude=longitude, ip_address=client_ip
         )
         logger.info(f"Resume {resume_id} saved: {user_name} ({email}) from {city}, {country}")
         

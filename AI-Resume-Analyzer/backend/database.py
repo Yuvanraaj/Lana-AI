@@ -93,6 +93,7 @@ def initialize_database():
                 user_name VARCHAR(255),
                 email VARCHAR(255),
                 phone VARCHAR(20),
+                portal_user_id VARCHAR(100), -- Linked ID from Virtual Agent 1
                 file_name VARCHAR(255),
                 upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 file_path VARCHAR(500),
@@ -187,16 +188,16 @@ def initialize_database():
         logger.error(f"Database initialization error: {e}")
         raise
 
-def insert_resume(user_name, email, phone, file_name, file_path, file_size, city="Unknown", country="Unknown", latitude=None, longitude=None, ip_address=None):
-    """Insert a new resume record with location data"""
+def insert_resume(user_name, email, phone, file_name, file_path, file_size, portal_user_id=None, city="Unknown", country="Unknown", latitude=None, longitude=None, ip_address=None):
+    """Insert a new resume record with location data and portal connection"""
     try:
         connection = get_db_connection()
         cursor = connection.cursor()
         
         cursor.execute("""
-            INSERT INTO resumes (user_name, email, phone, file_name, file_path, file_size, city, country, latitude, longitude, ip_address)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (user_name, email, phone, file_name, file_path, file_size, city, country, latitude, longitude, ip_address))
+            INSERT INTO resumes (user_name, email, phone, portal_user_id, file_name, file_path, file_size, city, country, latitude, longitude, ip_address)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (user_name, email, phone, portal_user_id, file_name, file_path, file_size, city, country, latitude, longitude, ip_address))
         
         connection.commit()
         resume_id = cursor.lastrowid
@@ -264,7 +265,10 @@ def get_all_resumes(limit=100, offset=0):
                 r.longitude,
                 r.ip_address,
                 r.upload_date,
-                COALESCE(ra.overall_score, 0) as score
+                r.portal_user_id,
+                COALESCE(ra.overall_score, 0) as score,
+                ra.extracted_skills,
+                ra.predicted_roles
             FROM resumes r
             LEFT JOIN resume_analysis ra ON r.id = ra.resume_id
             ORDER BY r.upload_date DESC
@@ -318,13 +322,16 @@ def get_analytics_data():
         connection = get_db_connection()
         cursor = connection.cursor(dictionary=True)
         
-        # Get overall statistics
+        # Get overall statistics including Users vs Guests
         cursor.execute("""
             SELECT 
                 COUNT(*) as total_resumes,
                 AVG(COALESCE(ra.overall_score, 0)) as average_score,
                 MAX(COALESCE(ra.overall_score, 0)) as highest_score,
-                MIN(CASE WHEN ra.overall_score > 0 THEN ra.overall_score END) as lowest_score
+                MIN(CASE WHEN ra.overall_score > 0 THEN ra.overall_score END) as lowest_score,
+                COUNT(DISTINCT CASE WHEN r.portal_user_id IS NOT NULL THEN r.portal_user_id ELSE r.id END) as total_users,
+                COUNT(DISTINCT CASE WHEN r.portal_user_id IS NOT NULL AND r.portal_user_id NOT LIKE 'guest%' THEN r.portal_user_id END) as auth_users,
+                COUNT(DISTINCT CASE WHEN r.portal_user_id IS NULL OR r.portal_user_id LIKE 'guest%' THEN COALESCE(r.portal_user_id, CAST(r.id AS CHAR)) END) as guest_users
             FROM resumes r
             LEFT JOIN resume_analysis ra ON r.id = ra.resume_id
         """)

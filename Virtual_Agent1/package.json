@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Interview Bot Application",
   "scripts": {
-    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\" \"cd ../AI-Resume-Analyzer/backend && venv\\Scripts\\python main.py\" \"cd ../AI-Resume-Analyzer/frontend && venv\\Scripts\\python -m streamlit run app.py --server.headless true\"",
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
   },
   "devDependencies": {

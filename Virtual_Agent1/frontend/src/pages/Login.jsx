@@ -12,6 +12,7 @@ export default function Login() {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -72,6 +73,11 @@ export default function Login() {
     return n && n.trim().length >= 2 && n.length <= 100;
   };
 
+  const isValidPhone = (p) => {
+    const regex = /^\+?[\d\s-]{10,15}$/;
+    return regex.test(p);
+  };
+
   // Check if form can be submitted
   const canSubmit = () => {
     if (mode === 'login') {
@@ -87,6 +93,7 @@ export default function Login() {
         password === passwordConfirm &&
         (!name || isValidName(name)) &&
         (!email || isValidEmail(email)) &&
+        (!phone || isValidPhone(phone)) &&
         !loading &&
         !checkingUsername
       );
@@ -200,7 +207,8 @@ export default function Login() {
           password: password,
           passwordConfirm: passwordConfirm,
           name: name.trim(),
-          email: email || null
+          email: email || null,
+          phone: phone || null
         })
       });
 
@@ -651,6 +659,40 @@ export default function Login() {
                   {email && !isValidEmail(email) && (
                     <p style={{ fontSize: '0.8rem', color: '#fecaca', marginTop: '0.25rem' }}>
                       Invalid email format
+                    </p>
+                  )}
+                </div>
+                {/* PHONE */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    marginBottom: '0.5rem'
+                  }}>
+                    Phone Number (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+1 234 567 8900"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem',
+                      background: 'rgba(44, 154, 255, 0.1)',
+                      border: phone && !isValidPhone(phone) ? '1px solid #ef4444' : '1px solid rgba(44, 154, 255, 0.2)',
+                      borderRadius: '0.5rem',
+                      color: 'var(--text-primary)',
+                      fontSize: '1rem',
+                      transition: 'all 0.3s',
+                      fontFamily: 'inherit'
+                    }}
+                    disabled={loading}
+                  />
+                  {phone && !isValidPhone(phone) && (
+                    <p style={{ fontSize: '0.8rem', color: '#fecaca', marginTop: '0.25rem' }}>
+                      Invalid phone number format
                     </p>
                   )}
                 </div>
