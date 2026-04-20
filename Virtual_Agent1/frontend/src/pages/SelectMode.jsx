@@ -77,12 +77,13 @@ export default function SelectMode() {
   const [, navigate] = useLocation();
   const [hovered, setHovered] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
-  const [showModeChoice, setShowModeChoice] = useState(false); // NEW: Choose Role vs Resume
+  const [showModeChoice, setShowModeChoice] = useState(false);
   const [showRoleSelector, setShowRoleSelector] = useState(false);
-  const [showResumeUpload, setShowResumeUpload] = useState(false); // NEW: Resume upload modal
+  const [showResumeUpload, setShowResumeUpload] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
   const [customJD, setCustomJD] = useState('');
   const [resumeUploading, setResumeUploading] = useState(false);
+  const [resumeUploaded, setResumeUploaded] = useState(false); // New: Track success
   const [resumeError, setResumeError] = useState(null);
   const userId = localStorage.getItem('userId') || 'demo-user';
 
@@ -95,13 +96,8 @@ export default function SelectMode() {
     { id: 'data-engineer', label: 'Data Engineer', icon: '📊' },
   ];
 
-  const handleInterviewClick = () => {
-    setShowModeChoice(true); // NEW: Show choice first instead of directly showing role selector
-  };
-
-  const handleRoleSelect = (roleId) => {
-    setSelectedRole(roleId);
-  };
+  const handleInterviewClick = () => setShowModeChoice(true);
+  const handleRoleSelect = (roleId) => setSelectedRole(roleId);
 
   const handleConfirmRole = () => {
     if (selectedRole === 'custom' && !customJD.trim()) {
@@ -139,40 +135,36 @@ export default function SelectMode() {
     try {
       setResumeUploading(true);
       setResumeError(null);
+      setResumeUploaded(false);
 
       const formData = new FormData();
       formData.append('file', file);
       formData.append('userId', userId);
 
-      console.log('[SelectMode] Uploading resume for analysis...');
       const uploadRes = await fetch(`${API_BASE_URL}/api/parse-resume`, {
         method: 'POST',
         body: formData
       });
 
-      if (!uploadRes.ok) {
-        throw new Error(`Upload failed: ${uploadRes.statusText}`);
-      }
+      if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.statusText}`);
 
       const result = await uploadRes.json();
-      console.log('[SelectMode] Resume analysis complete:', result);
+      const resumeData = result.feedback || result;
 
-      if (result && result.name) {
-        // Store resume data and go directly to interview
-        localStorage.setItem('resumeData', JSON.stringify(result));
+      if (result.success && resumeData && resumeData.name) {
+        localStorage.setItem('resumeData', JSON.stringify(resumeData));
         localStorage.setItem('selectedRole', 'resume-based');
         localStorage.setItem('selectedRoleLabel', 'Resume-Based Interview');
-
-        setShowResumeUpload(false);
-        setShowModeChoice(false);
         
-        console.log('[SelectMode] Starting interview with resume data...');
-        navigate('/interview');
+        setResumeUploaded(true); // Mark as uploaded
+        setTimeout(() => {
+          setShowResumeUpload(false);
+          navigate('/interview');
+        }, 1000); // Small delay to show "Resume Uploaded"
       } else {
-        throw new Error('No resume data returned');
+        throw new Error(result.error || 'No resume data returned');
       }
     } catch (e) {
-      console.error('[SelectMode] Resume upload error:', e);
       setResumeError(e.message || 'Failed to upload resume');
     } finally {
       setResumeUploading(false);
@@ -181,112 +173,26 @@ export default function SelectMode() {
 
   return (
     <div>
-      {/* Mode Choice Modal - NEW */}
+      {/* Mode Choice Modal */}
       {showModeChoice && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'var(--bg-secondary)',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '700px',
-            width: '90%',
-            border: '1px solid var(--border-color)'
-          }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', textAlign: 'center' }}>
-              Choose Interview Type
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', textAlign: 'center' }}>
-              How would you like to be interviewed?
-            </p>
-
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '2rem', maxWidth: '700px', width: '90%', border: '1px solid var(--border-color)' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', textAlign: 'center' }}>Choose Interview Type</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', textAlign: 'center' }}>How would you like to be interviewed?</p>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-              {/* Role-Based Option */}
-              <button
-                onClick={handleChooseRole}
-                style={{
-                  padding: '2rem',
-                  borderRadius: '10px',
-                  border: '2px solid rgba(44, 154, 255, 0.4)',
-                  background: 'rgba(44, 154, 255, 0.05)',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--accent)';
-                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.4)';
-                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.05)';
-                }}
-              >
+              <button onClick={handleChooseRole} style={{ padding: '2rem', borderRadius: '10px', border: '2px solid rgba(44, 154, 255, 0.4)', background: 'rgba(44, 154, 255, 0.05)', color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.3s', textAlign: 'center' }}>
                 <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>👔</div>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>By Role</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                  Choose a target role (Backend, Frontend, DevOps, etc.) and be interviewed for that position.
-                </p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>Choose a target role (Backend, Frontend, etc.) and be interviewed for that position.</p>
               </button>
-
-              {/* Resume-Based Option */}
-              <button
-                onClick={handleChooseResume}
-                style={{
-                  padding: '2rem',
-                  borderRadius: '10px',
-                  border: '2px solid rgba(34, 197, 94, 0.4)',
-                  background: 'rgba(34, 197, 94, 0.05)',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  textAlign: 'center'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#22c55e';
-                  e.currentTarget.style.background = 'rgba(34, 197, 94, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'rgba(34, 197, 94, 0.4)';
-                  e.currentTarget.style.background = 'rgba(34, 197, 94, 0.05)';
-                }}
-              >
+              <button onClick={handleChooseResume} style={{ padding: '2rem', borderRadius: '10px', border: '2px solid rgba(34, 197, 94, 0.4)', background: 'rgba(34, 197, 94, 0.05)', color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.3s', textAlign: 'center' }}>
                 <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>📄</div>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>By Resume</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>
-                  Upload your resume and be interviewed based on your actual background and experience.
-                </p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>Upload your resume and be interviewed based on your actual experience.</p>
               </button>
             </div>
-
-            {/* Cancel Button */}
             <div style={{ textAlign: 'center' }}>
-              <button
-                onClick={() => setShowModeChoice(false)}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-primary)',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  transition: 'all 0.2s'
-                }}
-              >
-                Cancel
-              </button>
+              <button onClick={() => setShowModeChoice(false)} style={{ padding: '0.75rem 1.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
             </div>
           </div>
         </div>
@@ -294,650 +200,112 @@ export default function SelectMode() {
 
       {/* Role Selector Modal */}
       {showRoleSelector && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'var(--bg-secondary)',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '600px',
-            width: '90%',
-            maxHeight: '80vh',
-            overflowY: 'auto',
-            border: '1px solid var(--border-color)'
-          }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.5rem' }}>
-              Select Your Target Role
-            </h2>
-            
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '2rem', maxWidth: '600px', width: '90%', border: '1px solid var(--border-color)' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.5rem' }}>Select Target Role</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
               {roles.map((role) => (
-                <button
-                  key={role.id}
-                  onClick={() => handleRoleSelect(role.id)}
-                  style={{
-                    padding: '1.25rem',
-                    borderRadius: '8px',
-                    border: selectedRole === role.id ? '2px solid var(--accent)' : '1px solid var(--border-color)',
-                    background: selectedRole === role.id ? 'rgba(44, 154, 255, 0.1)' : 'var(--bg-primary)',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    transition: 'all 0.2s'
-                  }}>
+                <button key={role.id} onClick={() => handleRoleSelect(role.id)} style={{ padding: '1.25rem', borderRadius: '8px', border: selectedRole === role.id ? '2px solid var(--accent)' : '1px solid var(--border-color)', background: selectedRole === role.id ? 'rgba(44, 154, 255, 0.1)' : 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600, textAlign: 'center' }}>
                   <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{role.icon}</div>
                   <div>{role.label}</div>
                 </button>
               ))}
             </div>
-
-            {/* Custom Role Option */}
-            <div style={{
-              padding: '1rem',
-              borderRadius: '8px',
-              border: selectedRole === 'custom' ? '2px solid var(--accent)' : '1px solid var(--border-color)',
-              background: selectedRole === 'custom' ? 'rgba(44, 154, 255, 0.1)' : 'var(--bg-primary)',
-              marginBottom: '1.5rem'
-            }}>
-              <button
-                onClick={() => handleRoleSelect('custom')}
-                style={{
-                  width: '100%',
-                  padding: '1rem',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: 'transparent',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  textAlign: 'left'
-                }}>
-                ✨ Custom Role
-              </button>
+            <div style={{ padding: '1rem', borderRadius: '8px', border: selectedRole === 'custom' ? '2px solid var(--accent)' : '1px solid var(--border-color)', background: selectedRole === 'custom' ? 'rgba(44, 154, 255, 0.1)' : 'var(--bg-primary)', marginBottom: '1.5rem' }}>
+              <button onClick={() => handleRoleSelect('custom')} style={{ width: '100%', padding: '1rem', background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600, textAlign: 'left' }}>✨ Custom Role</button>
               {selectedRole === 'custom' && (
-                <textarea
-                  placeholder="Describe your target role (2-3 sentences)"
-                  value={customJD}
-                  onChange={(e) => setCustomJD(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem',
-                    borderRadius: '6px',
-                    border: '1px solid var(--border-color)',
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    marginTop: '0.75rem',
-                    minHeight: '80px',
-                    fontFamily: 'inherit',
-                    fontSize: '0.9rem'
-                  }} />
+                <textarea placeholder="Describe your target role..." value={customJD} onChange={(e) => setCustomJD(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', marginTop: '0.75rem', minHeight: '80px' }} />
               )}
             </div>
-
-            {/* Action Buttons */}
             <div style={{ display: 'flex', gap: '1rem' }}>
-              <button
-                onClick={() => { setShowRoleSelector(false); setSelectedRole(null); }}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-primary)',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer',
-                  fontWeight: 600,
-                  transition: 'all 0.2s'
-                }}>
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmRole}
-                disabled={!selectedRole}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background: selectedRole ? 'var(--accent)' : 'var(--border-color)',
-                  color: 'white',
-                  cursor: selectedRole ? 'pointer' : 'not-allowed',
-                  fontWeight: 600,
-                  transition: 'all 0.2s'
-                }}>
-                Continue
-              </button>
+              <button onClick={() => setShowRoleSelector(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+              <button onClick={handleConfirmRole} disabled={!selectedRole} style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: 'none', background: selectedRole ? 'var(--accent)' : 'var(--border-color)', color: 'white', cursor: selectedRole ? 'pointer' : 'not-allowed', fontWeight: 600 }}>Continue</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Resume Upload Modal - NEW */}
+      {/* Resume Upload Modal - REFINED */}
       {showResumeUpload && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'var(--bg-secondary)',
-            borderRadius: '12px',
-            padding: '2rem',
-            maxWidth: '500px',
-            width: '90%',
-            border: '1px solid var(--border-color)'
-          }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
-              📄 Upload Your Resume
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-              We'll analyze your resume and conduct a personalized interview based on your background.
-            </p>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '2rem', maxWidth: '500px', width: '90%', border: '1px solid var(--border-color)' }}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>📄 Resume Upload</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Lana will analyze your resume to generate personalized interview scenarios.</p>
 
             {resumeError && (
-              <div style={{
-                padding: '1rem',
-                borderRadius: '8px',
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                color: '#fca5a5',
-                marginBottom: '1rem',
-                fontSize: '0.9rem'
-              }}>
-                ✗ {resumeError}
-              </div>
+              <div style={{ padding: '1rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5', marginBottom: '1rem', fontSize: '0.9rem' }}>✗ {resumeError}</div>
             )}
 
-            <label style={{
-              display: 'block',
-              padding: '2rem',
-              borderRadius: '8px',
-              border: '2px dashed rgba(44, 154, 255, 0.4)',
-              background: 'rgba(44, 154, 255, 0.05)',
-              cursor: resumeUploading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s',
-              textAlign: 'center',
-              opacity: resumeUploading ? 0.6 : 1
-            }}
-              onMouseEnter={(e) => {
-                if (!resumeUploading) {
-                  e.currentTarget.style.borderColor = 'var(--accent)';
-                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.1)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.4)';
-                e.currentTarget.style.background = 'rgba(44, 154, 255, 0.05)';
-              }}
-            >
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={(e) => handleResumeUpload(e.target.files?.[0])}
-                disabled={resumeUploading}
-                style={{ display: 'none' }}
-              />
-              <div style={{
-                fontSize: resumeUploading ? '1rem' : '2.5rem',
-                marginBottom: '0.5rem'
-              }}>
-                {resumeUploading ? '⏳ Analyzing...' : '📤'}
-              </div>
+            <label style={{ display: 'block', padding: '2rem', borderRadius: '8px', border: '2px dashed rgba(44, 154, 255, 0.4)', background: 'rgba(44, 154, 255, 0.05)', cursor: resumeUploading ? 'not-allowed' : 'pointer', transition: 'all 0.3s', textAlign: 'center', opacity: resumeUploading ? 0.6 : 1 }}>
+              <input type="file" accept=".pdf,.docx" onChange={(e) => handleResumeUpload(e.target.files?.[0])} disabled={resumeUploading} style={{ display: 'none' }} />
+              <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{resumeUploading ? '⏳' : resumeUploaded ? '✅' : '📤'}</div>
               <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-                {resumeUploading ? 'Analyzing your resume...' : 'Click to upload or drag & drop'}
+                {resumeUploading ? 'Synthesizing...' : resumeUploaded ? 'Resume Uploaded' : 'Upload Resume'}
               </p>
-              <p style={{
-                margin: 0,
-                fontSize: '0.85rem',
-                color: 'var(--text-secondary)'
-              }}>
-                PDF, DOC, or DOCX (max 5MB)
-              </p>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>PDF or DOCX (max 5MB)</p>
             </label>
 
-            <div style={{
-              display: 'flex',
-              gap: '1rem',
-              marginTop: '1.5rem'
-            }}>
-              <button
-                onClick={() => {
-                  setShowResumeUpload(false);
-                  setResumeError(null);
-                }}
-                disabled={resumeUploading}
-                style={{
-                  flex: 1,
-                  padding: '0.75rem',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border-color)',
-                  background: 'var(--bg-primary)',
-                  color: 'var(--text-primary)',
-                  cursor: resumeUploading ? 'not-allowed' : 'pointer',
-                  fontWeight: 600,
-                  transition: 'all 0.2s',
-                  opacity: resumeUploading ? 0.5 : 1
-                }}
-              >
-                Cancel
-              </button>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+              <button onClick={() => { setShowResumeUpload(false); setResumeError(null); }} disabled={resumeUploading} style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Interview History Modal */}
-      {showHistory && (
-        <InterviewHistory
-          userId={userId}
-          onViewSession={(sessionId) => {
-            localStorage.setItem('viewSessionId', sessionId);
-            setShowHistory(false);
-            navigate('/analytics');
-          }}
-          onClose={() => setShowHistory(false)}
-        />
-      )}
-
+      {/* Main Home Page Layout */}
       {!showHistory && (
         <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden" style={{ background: 'var(--bg-primary)' }}>
-          {/* Subtle background effects */}
-          <div className="fixed top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none" style={{
-            background: 'radial-gradient(circle, rgba(44, 154, 255, 0.1) 0%, transparent 70%)',
-            opacity: 0.4
-          }} />
-          <div className="fixed bottom-1/4 right-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none" style={{
-            background: 'radial-gradient(circle, rgba(0, 224, 255, 0.08) 0%, transparent 70%)',
-            opacity: 0.3
-          }} />
-
-          {/* HERO SECTION */}
+          <div className="fixed top-1/4 left-1/4 w-96 h-96 rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(44, 154, 255, 0.1) 0%, transparent 70%)', opacity: 0.4 }} />
+          
+          {/* HERO */}
           <div className="text-center mb-12 relative z-10 max-w-3xl">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full" style={{
-              background: 'rgba(44, 154, 255, 0.1)',
-              border: '1px solid rgba(44, 154, 255, 0.2)'
-            }}>
-              <span style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: 'var(--accent)',
-                animation: 'pulse 2s infinite'
-              }} />
-              <span style={{ fontSize: '0.875rem', color: 'var(--accent)', fontWeight: 500 }}>
-                Welcome Back
-              </span>
-            </div>
-
-            {/* Main Headline - SPECIFIC VALUE PROP */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black mb-4 leading-tight" style={{ color: 'var(--text-primary)' }}>
-              Prepare Smarter.
-              <br />
+              Prepare Smarter.<br />
               <span style={{ background: 'linear-gradient(90deg, var(--accent), var(--accent-2))', backgroundClip: 'text', WebkitBackgroundClip: 'text', color: 'transparent' }}>
                 Crack Tech Interviews with AI
               </span>
             </h1>
-
-            {/* Subheadline - CLEAR PROMISE */}
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '600px', margin: '1rem auto', lineHeight: '1.6' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '600px', margin: '1rem auto' }}>
               Practice real interviews, analyze your resume, and track your progress in one place.
             </p>
-
-            {/* Role Focus - TARGETED */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '1rem',
-              flexWrap: 'wrap',
-              marginTop: '1.5rem'
-            }}>
-              {['Backend', 'DevOps', 'Data'].map((role, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    fontSize: '0.85rem',
-                    color: 'var(--accent)',
-                    padding: '0.4rem 0.8rem',
-                    borderRadius: '0.375rem',
-                    background: 'rgba(44, 154, 255, 0.1)',
-                    border: '1px solid rgba(44, 154, 255, 0.2)',
-                    fontWeight: 500
-                  }}
-                >
-                  {role} Optimized
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* PRIMARY ACTIONS - BIG FEATURED CARDS */}
-          <div className="w-full max-w-5xl mb-12 relative z-10">
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Pick Your Starting Point
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {primaryActions.map((opt, i) => (
-                <button
-                  key={opt.label}
-                  onClick={() => handleOptionClick(opt)}
-                  onMouseEnter={() => setHovered(`primary-${i}`)}
-                  onMouseLeave={() => setHovered(null)}
-                  className="rounded-2xl p-8 flex flex-col items-start text-left transition-all duration-300 focus:outline-none focus:ring-2"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(44, 154, 255, 0.08), rgba(0, 224, 255, 0.04))',
-                    border: '1px solid rgba(44, 154, 255, 0.2)',
-                    cursor: 'pointer',
-                    transform: hovered === `primary-${i}` ? 'translateY(-4px) scale(1.02)' : 'translateY(0)',
-                    boxShadow: hovered === `primary-${i}` ? '0 20px 40px rgba(44, 154, 255, 0.2)' : 'none',
-                    focusRingColor: 'var(--accent)'
-                  }}
-                >
-                  {/* Icon */}
-                  <div style={{
-                    fontSize: '3rem',
-                    marginBottom: '1rem',
-                    transform: hovered === `primary-${i}` ? 'scale(1.15)' : 'scale(1)',
-                    transition: 'transform 0.3s ease'
-                  }}>
-                    {opt.icon}
-                  </div>
-
-                  {/* Header with badge */}
-                  <div style={{ marginBottom: '0.5rem' }}>
-                    <h2 style={{
-                      fontSize: '1.5rem',
-                      fontWeight: 'bold',
-                      color: 'var(--text-primary)',
-                      marginBottom: '0.5rem'
-                    }}>
-                      {opt.label}
-                    </h2>
-                    <div style={{
-                      display: 'inline-block',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      padding: '0.35rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      background: 'rgba(44, 154, 255, 0.15)',
-                      color: 'var(--accent)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em'
-                    }}>
-                      {opt.badge}
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <p style={{
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.95rem',
-                    marginBottom: '1.25rem',
-                    lineHeight: '1.5'
-                  }}>
-                    {opt.description}
-                  </p>
-
-                  {/* Outcomes as bullets */}
-                  <ul style={{
-                    flex: 1,
-                    width: '100%',
-                    marginBottom: '1.5rem',
-                    listStyle: 'none',
-                    padding: 0
-                  }}>
-                    {opt.outcomes.map((outcome, idx) => (
-                      <li
-                        key={idx}
-                        style={{
-                          fontSize: '0.9rem',
-                          color: 'var(--text-secondary)',
-                          marginBottom: '0.6rem',
-                          display: 'flex',
-                          gap: '0.75rem',
-                          lineHeight: '1.4'
-                        }}
-                      >
-                        <span style={{ color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>✓</span>
-                        <span>{outcome}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* CTA Button */}
-                  <div style={{
-                    width: '100%',
-                    padding: '1rem',
-                    borderRadius: '0.75rem',
-                    background: 'linear-gradient(90deg, var(--accent), var(--accent-2))',
-                    color: 'white',
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    transition: 'all 0.3s ease',
-                    transform: hovered === `primary-${i}` ? 'scale(1.05)' : 'scale(1)',
-                    boxShadow: hovered === `primary-${i}` ? '0 10px 25px rgba(44, 154, 255, 0.3)' : 'none'
-                  }}>
-                    Get Started →
-                  </div>
-                </button>
-              ))}
-            </div>
+          {/* PRIMARY ACTIONS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mb-12 relative z-10">
+            {primaryActions.map((opt, i) => (
+              <button key={opt.label} onClick={() => handleOptionClick(opt)} onMouseEnter={() => setHovered(`primary-${i}`)} onMouseLeave={() => setHovered(null)} className="rounded-2xl p-8 flex flex-col items-start text-left transition-all duration-300" style={{ background: 'rgba(44, 154, 255, 0.08)', border: '1px solid rgba(44, 154, 255, 0.2)', cursor: 'pointer', transform: hovered === `primary-${i}` ? 'translateY(-4px)' : 'none', boxShadow: hovered === `primary-${i}` ? '0 20px 40px rgba(44, 154, 255, 0.2)' : 'none' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>{opt.icon}</div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>{opt.label}</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.25rem' }}>{opt.description}</p>
+                <div style={{ width: '100%', padding: '0.75rem', borderRadius: '0.75rem', background: 'linear-gradient(90deg, var(--accent), var(--accent-2))', color: 'white', fontWeight: 600, textAlign: 'center' }}>Get Started →</div>
+              </button>
+            ))}
           </div>
 
           {/* SECONDARY TOOLS */}
-          <div className="w-full max-w-5xl mb-12 relative z-10">
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Supporting Tools
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-              {secondaryTools.map((opt, i) => (
-                <button
-                  key={opt.label}
-                  onClick={() => handleOptionClick(opt)}
-                  onMouseEnter={() => setHovered(`secondary-${i}`)}
-                  onMouseLeave={() => setHovered(null)}
-                  className="rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between text-left transition-all duration-300 focus:outline-none"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(44, 154, 255, 0.06), rgba(0, 224, 255, 0.02))',
-                    border: '1px solid rgba(44, 154, 255, 0.15)',
-                    cursor: 'pointer',
-                    boxShadow: hovered === `secondary-${i}` ? '0 10px 25px rgba(44, 154, 255, 0.15)' : 'none'
-                  }}
-                >
-                  {/* Left Content */}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.75rem' }}>
-                      <div style={{ fontSize: '2rem' }}>{opt.icon}</div>
-                      <div>
-                        <h3 style={{
-                          fontSize: '1.1rem',
-                          fontWeight: 600,
-                          color: 'var(--text-primary)',
-                          marginBottom: '0.25rem'
-                        }}>
-                          {opt.label}
-                        </h3>
-                        <p style={{
-                          fontSize: '0.85rem',
-                          color: 'var(--text-secondary)',
-                          lineHeight: '1.4'
-                        }}>
-                          {opt.description}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Outcomes for secondary */}
-                    <ul style={{
-                      listStyle: 'none',
-                      padding: '0 0 0 3rem',
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                      gap: '0.6rem'
-                    }}>
-                      {opt.outcomes.map((outcome, idx) => (
-                        <li
-                          key={idx}
-                          style={{
-                            fontSize: '0.8rem',
-                            color: 'var(--text-secondary)',
-                            display: 'flex',
-                            gap: '0.5rem'
-                          }}
-                        >
-                          <span style={{ color: 'var(--accent)', fontWeight: 600, flexShrink: 0 }}>•</span>
-                          <span>{outcome}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Right CTA */}
-                  <div style={{
-                    marginTop: '1rem',
-                    marginLeft: 'auto',
-                    marginRight: 0
-                  }}>
-                    <div style={{
-                      padding: '0.6rem 1.5rem',
-                      borderRadius: '0.5rem',
-                      background: 'transparent',
-                      border: '1px solid var(--accent)',
-                      color: 'var(--accent)',
-                      fontWeight: 600,
-                      fontSize: '0.9rem',
-                      transition: 'all 0.3s ease',
-                      boxShadow: hovered === `secondary-${i}` ? '0 0 15px rgba(44, 154, 255, 0.3)' : 'none'
-                    }}>
-                      Try Now →
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mb-12 relative z-10">
+            {secondaryTools.map((opt, i) => (
+              <button key={opt.label} onClick={() => handleOptionClick(opt)} className="rounded-xl p-6 flex items-center gap-4 transition-all" style={{ background: 'rgba(44, 154, 255, 0.05)', border: '1px solid rgba(44, 154, 255, 0.15)', cursor: 'pointer' }}>
+                <div style={{ fontSize: '2rem' }}>{opt.icon}</div>
+                <div className="text-left">
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>{opt.label}</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{opt.description}</p>
+                </div>
+              </button>
+            ))}
           </div>
 
-          {/* QUICK LINKS - SUPPORTING SECTION */}
-          <div className="w-full max-w-5xl mb-12 relative z-10">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* View Interview History */}
-              <button
-                onClick={() => setShowHistory(true)}
-                style={{
-                  padding: '1.25rem',
-                  borderRadius: '0.75rem',
-                  background: 'rgba(44, 154, 255, 0.08)',
-                  border: '1px solid rgba(44, 154, 255, 0.15)',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.15)';
-                }}
-              >
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📊</div>
-                <div style={{ color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 600 }}>Interview History</div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem' }}>View past sessions</div>
-              </button>
-
-              {/* My Profile */}
-              <button
-                onClick={() => navigate('/profile')}
-                style={{
-                  padding: '1.25rem',
-                  borderRadius: '0.75rem',
-                  background: 'rgba(44, 154, 255, 0.08)',
-                  border: '1px solid rgba(44, 154, 255, 0.15)',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.15)';
-                }}
-              >
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>👤</div>
-                <div style={{ color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 600 }}>My Profile</div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem' }}>Edit preferences</div>
-              </button>
-
-              {/* Track Progress */}
-              <button
-                onClick={() => navigate('/progress')}
-                style={{
-                  padding: '1.25rem',
-                  borderRadius: '0.75rem',
-                  background: 'rgba(44, 154, 255, 0.08)',
-                  border: '1px solid rgba(44, 154, 255, 0.15)',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.12)';
-                  e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(44, 154, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(44, 154, 255, 0.15)';
-                }}
-              >
-                <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📈</div>
-                <div style={{ color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 600 }}>Track Progress</div>
-                <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.25rem' }}>View analytics</div>
-              </button>
-            </div>
-          </div>
-
-          {/* FOOTER - UNDER THE HOOD */}
-          <div className="w-full max-w-5xl relative z-10 text-center" style={{
-            padding: '2rem',
-            borderTop: '1px solid rgba(44, 154, 255, 0.15)',
-            borderRadius: '1rem'
-          }}>
-            <p style={{
-              color: 'var(--text-secondary)',
-              fontSize: '0.85rem',
-              lineHeight: '1.6',
-              maxWidth: '700px',
-              margin: '0 auto'
-            }}>
-              <strong style={{ color: 'var(--accent)' }}>Under the hood:</strong> Powered by LLM-based behavior rubrics, multi-dimensional scoring aligned with FAANG hiring practices, ATS keyword extraction, and real-time transcript analysis. Every interview generates actionable improvement plans.
-            </p>
+          {/* SUPPORT LINKS */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-5xl relative z-10">
+            <button onClick={() => setShowHistory(true)} className="p-4 rounded-xl border transition-all" style={{ background: 'rgba(44, 154, 255, 0.08)', border: '1px solid rgba(44, 154, 255, 0.15)', color: 'var(--text-primary)' }}>📊 History</button>
+            <button onClick={() => navigate('/profile')} className="p-4 rounded-xl border transition-all" style={{ background: 'rgba(44, 154, 255, 0.08)', border: '1px solid rgba(44, 154, 255, 0.15)', color: 'var(--text-primary)' }}>👤 Profile</button>
+            <button onClick={() => navigate('/progress')} className="p-4 rounded-xl border transition-all" style={{ background: 'rgba(44, 154, 255, 0.08)', border: '1px solid rgba(44, 154, 255, 0.15)', color: 'var(--text-primary)' }}>📈 Progress</button>
           </div>
         </div>
+      )}
+
+      {showHistory && (
+        <InterviewHistory userId={userId} onViewSession={(sessionId) => { localStorage.setItem('viewSessionId', sessionId); setShowHistory(false); navigate('/analytics'); }} onClose={() => setShowHistory(false)} />
       )}
     </div>
   );

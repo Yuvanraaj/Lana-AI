@@ -808,22 +808,24 @@ Keep practicing and best of luck with your interview preparation!
   }, []);
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded">
-      <div className="w-full max-w-3xl">
+    <div className="w-full h-full flex flex-col items-center justify-center bg-black relative">
+      <div className="w-full h-full rounded-[2rem] overflow-hidden bg-black relative">
         <video
           ref={videoRef}
           id="anam-video"
           autoPlay
           playsInline
           muted
-          style={{ width: '100%', height: '360px', background: '#000', borderRadius: 8 }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           onClick={onVideoClick}
         />
-        <p className="mt-2 text-center text-gray-500">
-          {status === 'limited'
-            ? 'Streaming usage limit reached. Please upgrade your Anam plan.'
-            : status.toUpperCase()}
-        </p>
+        {/* Subtle Status Overlay */}
+        <div className="absolute top-4 right-4 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 shadow-lg">
+          <div className={`w-1.5 h-1.5 rounded-full ${status === 'live' || status === 'connected' ? 'bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.6)]'}`} />
+          <p className="text-[10px] tracking-widest text-white font-bold uppercase">
+            {status === 'limited' ? 'LIMIT REACHED' : status}
+          </p>
+        </div>
       </div>
     </div>
   );

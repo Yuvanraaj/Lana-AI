@@ -238,83 +238,51 @@ export default function Interview() {
           </div>
 
           {/* Main Content */}
-          <div className="max-w-6xl mx-auto px-6 py-8 flex-1">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Anam Avatar - Main Interview Area */}
-              <div className="lg:col-span-2">
-                <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-indigo-500/30 rounded-lg p-6 min-h-[500px] flex flex-col items-center justify-center">
-                  {sessionId ? (
-                    <div className="w-full h-full">
-                      <AnamAvatar 
-                        ref={anamRef}
-                        onStatusChange={handleAnamStatusChange}
-                        onInterviewEnd={finishInterview}
-                        role={role}
-                        sessionId={sessionId}
-                        resumeData={resumeData}
-                      />
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <p className="text-gray-400 mb-4">Initializing Anam AI interviewer...</p>
-                      <div className="animate-pulse">
-                        <div className="w-32 h-32 bg-indigo-500/20 rounded-full mx-auto" />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Interview Info Panel */}
-              <div className="space-y-6">
-                {/* Tips */}
-                <div className="bg-white/5 border border-white/10 rounded-lg p-6">
-                  <h3 className="font-semibold mb-3">Interview Tips</h3>
-                  <ul className="space-y-2 text-sm text-gray-300">
-                    <li>✓ Speak clearly and at a normal pace</li>
-                    <li>✓ Use the STAR method for behavioral questions</li>
-                    <li>✓ Think before answering - pause is okay</li>
-                    <li>✓ Provide specific examples and metrics</li>
-                    <li>✓ Ask clarifying questions if needed</li>
-                  </ul>
-                </div>
-
-                {/* Live Feedback */}
-                {anamStatus === 'connected' && (
-                  <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
-                    <p className="text-green-300 text-sm">
-                      🎤 Anam is listening - Speak your answer clearly
-                    </p>
+          <div className="max-w-5xl mx-auto px-6 py-10 flex-1 flex flex-col items-center justify-center w-full">
+            {/* Anam Avatar - Main Interview Area */}
+            <div className="w-full">
+              <div className="bg-slate-950 rounded-[40px] overflow-hidden shadow-2xl shadow-black/50 relative aspect-video w-full flex items-center justify-center">
+                {sessionId ? (
+                  <div className="w-full h-full p-12">
+                    <AnamAvatar 
+                      ref={anamRef}
+                      onStatusChange={handleAnamStatusChange}
+                      onInterviewEnd={finishInterview}
+                      role={role}
+                      sessionId={sessionId}
+                      resumeData={resumeData}
+                    />
                   </div>
-                )}
-
-                {anamStatus === 'error' && (
-                  <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-4">
-                    <p className="text-red-300 text-sm">
-                      ⚠️ Connection issue - Please refresh or try again
-                    </p>
+                ) : (
+                  <div className="text-center">
+                    <p className="text-gray-400 mb-4 font-medium">Initializing Anam AI interviewer...</p>
+                    <div className="animate-pulse">
+                      <div className="w-32 h-32 bg-indigo-500/20 rounded-full mx-auto border-2 border-indigo-500/30" />
+                    </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Interview Guide */}
-            <div className="mt-8 bg-white/5 border border-white/10 rounded-lg p-6">
-              <h3 className="font-semibold mb-4">How This Interview Works</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-gray-300">
-                <div>
-                  <p className="text-indigo-400 font-semibold mb-2">1. Anam Greets You</p>
-                  <p>The AI introduces itself and asks your name and target position</p>
+            {/* Status & Feedback Area - Positioned below for clean UI */}
+            <div className="mt-8 w-full max-w-2xl">
+              {anamStatus === 'connected' && (
+                <div className="bg-indigo-500/10 backdrop-blur-sm border border-indigo-500/20 rounded-xl p-4 flex items-center justify-center gap-3 animate-pulse">
+                  <div className="w-2 h-2 bg-indigo-400 rounded-full animate-ping" />
+                  <p className="text-indigo-300 text-sm font-medium">
+                    🎤 Anam is listening - Speak your answer clearly
+                  </p>
                 </div>
-                <div>
-                  <p className="text-indigo-400 font-semibold mb-2">2. Technical Questions</p>
-                  <p>Anam asks role-specific technical and behavioral questions</p>
+              )}
+
+              {anamStatus === 'error' && (
+                <div className="bg-red-500/10 backdrop-blur-sm border border-red-500/20 rounded-xl p-4 flex items-center justify-center gap-3">
+                  <div className="w-2 h-2 bg-red-400 rounded-full" />
+                  <p className="text-red-300 text-sm font-medium">
+                    ⚠️ Connection issue - Please refresh or try again
+                  </p>
                 </div>
-                <div>
-                  <p className="text-indigo-400 font-semibold mb-2">3. Real-time Feedback</p>
-                  <p>Get evaluation and improvement suggestions after completion</p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </>

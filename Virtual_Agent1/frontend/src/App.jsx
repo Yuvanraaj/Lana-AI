@@ -13,6 +13,7 @@ import AnalyticsPage from "./pages/Analytics";
 import ProgressDashboard from "./pages/ProgressDashboard";
 import JudgeView from "./pages/JudgeView";
 import CodePractice from "./pages/CodePractice";
+import PersistentIframe from "./components/PersistentIframe";
 
 // Note: UserProfile and ProgressDashboard handle their own authentication checks
 // in their useEffect hooks, so we don't need a wrapper component here
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/judge" component={JudgeView} />
         <Route path="/code-practice" component={CodePractice} />
       </Switch>
+      <PersistentIframe />
     </div>
   );
 }

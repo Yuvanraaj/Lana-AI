@@ -1,5 +1,6 @@
 require('dotenv').config();
 console.log("Avatar ID:", process.env.ANAM_AVATAR_ID);
+console.log("Anam API Key loaded (preview):", process.env.ANAM_API_KEY ? process.env.ANAM_API_KEY.substring(0, 8) + "..." : "MISSING");
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
@@ -104,6 +105,12 @@ app.post('/api/openai-proxy', async (req, res) => {
     const { stream, messages, model = 'gpt-4o-mini', temperature = 0.7, max_tokens = 800 } = req.body;
 
     console.log('[OpenAI Proxy] Creating completion with model:', model);
+    console.log('[OpenAI Proxy] Messages:', JSON.stringify(messages).substring(0, 200));
+    
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'Invalid messages format. Expected array of messages with role and content.' });
+    }
+
     if (stream) {
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
@@ -133,10 +140,13 @@ app.post('/api/openai-proxy', async (req, res) => {
       res.json(completion);
     }
   } catch (err) {
-    console.error('[OpenAI Proxy] Error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('[OpenAI Proxy] Full error:', err);
+    console.error('[OpenAI Proxy] Error message:', err.message);
+    console.error('[OpenAI Proxy] Error status:', err.status);
+    res.status(500).json({ error: err.message, details: err.status });
   }
 });
+
 
 const DEFAULT_PORT = process.env.PORT || 8001;
 function startServer(port) {

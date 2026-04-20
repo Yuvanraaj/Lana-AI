@@ -124,9 +124,15 @@ export default function Chatbot() {
     inputRef.current?.focus();
 
     try {
+      console.log('[Chatbot] Sending message to:', `${API_BASE_URL}/api/openai-proxy`);
+      console.log('[Chatbot] Messages:', newMessages.length, 'messages');
+      
       const response = await fetch(`${API_BASE_URL}/api/openai-proxy`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "text/event-stream"
+        },
         body: JSON.stringify({
           model: "gpt-4o-mini",
           messages: newMessages.map(({ role, content }) => ({ role, content })),
@@ -136,21 +142,41 @@ export default function Chatbot() {
         })
       });
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      console.log('[Chatbot] Response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Chatbot] Error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+
+      if (!response.body) {
+        throw new Error('Response body is empty or unavailable');
+      }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let accumulatedResponse = "";
+      let chunkCount = 0;
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          console.log('[Chatbot] Stream complete. Received', chunkCount, 'chunks');
+          break;
+        }
+        
+        chunkCount++;
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n').filter(line => line.trim() !== '');
+        
         for (const line of lines) {
           if (line.startsWith('data:')) {
             const data = line.slice(5).trim();
-            if (data === '[DONE]') continue;
+            if (data === '[DONE]') {
+              console.log('[Chatbot] Stream ended with [DONE]');
+              continue;
+            }
             try {
               const parsed = JSON.parse(data);
               const content = parsed.choices?.[0]?.delta?.content || '';
@@ -158,18 +184,23 @@ export default function Chatbot() {
                 accumulatedResponse += content;
                 setStreamingMessage(accumulatedResponse);
               }
-            } catch {}
+            } catch (parseErr) {
+              console.warn('[Chatbot] Failed to parse chunk:', parseErr.message);
+            }
           }
         }
       }
 
+      console.log('[Chatbot] Final response length:', accumulatedResponse.length);
+      
       setMessages([...newMessages, {
         role: "assistant",
         content: accumulatedResponse || "(No response)"
       }]);
     } catch (err) {
-      console.error('Streaming error:', err);
-      setMessages([...newMessages, { role: "assistant", content: "Sorry, there was an error connecting to the AI. Please try again." }]);
+      console.error('[Chatbot] Streaming error:', err);
+      console.error('[Chatbot] Error details:', err.message);
+      setMessages([...newMessages, { role: "assistant", content: `Sorry, there was an error: ${err.message}` }]);
     } finally {
       setLoading(false);
       setStreamingMessage("");

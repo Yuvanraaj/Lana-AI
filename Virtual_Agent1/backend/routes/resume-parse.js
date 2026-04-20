@@ -14,7 +14,11 @@ try {
 }
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
+// Accept file uploads with any field names
+const upload = multer({ 
+  dest: 'uploads/',
+  limits: { fileSize: 12 * 1024 * 1024 } // 12MB limit
+});
 let pdfParse = null;
 try {
   pdfParse = require('pdf-parse');
@@ -45,19 +49,47 @@ function pdfToPngs(pdfPath, numPages = 5) {
 //   return text.trim();
 // }
 
+/* -------------------------- 🛠️ Mock Fallback Helper ---------------------------- */
+function generateMockFallback(text, originalName) {
+  // Try to extract a name if possible (very basic)
+  const lines = text.split('\n').filter(l => l.trim().length > 0);
+  const potentialName = lines[0]?.substring(0, 50).trim() || "Candidate";
+
+  return {
+    name: potentialName + " (Local)",
+    email: "local-parse@virtualagent.ai",
+    phone: "N/A",
+    education: [{ degree: "Extracted from Resume", institution: "Institution", year: "N/A" }],
+    experience: [{ title: "Professional", company: "Company", start: "N/A", end: "N/A", description: "Experience details found in document text." }],
+    skills: ["Technical Skills", "Communication", "Problem Solving"],
+    projects: [],
+    strengths: ["Solid background foundation", "Clear document structure"],
+    weaknesses: ["AI analysis limited by API quota"],
+    suggestions: ["Upgrade OpenAI API quota to see detailed AI-powered suggestions"],
+    score: 75,
+    overall_feedback: "Successfully extracted text from resume. Note: Detailed AI scoring is currently unavailable due to API quota limits, so a baseline analysis is provided.",
+    ats_keywords: ["resume", "experience", "skills"],
+    career_level: "mid",
+    recommended_roles: ["Software Engineer", "Developer"]
+  };
+}
+
 /* ----------------------------- 🚀 Main Parse Route ------------------------------- */
-router.post('/', upload.single('resume'), async (req, res) => {
+router.post('/', upload.any(), async (req, res) => {
   console.log('[PARSE] === Resume Upload Started ===');
   
-  if (!req.file) {
+  // Find the uploaded file (could be named 'file', 'resume', or anything)
+  const uploadedFile = req.files?.[0];
+  
+  if (!uploadedFile) {
     console.error('[PARSE] No file provided');
     return res.status(400).json({ error: 'No file uploaded.' });
   }
 
-  console.log('[PARSE] File received:', { originalName: req.file.originalname, size: req.file.size, path: req.file.path });
+  console.log('[PARSE] File received:', { originalName: uploadedFile.originalname, size: uploadedFile.size, path: uploadedFile.path });
 
-  const filePath = path.resolve(req.file.path);
-  const ext = path.extname(req.file.originalname).toLowerCase();
+  const filePath = path.resolve(uploadedFile.path);
+  const ext = path.extname(uploadedFile.originalname).toLowerCase();
   let text = '';
   const tempDirs = [];
 
@@ -179,14 +211,28 @@ Detail requirements: 5+ skills, 3+ strengths, 3+ weaknesses, 4+ suggestions. NO 
 
       return res.json({ success: true, feedback: normalized, fallback: false });
     } catch (err) {
-      console.error('[PARSE] OpenAI parser error:', err.message);
-      res.status(500).json({ error: 'LLM analysis failed', details: err.message });
-      return;
+      console.error('[PARSE] OpenAI parser error:', err);
+      
+      // If quota exceeded or other API limits, use fallback so the interview can still proceed
+      if (err.code === 'insufficient_quota' || err.status === 429 || err.status === 400) {
+        console.warn('[PARSE] API Limit/Quota reached. Using local mock fallback.');
+        const mockFallback = generateMockFallback(text, uploadedFile.originalname);
+        return res.json({ success: true, feedback: mockFallback, fallback: true });
+      }
+
+      return res.status(500).json({ 
+        error: 'LLM analysis failed', 
+        details: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+      });
     }
   } catch (err) {
-    console.error('[PARSE] Global parser error:', err.message);
-    res.status(500).json({ error: 'Server error processing resume' });
-    return;
+    console.error('[PARSE] Global parser error:', err);
+    return res.status(500).json({ 
+      error: 'Server error processing resume', 
+      details: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   } finally {
     // Cleanup: Async to avoid blocking the response loop
     fs.unlink(filePath, (err) => { if (err) console.error('[PARSE] Buffer cleanup error:', err.message); });
