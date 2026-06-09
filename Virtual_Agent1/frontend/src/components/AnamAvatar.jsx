@@ -672,96 +672,14 @@ Keep practicing and best of luck with your interview preparation!
           transcriptCheckInterval = setInterval(checkForInterviewResult, 1000);
           
           // If attached, start the interview flow:
-          // - ask name
-          // - ask role
-          // - ask 3 role-based questions (voice + prompt)
-          const speakText = async (text) => {
-            // Strict: use only Anam SDK voice
-            const client = clientRef.current;
-            if (client && typeof client.speak === 'function') {
-              try {
-                return await client.speak(text);
-              } catch (err) {
-                console.warn('⚠️ Failed to speak text:', err);
-                // Don't rethrow - just return silently
-              }
-            } else {
-              console.warn('❓ Anam speak function not available');
-            }
-          };
-
-          const startInterview = async () => {
-            try {
-              const greeting = isCustomRole
-                ? `Hello! I'm Anam, your interviewer today. I see you've selected a custom role. Your target position is: ${customJD}. Could you confirm that's correct? And please, go ahead and tell me your name to get started.`
-                : resumeData
-                ? `Hello! I'm Anam, your interviewer today. I've had a chance to review your resume and I'm impressed by your background. To get started, could you please tell me your name and confirm you're ready to begin?`
-                : `Hello! I'm Anam, your interviewer today. I'll be conducting your interview for the ${roleLabel} position. To get started, could you please tell me your name?`;
-
-              await speakText(greeting);
-
-              // Developer helper
-              try {
-                window.__anamAsk = async (arr) => {
-                  if (!Array.isArray(arr)) return;
-                  for (const q of arr) {
-                    try { await speakText(q); } catch (e) { console.warn('⚠️ speakText failed', e); }
-                    await new Promise(r => setTimeout(r, 800));
-                  }
-                };
-              } catch (e) { /* ignore */ }
-            } catch (e) {
-              console.warn('⚠️ interview flow error', e);
-            }
-          };
-
-          // Expose helpers for manual conversation from anywhere
+          // Expose console helpers for debugging
           if (clientRef.current && typeof clientRef.current.speak === 'function') {
             window.anamSay = async (text) => {
-              try {
-                await clientRef.current.speak(text);
-              } catch (e) {
-                console.warn('Anam speak failed', e);
-              }
+              try { await clientRef.current.speak(text); } catch (e) { console.warn('Anam speak failed', e); }
             };
-            window.anamAsk = async (arr) => {
-              if (!Array.isArray(arr)) {
-                console.warn('anamAsk expects an array of strings');
-                return;
-              }
-              for (const q of arr) {
-                try { await clientRef.current.speak(q); } catch (e) { console.warn('speak failed', e); }
-                await new Promise(r => setTimeout(r, 600));
-              }
-            };
-
-            // Wait for video to actually be playing before Anam speaks
-            await new Promise((resolve) => {
-              const v = videoRef.current;
-              if (!v) return resolve();
-              if (v.readyState >= 3 && !v.paused) return resolve(); // already playing
-              const onPlaying = () => {
-                v.removeEventListener('playing', onPlaying);
-                v.removeEventListener('canplay', onCanPlay);
-                resolve();
-              };
-              const onCanPlay = () => {
-                v.removeEventListener('playing', onPlaying);
-                v.removeEventListener('canplay', onCanPlay);
-                v.play().catch(() => {});
-                resolve();
-              };
-              v.addEventListener('playing', onPlaying);
-              v.addEventListener('canplay', onCanPlay);
-              setTimeout(resolve, 10000); // fallback: start after 10s regardless
-            });
-            console.log('✅ Video is playing — starting interview');
-
-            startInterview().catch((e) => console.warn('⚠️ startInterview failed', e));
-            console.info('You can now use window.anamSay("Hello!") or window.anamAsk(["Q1","Q2"]) from anywhere to continue the conversation.');
-          } else {
-            console.info('ℹ️ Skipping automated interview flow because client.speak is not available. Use window.anamSay or window.anamAsk when ready.');
+            console.info('✅ Anam is live. Use window.anamSay("text") to speak manually.');
           }
+          // ANAM speaks automatically based on the persona prompt — no manual speak() call needed here.
         }
       } catch (streamError) {
         console.error('❌ Error attaching stream:', streamError);
