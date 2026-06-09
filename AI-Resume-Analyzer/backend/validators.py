@@ -99,8 +99,9 @@ def validate_name(name: str) -> tuple[bool, str]:
     if len(name) > 200:
         return False, "Name is too long (max 200 characters)"
     
-    # Allow letters, spaces, hyphens, apostrophes
-    if not re.match(r"^[a-zA-Z\s\-'\.]+$", name):
+    # Allow letters (including accented), numbers, spaces, hyphens, apostrophes, periods, commas
+    # Using Unicode word characters plus common punctuation
+    if not re.match(r"^[\w\s\-'.,]+$", name, re.UNICODE):
         return False, "Name contains invalid characters"
     
     # Prevent excessive spaces

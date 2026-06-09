@@ -98,7 +98,8 @@ router.post('/session', async (req, res) => {
       return res.status(200).json({ ok: true, status: resp.status, body });
     } else {
       console.error('Anam session API request failed:', { status: resp.status, body });
-      return res.status(resp.status).json({ ok: false, error: 'anam_session_failed', detail: body });
+      const errorMsg = resp.status === 429 ? 'Quota exceeded: No available minutes on Anam AI' : 'Anam session failed';
+      return res.status(resp.status).json({ ok: false, error: 'anam_session_failed', message: errorMsg, detail: body });
     }
   } catch (e) {
     console.error('Anam session request failed unexpectedly', e.response ? { status: e.response.status, data: e.response.data } : e.message);
@@ -223,12 +224,21 @@ async function createEngineSession(personaConfig) {
       console.log('[ENGINE HELPER] Successfully obtained new auth token.');
     } catch (e) {
       console.error('❌ [FATAL] Failed to get Anam auth token.');
+      let status = 502;
+      let errorType = 'anam_auth_failed';
+      let message = 'Failed to obtain authentication token from Anam AI';
+      
       if (e.response) {
-        console.error(`❌ Anam Auth API returned status ${e.response.status}:`, e.response.data);
+        status = e.response.status;
+        console.error(`❌ Anam Auth API returned status ${status}:`, e.response.data);
+        if (status === 429) {
+          message = 'Quota Exceeded: Your Anam AI organization has no available minutes remaining.';
+          errorType = 'quota_exceeded';
+        }
       } else {
         console.error('❌ Anam Auth API request error:', e.message);
       }
-      return { ok: false, error: 'anam_auth_failed', detail: e.response ? e.response.data : e.message, status: 502 };
+      return { ok: false, error: errorType, message, detail: e.response ? e.response.data : e.message, status: status };
     }
   }
 
@@ -263,12 +273,21 @@ async function createEngineSession(personaConfig) {
 
   } catch (e) {
     console.error('❌ [FATAL] Failed to create Anam engine session.');
+    let status = 502;
+    let errorType = 'engine_session_failed';
+    let message = 'Failed to create Anam engine session';
+    
     if (e.response) {
-      console.error(`❌ Anam Engine API returned status ${e.response.status}:`, e.response.data);
+      status = e.response.status;
+      console.error(`❌ Anam Engine API returned status ${status}:`, e.response.data);
+      if (status === 429) {
+        message = 'Quota Exceeded: Your Anam AI organization has no available minutes remaining.';
+        errorType = 'quota_exceeded';
+      }
     } else {
       console.error('❌ Anam Engine API request error:', e.message);
     }
-    return { ok: false, error: 'engine_session_failed', detail: e.response ? e.response.data : e.message, status: 502 };
+    return { ok: false, error: errorType, message, detail: e.response ? e.response.data : e.message, status: status };
   }
 }
 

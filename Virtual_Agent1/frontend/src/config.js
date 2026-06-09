@@ -12,7 +12,7 @@ const getBackendUrl = () => {
   }
   // Production: use Render backend
   // NOTE: Use the current Render service URL (matches the service shown in Render dashboard)
-  return import.meta.env.VITE_API_BASE_URL || 'https://virtual-agent1-2.onrender.com';
+  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
 };
 
 export const API_BASE_URL = getBackendUrl();

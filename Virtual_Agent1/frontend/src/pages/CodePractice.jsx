@@ -185,8 +185,12 @@ export default function CodePractice() {
 
     try {
       const systemPrompt = type === 'evaluate'
-        ? `You are a code reviewer and optimization expert. The user has submitted code for a LeetCode problem. 
-           Please analyze the code and provide feedback in the following structured format:
+        ? `You are a code reviewer and optimization expert. The user has submitted code for a LeetCode problem.
+           
+           CRITICAL RULE: First, verify if the submitted code matches the syntax of the selected language: ${languages.find(l => l.id === selectedLanguage)?.label}.
+           If the syntax does NOT match (e.g., Java code in a C++ section), your ENTIRE feedback should focus ONLY on this mismatch and explain why it is incorrect for the selected language. Do not evaluate logic if the language is wrong.
+
+           If the language is correct, please analyze the code and provide feedback in the following structured format:
            
 ## Code Correctness
 Analyze the logic and correctness of the submitted code.
@@ -206,7 +210,11 @@ List potential edge cases they should handle.
 Keep each section concise but thorough.`
         : type === 'test'
         ? `You are a code tester. Analyze the submitted code against the problem examples and AT LEAST 10 comprehensive edge cases.
-           Test against:
+           
+           CRITICAL RULE: First, verify if the submitted code matches the syntax of the selected language: ${languages.find(l => l.id === selectedLanguage)?.label}.
+           If the syntax does NOT match (e.g., Java code in a C++ section), fail ALL test cases immediately and state: "ERROR: Language Mismatch. Submitted code does not match ${languages.find(l => l.id === selectedLanguage)?.label} syntax."
+
+           If the language is correct, test against:
            1. The provided examples from the problem
            2. Empty/null inputs (if applicable)
            3. Single element (if applicable)

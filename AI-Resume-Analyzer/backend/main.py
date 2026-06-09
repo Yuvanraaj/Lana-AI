@@ -11,6 +11,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Depends
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from mysql.connector import Error
 import pandas as pd
 import logging
 from datetime import datetime
@@ -22,7 +23,10 @@ from config import (
     YOUTUBE_RECOMMENDATIONS, ALLOWED_ORIGINS, REQUIRE_HTTPS, RESOURCE_GUIDES,
     RESUME_TIPS_DO, RESUME_TIPS_DONT
 )
-from database import initialize_database, insert_resume, insert_resume_analysis, get_all_resumes, get_analytics_data
+from database import (
+    initialize_database, insert_resume, insert_resume_analysis, 
+    get_all_resumes, get_analytics_data, get_db_connection
+)
 from nlp_processor import analyze_resume
 from file_processor import extract_text_from_file, save_uploaded_file
 

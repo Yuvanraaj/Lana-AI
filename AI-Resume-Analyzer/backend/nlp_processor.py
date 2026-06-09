@@ -129,12 +129,17 @@ Provide detailed guidance with this EXACT structure:
     "target_role": "Primary role they should target based on their profile",
     "required_skills_gap": "Skills to develop to reach this role",
     "positioning": "How to position themselves for this role",
-    "comparable_roles": "Alternative roles matching their profile"
+    "comparable_roles": ["Role 1", "Role 2", "Role 3"]
   },
+  "top_matched_roles": [
+    {"role": "Best Match Role Name", "match_score": 95},
+    {"role": "Second Match Role Name", "match_score": 82},
+    {"role": "Third Match Role Name", "match_score": 70}
+  ],
   "certifications_recommendations": [
-    "Most relevant certification 1 with ROI",
-    "Most relevant certification 2 with ROI",
-    "Certification 3 with salary impact"
+    "High-impact certification specifically addressing an identified skill gap (e.g., 'Since your profile lacks X, the Y Certification is recommended to increase match rate by Z%')",
+    "Strategic certification to bridge technical gaps relevant to target roles",
+    "ROI-focused certification to validate expertise and increase salary potential"
   ],
   "strengths": [
     "Specific documented strength with evidence",
@@ -222,12 +227,17 @@ Provide detailed guidance with this EXACT structure:
                     "target_role": "Position based on your strongest experience",
                     "required_skills_gap": "Research top 5 skills in job postings and prioritize",
                     "positioning": "Lead with most relevant achievements for this role type",
-                    "comparable_roles": "Consider adjacent roles with transferable skills"
+                    "comparable_roles": ["Senior Professional Role", "Specialist Role", "Management Path"]
                 },
+                "top_matched_roles": [
+                    {"role": "Professional in your field", "match_score": 85},
+                    {"role": "Specialized Associate", "match_score": 75},
+                    {"role": "Industry Expert", "match_score": 65}
+                ],
                 "certifications_recommendations": [
-                    "Industry-recognized certification for your target role (3-6 month investment, avg. +15% salary increase)",
-                    "Complementary skill certification (demonstrates commitment to learning)",
-                    "Leadership or management certification (if targeting leadership roles)"
+                    "Advanced technical certification matching your target role (3-6 month investment, validates specialized expertise)",
+                    "Strategic skill-bridging certification to address identified gaps",
+                    "Industry-recognized qualification to increase interview callback rates by up to 25%"
                 ],
                 "strengths": [
                     "Resume demonstrates professional experience",
@@ -277,12 +287,16 @@ Provide detailed guidance with this EXACT structure:
                 "target_role": "Identify your strongest experience area",
                 "required_skills_gap": "Research and prioritize in-demand skills",
                 "positioning": "Lead with your most impressive accomplishments",
-                "comparable_roles": "Explore adjacent career paths"
+                "comparable_roles": ["Related Career Path 1", "Related Career Path 2"]
             },
+            "top_matched_roles": [
+                {"role": "Target Position", "match_score": 80},
+                {"role": "Alternative Role", "match_score": 70}
+            ],
             "certifications_recommendations": [
-                "Industry certification matching your field",
-                "Advanced technical certification",
-                "Leadership development course"
+                "Technical certification to bridge identified skill gaps",
+                "Advanced professional qualification for your field",
+                "Market-relevant certification to validate practical experience"
             ],
             "strengths": [
                 "Professional background present",
@@ -476,7 +490,7 @@ def analyze_resume(text):
         "keywords": keywords,
         "education": education,
         "experience": experience,
-        "predicted_roles": predicted_roles,
+        "predicted_roles": ai_insights.get("top_matched_roles", predicted_roles),
         "scores": scores,
         "suggestions": ai_insights.get("suggestions", []),
         "strengths": ai_insights.get("strengths", []),

@@ -98,6 +98,15 @@ function initializeDatabase() {
       if (err) {
         console.error('Error creating sessions table:', err);
         reject(err);
+      } else {
+        // Migration: Add is_guest column if it doesn't exist (handle case where DB was created without it)
+        db.run("ALTER TABLE interview_sessions ADD COLUMN is_guest BOOLEAN DEFAULT 0", (alterErr) => {
+          if (alterErr && !alterErr.message.includes("duplicate column name")) {
+            console.warn('[DB] is_guest column migration note:', alterErr.message);
+          } else if (!alterErr) {
+            console.log('[DB] ✓ is_guest column migration successful');
+          }
+        });
       }
     });
 

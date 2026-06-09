@@ -26,6 +26,8 @@ class InterviewAnalyticsService {
       "Communication clarity",
       "Structure (STAR/PREP)",
       "Confidence & delivery",
+      "English fluency",
+      "Answer relevancy",
     ];
 
     const rolePreset = getRolePreset(role);
@@ -135,11 +137,13 @@ class InterviewAnalyticsService {
     const subScores = this._calculateSubScores(answerRubrics);
     const overallScore = Math.round(
       (subScores.communication +
-        subScores.technicalDepth +
-        subScores.problemSolving +
+        subScores.technical_depth +
+        subScores.problem_solving +
         subScores.confidence +
-        subScores.answerStructure) /
-        5
+        subScores.structured_thinking +
+        subScores.fluency +
+        subScores.relevancy) /
+        7
     );
 
     // Extract strengths and improvements
@@ -156,10 +160,12 @@ class InterviewAnalyticsService {
       const summaryPrompt = expandPrompt(promptTemplates.summaryGenerationPrompt, {
         overallScore,
         subScoreCommunication: subScores.communication,
-        subScoreTechnicalDepth: subScores.technicalDepth,
-        subScoreProblemSolving: subScores.problemSolving,
+        subScoreTechnicalDepth: subScores.technical_depth,
+        subScoreProblemSolving: subScores.problem_solving,
         subScoreConfidence: subScores.confidence,
-        subScoreAnswerStructure: subScores.answerStructure,
+        subScoreAnswerStructure: subScores.structured_thinking,
+        subScoreFluency: subScores.fluency,
+        subScoreRelevancy: subScores.relevancy,
         strengths: strengths.join(", "),
         improvements: improvements.join(", "),
         patterns: detectedPatterns.map((p) => `${p.pattern} (${p.frequency}x)`).join(", "),
@@ -254,19 +260,23 @@ class InterviewAnalyticsService {
    */
   _calculateSubScores(answerRubrics) {
     const dimensionMap = {
-      "Content correctness": "technicalDepth",
-      "Depth of explanation": "technicalDepth",
+      "Content correctness": "technical_depth",
+      "Depth of explanation": "technical_depth",
       "Communication clarity": "communication",
-      "Structure (STAR/PREP)": "answerStructure",
+      "Structure (STAR/PREP)": "structured_thinking",
       "Confidence & delivery": "confidence",
+      "English fluency": "fluency",
+      "Answer relevancy": "relevancy",
     };
 
     const scores = {
       communication: 0,
-      technicalDepth: 0,
-      problemSolving: 0,
+      technical_depth: 0,
+      problem_solving: 0,
       confidence: 0,
-      answerStructure: 0,
+      structured_thinking: 0,
+      fluency: 0,
+      relevancy: 0,
     };
 
     let counts = { ...scores };
@@ -297,17 +307,17 @@ class InterviewAnalyticsService {
 
     // Based on high sub-scores
     if (subScores.communication > 75) strengths.push("Clear and articulate communication");
-    if (subScores.technicalDepth > 75) strengths.push("Strong technical knowledge");
-    if (subScores.answerStructure > 75) strengths.push("Well-structured answers with examples");
+    if (subScores.technical_depth > 75) strengths.push("Strong technical knowledge");
+    if (subScores.structured_thinking > 75) strengths.push("Well-structured answers with examples");
     if (subScores.confidence > 75) strengths.push("Confident delivery and composure");
-    if (subScores.problemSolving > 75) strengths.push("Sound problem-solving approach");
+    if (subScores.problem_solving > 75) strengths.push("Sound problem-solving approach");
 
     // Based on low sub-scores
     if (subScores.communication < 60) improvements.push("Improve clarity and avoid jargon overload");
-    if (subScores.technicalDepth < 60) improvements.push("Deepen technical knowledge in core areas");
-    if (subScores.answerStructure < 60) improvements.push("Use STAR/PREP structure to organize answers");
+    if (subScores.technical_depth < 60) improvements.push("Deepen technical knowledge in core areas");
+    if (subScores.structured_thinking < 60) improvements.push("Use STAR/PREP structure to organize answers");
     if (subScores.confidence < 60) improvements.push("Build confidence through more practice");
-    if (subScores.problemSolving < 60) improvements.push("Develop a more structured problem-solving approach");
+    if (subScores.problem_solving < 60) improvements.push("Develop a more structured problem-solving approach");
 
     // Based on detected patterns
     for (const pattern of patterns) {

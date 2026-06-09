@@ -1,0 +1,20 @@
+{
+  "name": "virtual-agent-parent",
+  "version": "1.0.0",
+  "description": "Parent orchestrator for Virtual Agent and Resume Analyzer services",
+  "scripts": {
+    "dev": "npx concurrently --kill-others \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:resume-backend\" \"npm run dev:resume-frontend\"",
+    "dev:backend": "cd Virtual_Agent1/backend && npm run dev",
+    "dev:frontend": "cd Virtual_Agent1/frontend && npm run dev",
+    "dev:resume-backend": "cd AI-Resume-Analyzer/backend && venv\\Scripts\\python main.py",
+    "dev:resume-frontend": "cd AI-Resume-Analyzer/frontend && venv\\Scripts\\python -m streamlit run app.py --server.headless true",
+    "install:all": "npx concurrently \"npm run install:main-backend\" \"npm run install:main-frontend\" \"npm run install:resume-backend\" \"npm run install:resume-frontend\"",
+    "install:main-backend": "cd Virtual_Agent1/backend && npm install",
+    "install:main-frontend": "cd Virtual_Agent1/frontend && npm install",
+    "install:resume-backend": "cd AI-Resume-Analyzer/backend && (if not exist venv python -m venv venv) && venv\\Scripts\\pip install -r requirements.txt",
+    "install:resume-frontend": "cd AI-Resume-Analyzer/frontend && (if not exist venv python -m venv venv) && venv\\Scripts\\pip install -r requirements.txt"
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}

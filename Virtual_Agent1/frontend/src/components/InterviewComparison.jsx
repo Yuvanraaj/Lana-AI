@@ -154,7 +154,7 @@ export default function InterviewComparison({ userId, sessionId1, sessionId2, on
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-bold text-gray-900 mb-6">Category Breakdown</h3>
           <div className="space-y-4">
-            {['communication', 'technical_depth', 'problem_solving', 'structured_thinking', 'confidence'].map((category) => {
+            {['communication', 'technical_depth', 'problem_solving', 'structured_thinking', 'confidence', 'fluency', 'relevancy'].map((category) => {
               const score1Val = s1.sub_scores?.[category] || 0;
               const score2Val = s2.sub_scores?.[category] || 0;
               const delta = score2Val - score1Val;

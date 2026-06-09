@@ -1,0 +1,21 @@
+tunnel: virtual-agent
+credentials-file: C:/Users/YOUR_USERNAME/.cloudflared/TUNNEL_UUID.json
+
+ingress:
+  # Frontend (Vite) - accessible at frontend.yourdomain.com
+  - hostname: frontend.yourdomain.com
+    service: http://localhost:5173
+    originRequest:
+      connectTimeout: 30s
+      tlsTimeout: 30s
+      
+  # Backend API - accessible at api.yourdomain.com  
+  - hostname: api.yourdomain.com
+    service: http://localhost:8001
+    originRequest:
+      connectTimeout: 30s
+      tlsTimeout: 30s
+      http2Origin: true
+      
+  # Fallback to frontend (for root domain)
+  - service: http://localhost:5173

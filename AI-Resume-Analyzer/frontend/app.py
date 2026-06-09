@@ -28,834 +28,12 @@ st.set_page_config(
 # PREMIUM DARK MODE CSS - COMPLETE DESIGN SYSTEM
 # ============================================================================
 
-st.markdown("""
-    <style>
-    /* ==========================================
-       VIRTUAL INTERVIEW BOT - DESIGN SYSTEM
-       Applied to Resume AI
-       ========================================== */
+def load_css(file_path):
+    with open(file_path) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
-    :root {
-        /* PRIMARY DARK PALETTE - Futuristic Blues */
-        --bg-primary: #0A1F3F;
-        --bg-secondary: #0F2341;
-        --bg-tertiary: #1a3a5e;
-        --bg-card-soft: rgba(15, 35, 65, 0.8);
-        
-        /* TEXT COLORS */
-        --text-primary: #E8F0FE;
-        --text-secondary: #cbd5e1;
-        --text-tertiary: #94a3b8;
-        --text-muted: #7d8fa6;
-        
-        /* BRAND ACCENTS - Vibrant Cyan & Blue */
-        --accent-primary: #00D4FF;
-        --accent-secondary: #0099FF;
-        --accent-light: rgba(0, 212, 255, 0.15);
-        --accent-glow: rgba(0, 212, 255, 0.3);
-        
-        /* SEMANTIC COLORS */
-        --success: #00FF88;
-        --warning: #FFB800;
-        --error: #FF3E44;
-        
-        /* BORDERS & DIVIDERS */
-        --border: rgba(255, 255, 255, 0.08);
-        --border-light: rgba(255, 255, 255, 0.12);
-        --border-accent: rgba(0, 212, 255, 0.2);
-        
-        /* SHADOWS - Elevated & Glowing */
-        --shadow-xs: 0 2px 4px rgba(0, 0, 0, 0.25);
-        --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-        --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
-        --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
-        --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.45);
-        --shadow-glow: 0 0 30px rgba(0, 212, 255, 0.2);
-        
-        /* TRANSITIONS */
-        --duration-fast: 150ms;
-        --duration-normal: 300ms;
-        --duration-slow: 500ms;
-        --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
-        --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    /* ===== GLOBAL BASE STYLES ===== */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-    
-    html, body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Segoe UI Roboto', 'Helvetica Neue', sans-serif;
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        line-height: 1.5;
-    }
-    
-    .stApp {
-        background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-primary) 100%);
-    }
-    
-    /* ===== PAGE CONTAINER ===== */
-    .main-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 2rem;
-    }
-    
-    /* ===== CONTENT WRAPPER ===== */
-    [data-testid="stAppViewContainer"] {
-        background: transparent;
-    }
-    
-    [data-testid="stVerticalBlockBorderWrapper"] {
-        background: transparent;
-    }
-    
-    #MainMenu, footer {
-        visibility: hidden;
-    }
-    
-    /* ===== SIDEBAR ===== */
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, var(--bg-secondary) 0%, rgba(15, 35, 65, 0.8) 100%);
-        border-right: 1px solid var(--border);
-    }
-    
-    section[data-testid="stSidebar"] > div:first-child {
-        padding-top: 1rem !important;
-    }
-    
-    /* ===== TYPOGRAPHY ===== */
-    h1, h2, h3, h4, h5, h6 {
-        color: var(--text-primary);
-        letter-spacing: -0.015em;
-        font-weight: 600;
-        margin-top: 1.5rem;
-    }
-    
-    h1 {
-        font-size: 2.5rem;
-        line-height: 1.1;
-        font-weight: 700;
-        margin-bottom: 0.75rem;
-        letter-spacing: -0.02em;
-    }
-    
-    h2 {
-        font-size: 1.875rem;
-        line-height: 1.25;
-        font-weight: 700;
-        margin-bottom: 1.25rem;
-    }
-    
-    h3 {
-        font-size: 1.375rem;
-        line-height: 1.35;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-    }
-    
-    h4 {
-        font-size: 1.125rem;
-        line-height: 1.4;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-    
-    p, label, span {
-        color: var(--text-secondary);
-        line-height: 1.65;
-        font-size: 0.9375rem;
-    }
-    
-    label {
-        font-weight: 500;
-        color: var(--text-primary);
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-    
-    .page-subtitle {
-        font-size: 1.0625rem;
-        color: var(--text-tertiary);
-        margin: 0.75rem 0 2rem 0;
-        font-weight: 400;
-        line-height: 1.65;
-    }
-    
-    /* ===== SECTION SPACING ===== */
-    section {
-        margin-bottom: 2rem;
-    }
-    
-    /* ===== CARDS - GLASSMORPHISM ===== */
-    .card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1.5px solid var(--border-light);
-        border-radius: 1.25rem;
-        padding: 1.75rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        transition: all var(--duration-normal) var(--ease-out);
-    }
-    
-    .card:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: var(--border-accent);
-        box-shadow: 0 12px 48px rgba(0, 212, 255, 0.15);
-        transform: translateY(-4px);
-    }
-    
-    /* ===== KPI CARDS - PREMIUM STAT DISPLAY ===== */
-    .kpi-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1.5px solid var(--border-light);
-        border-radius: 1.25rem;
-        padding: 2rem 1.5rem;
-        text-align: center;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        transition: all var(--duration-normal) var(--ease-out);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .kpi-card::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 200px;
-        height: 200px;
-        background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-        border-radius: 50%;
-        opacity: 0;
-        transition: opacity var(--duration-fast) ease;
-    }
-    
-    .kpi-card:hover {
-        background: rgba(255, 255, 255, 0.1);
-        box-shadow: 0 12px 48px rgba(0, 212, 255, 0.15);
-        transform: translateY(-6px);
-        border-color: var(--accent-primary);
-    }
-    
-    .kpi-card:hover::before {
-        opacity: 1;
-    }
-    
-    .kpi-value {
-        font-size: 2.5rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--accent-primary) 0%, #00E8FF 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin: 0.75rem 0 0.25rem 0;
-        letter-spacing: -0.03em;
-    }
-    
-    .kpi-label {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--text-tertiary);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-    }
-    
-    /* ===== BUTTONS - GRADIENT & GLOW ===== */
-    button[data-testid="baseButton-primary"] {
-        background: linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%) !important;
-        color: var(--bg-primary) !important;
-        border: none !important;
-        border-radius: 0.75rem !important;
-        padding: 0.875rem 2rem !important;
-        font-weight: 700 !important;
-        font-size: 0.875rem !important;
-        transition: all var(--duration-normal) ease !important;
-        box-shadow: 0 6px 20px rgba(0, 212, 255, 0.35) !important;
-        text-transform: none !important;
-        letter-spacing: 0.02em;
-    }
-    
-    button[data-testid="baseButton-primary"]:hover {
-        transform: translateY(-4px) !important;
-        box-shadow: 0 10px 32px rgba(0, 212, 255, 0.5) !important;
-    }
-    
-    button[data-testid="baseButton-primary"]:active {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 16px rgba(0, 212, 255, 0.35) !important;
-    }
-    
-    /* Navigation buttons with Streamlit styling */
-    [data-testid="stSidebar"] [data-testid="stButton"] button {
-        background: linear-gradient(135deg, #0099FF 0%, var(--accent-primary) 100%) !important;
-        color: var(--bg-primary) !important;
-        border: none !important;
-        padding: 0.875rem 1.25rem !important;
-        border-radius: 0.75rem !important;
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), 0 4px 12px rgba(0, 212, 255, 0.25) !important;
-        font-weight: 700 !important;
-        font-size: 0.9375rem !important;
-        transition: all 0.3s ease !important;
-        width: 100% !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="stButton"] button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 0 30px rgba(0, 212, 255, 0.6), 0 8px 24px rgba(0, 212, 255, 0.4) !important;
-    }
-    
-    [data-testid="stSidebar"] [data-testid="stButton"] button:active {
-        transform: translateY(0) !important;
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.4), 0 2px 8px rgba(0, 212, 255, 0.2) !important;
-    }
-    
-    /* ===== FORM INPUTS - PROFESSIONAL ===== */
-    .stTextInput > div > div > input,
-    .stTextArea > div > div > textarea,
-    .stSelectbox > div > div > select {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        color: var(--text-primary) !important;
-        border: 1.5px solid var(--border-light) !important;
-        border-radius: 0.625rem !important;
-        padding: 0.875rem 1.125rem !important;
-        font-size: 0.9375rem !important;
-        transition: all var(--duration-normal) !important;
-        font-family: inherit !important;
-        font-weight: 500;
-    }
-    
-    .stTextInput > div > div > input::placeholder,
-    .stTextArea > div > div > textarea::placeholder {
-        color: var(--text-muted) !important;
-        opacity: 0.8;
-    }
-    
-    .stTextInput > div > div > input:focus,
-    .stTextArea > div > div > textarea:focus,
-    .stSelectbox > div > div > select:focus {
-        outline: none !important;
-        background-color: rgba(255, 255, 255, 0.08) !important;
-        border-color: var(--accent-primary) !important;
-        box-shadow: 0 0 0 3px var(--accent-light), var(--shadow-sm) !important;
-    }
-    
-    /* ===== FILE UPLOADER - PROFESSIONAL ===== */
-    .stFileUploader {
-        border: 2px dashed var(--border-light) !important;
-        border-radius: 1.125rem !important;
-        padding: 2.75rem 2.25rem !important;
-        background: rgba(255, 255, 255, 0.03) !important;
-        transition: all var(--duration-normal) !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
-    }
-    
-    .stFileUploader:hover {
-        border-color: var(--accent-primary) !important;
-        background: rgba(0, 212, 255, 0.1) !important;
-        box-shadow: 0 8px 28px rgba(0, 212, 255, 0.15) !important;
-    }
-    
-    /* ===== TABS ===== */
-    .stTabs [role="tab"] {
-        color: var(--text-tertiary) !important;
-        font-weight: 600 !important;
-        font-size: 0.875rem !important;
-        border-bottom: 3px solid transparent !important;
-        padding: 1rem 1.25rem !important;
-        transition: all var(--duration-fast) !important;
-    }
-    
-    .stTabs [role="tab"]:hover {
-        color: var(--accent-primary) !important;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        color: var(--accent-primary) !important;
-        border-bottom-color: var(--accent-primary) !important;
-        font-weight: 700 !important;
-    }
-    
-    /* ===== ALERTS ===== */
-    .stAlert {
-        border-radius: 0.875rem !important;
-        border-left: 4px solid var(--accent-primary) !important;
-        padding: 1.125rem 1.5rem !important;
-        background-color: var(--accent-light) !important;
-        border: 1.25px solid var(--border-accent) !important;
-        border-left-width: 4px !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
-    }
-    
-    /* ===== BADGES ===== */
-    .badge {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        border-radius: 0.625rem;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        transition: all var(--duration-fast);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-    
-    .badge-success {
-        background-color: rgba(0, 255, 136, 0.15);
-        color: var(--success);
-        border: 1.25px solid rgba(0, 255, 136, 0.35);
-    }
-    
-    .badge-warning {
-        background-color: rgba(255, 184, 0, 0.15);
-        color: var(--warning);
-        border: 1.25px solid rgba(255, 184, 0, 0.35);
-    }
-    
-    .badge-error {
-        background-color: rgba(255, 62, 68, 0.15);
-        color: var(--error);
-        border: 1.25px solid rgba(255, 62, 68, 0.35);
-    }
-    
-    .badge-primary {
-        background-color: var(--accent-light);
-        color: var(--accent-primary);
-        border: 1.25px solid var(--border-accent);
-    }
-    
-    /* ===== SECTION HEADERS ===== */
-    .section-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin: 2.5rem 0 1.75rem 0;
-        padding: 1rem 1.5rem;
-        border-bottom: none;
-        background: linear-gradient(135deg, rgba(0, 99, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%);
-        border-left: 4px solid var(--accent-primary);
-        border-radius: 0.5rem;
-        box-shadow: 0 4px 12px rgba(0, 212, 255, 0.1);
-    }
-    
-    .section-header-title {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #00D4FF !important; /* Force high-contrast solid cyan */
-        letter-spacing: -0.02em;
-        line-height: 1.2;
-        margin: 0;
-        text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-    }
-    
-    /* ===== DIVIDER ===== */
-    .divider {
-        margin: 2rem 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, var(--border), transparent);
-    }
-    
-    /* ===== RESOURCE CARD ===== */
-    .resource-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1.5px solid var(--border-light);
-        border-radius: 0.875rem;
-        padding: 1.375rem;
-        transition: all var(--duration-normal) var(--ease-out);
-        cursor: pointer;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    }
-    
-    .resource-card:hover {
-        border-color: var(--accent-primary);
-        box-shadow: 0 8px 28px rgba(0, 212, 255, 0.15);
-        transform: translateY(-4px);
-        background: rgba(255, 255, 255, 0.08);
-    }
-    
-    .resource-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin-bottom: 0.5rem;
-    }
-    
-    .resource-description {
-        font-size: 0.8125rem;
-        color: var(--text-tertiary);
-        margin-bottom: 0.75rem;
-        line-height: 1.5;
-    }
-    
-    .resource-tag {
-        display: inline-block;
-        background: var(--accent-light);
-        color: var(--accent-primary);
-        padding: 0.25rem 0.75rem;
-        border-radius: 0.375rem;
-        font-size: 0.65rem;
-        font-weight: 700;
-        margin-right: 0.4rem;
-        margin-bottom: 0.5rem;
-        border: 1px solid var(--border-accent);
-        transition: all var(--duration-fast);
-    }
-    
-    .resource-tag:hover {
-        background: var(--accent-glow);
-        border-color: var(--accent-primary);
-    }
-    
-    /* ===== STAT BOX ===== */
-    .stat-box {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        border: 1.5px solid var(--border-light);
-        border-radius: 0.875rem;
-        padding: 1.375rem;
-        margin-bottom: 0.875rem;
-        transition: all var(--duration-fast);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    }
-    
-    .stat-box:hover {
-        border-color: var(--border-accent);
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 6px 24px rgba(0, 212, 255, 0.1);
-    }
-    
-    .stat-label {
-        font-size: 0.7rem;
-        color: var(--text-tertiary);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 0.5rem;
-    }
-    
-    .stat-value {
-        font-size: 1.75rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--accent-primary) 0%, #00E8FF 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        letter-spacing: -0.02em;
-    }
-    
-    /* ===== ANIMATIONS ===== */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(12px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    @keyframes pulseGlow {
-        0%, 100% {
-            box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.35);
-        }
-        50% {
-            box-shadow: 0 0 0 14px rgba(0, 212, 255, 0);
-        }
-    }
-    
-    .animate-fade-in-up {
-        animation: fadeInUp 0.65s ease-out both;
-    }
-    
-    .glow-btn {
-        box-shadow: 0 16px 28px rgba(0, 212, 255, 0.25);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .glow-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 20px 40px rgba(0, 212, 255, 0.35);
-    }
-    
-    /* ===== SCROLLBAR - CUSTOM ===== */
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 4px;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-        border-radius: 4px;
-        border: 2px solid var(--bg-secondary);
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(180deg, #00E8FF 0%, var(--accent-primary) 100%);
-    }
-    
-    /* ===== SIDEBAR BUTTONS ===== */
-    [data-testid="stSidebar"] .stButton > button {
-        width: 100%;
-        border-radius: 0.75rem !important;
-        padding: 0.75rem 1rem !important;
-        text-align: left !important;
-        font-weight: 600 !important;
-        transition: all var(--duration-fast) !important;
-        margin-bottom: 0.5rem !important;
-        border: 1px solid var(--border) !important;
-        background-color: rgba(255, 255, 255, 0.04) !important;
-        color: var(--text-secondary) !important;
-    }
-    
-    [data-testid="stSidebar"] .stButton > button:hover {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        color: var(--accent-primary) !important;
-        border-color: var(--accent-primary) !important;
-        box-shadow: 0 0 16px rgba(0, 212, 255, 0.2) !important;
-    }
-    
-    /* ===== SIDEBAR NAVIGATION - VERTICAL LAYOUT ===== */
-    .sidebar-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        margin: 2rem 0;
-        padding: 0;
-    }
-    
-    .nav-section {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    
-    .nav-section-title {
-        font-size: 0.65rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: var(--text-tertiary);
-        padding: 0.5rem 0;
-        margin-bottom: 0.5rem;
-    }
-    
-    .nav-button {
-        background: linear-gradient(135deg, var(--accent-secondary) 0%, var(--accent-primary) 100%) !important;
-        color: var(--bg-primary) !important;
-        border: none !important;
-        border-radius: 0.75rem !important;
-        padding: 0.875rem 1.25rem !important;
-        font-weight: 700 !important;
-        font-size: 0.9375rem !important;
-        width: 100% !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 12px rgba(0, 212, 255, 0.25) !important;
-        text-align: left;
-        display: block;
-    }
-    
-    .nav-button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 20px rgba(0, 212, 255, 0.35) !important;
-    }
-    
-    .nav-button:active {
-        transform: translateY(0) !important;
-        box-shadow: 0 2px 8px rgba(0, 212, 255, 0.2) !important;
-    }
-    
-    .nav-button.active {
-        background: linear-gradient(135deg, #0099FF 0%, var(--accent-primary) 100%) !important;
-        box-shadow: 0 8px 24px rgba(0, 212, 255, 0.4) !important;
-    }
-    
-    /* Admin Login Form Container */
-    [data-testid="stForm"] {
-        background: linear-gradient(135deg, rgba(15, 35, 65, 0.5) 0%, rgba(10, 31, 63, 0.5) 100%) !important;
-        border: 2px solid rgba(0, 212, 255, 0.2) !important;
-        border-radius: 1.5rem !important;
-        padding: 2.5rem !important;
-        margin: 2rem 0 !important;
-        box-shadow: 0 0 40px rgba(0, 212, 255, 0.15), inset 0 0 30px rgba(0, 212, 255, 0.05) !important;
-        backdrop-filter: blur(10px) !important;
-    }
-    
-    /* Form Submit Button - Admin Login */
-    [data-testid="stForm"] [data-testid="stBaseButton"] button {
-        background: linear-gradient(135deg, #0099FF 0%, var(--accent-primary) 100%) !important;
-        color: var(--bg-primary) !important;
-        border: none !important;
-        padding: 1rem 2rem !important;
-        border-radius: 0.875rem !important;
-        font-weight: 700 !important;
-        font-size: 0.9375rem !important;
-        box-shadow: 0 0 25px rgba(0, 212, 255, 0.35), 0 4px 12px rgba(0, 212, 255, 0.25) !important;
-        transition: all 0.3s ease !important;
-        letter-spacing: 0.02em;
-    }
-    
-    [data-testid="stForm"] [data-testid="stBaseButton"] button:hover {
-        transform: translateY(-3px) !important;
-        box-shadow: 0 0 35px rgba(0, 212, 255, 0.5), 0 8px 24px rgba(0, 212, 255, 0.35) !important;
-    }
-    
-    [data-testid="stForm"] [data-testid="stBaseButton"] button:active {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.3), 0 4px 12px rgba(0, 212, 255, 0.2) !important;
-    }
-    
-    /* Admin Input Styling - Smooth Glassmorphism */
-    [data-testid="stForm"] div[data-baseweb="input"] {
-        border-radius: 1rem !important;
-        background: rgba(255, 255, 255, 0.03) !important;
-        backdrop-filter: blur(15px) !important;
-        -webkit-backdrop-filter: blur(15px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.08) !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
-        transition: all 0.3s ease !important;
-        overflow: hidden !important;
-    }
-    
-    [data-testid="stForm"] div[data-baseweb="input"]:focus-within {
-        border-color: rgba(0, 212, 255, 0.3) !important;
-        box-shadow: 0 0 25px rgba(0, 212, 255, 0.15) !important;
-        background: rgba(255, 255, 255, 0.06) !important;
-    }
-    
-    /* Stripping all inner defaults to let the glass wrap everything perfectly */
-    [data-testid="stForm"] div[data-baseweb="base-input"],
-    [data-testid="stForm"] div[data-baseweb="base-input"] > input,
-    [data-testid="stForm"] .stTextInput > div > div, 
-    [data-testid="stForm"] .stTextInput input {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        color: #E8F0FE !important;
-        outline: none !important;
-    }
-
-    [data-testid="stForm"] .stTextInput input {
-        font-size: 1.05rem !important;
-        font-weight: 500 !important;
-        letter-spacing: 0.05em !important;
-        padding: 0.85rem 1.2rem !important;
-    }
-
-    [data-testid="stForm"] .stTextInput input::placeholder {
-        color: rgba(255, 255, 255, 0.25) !important;
-    }
-
-    /* Eye icon button blending */
-    [data-testid="stForm"] div[data-baseweb="base-input"] button {
-        background: transparent !important;
-        color: rgba(255, 255, 255, 0.4) !important;
-        padding-right: 0.5rem !important;
-        transition: color 0.3s !important;
-    }
-    
-    [data-testid="stForm"] div[data-baseweb="input"]:focus-within button {
-        color: rgba(0, 212, 255, 0.6) !important;
-    }
-    
-    /* ===== METRIC STYLING ===== */
-    [data-testid="metric-container"] {
-        background: linear-gradient(135deg, rgba(0, 99, 255, 0.15) 0%, rgba(0, 212, 255, 0.1) 100%) !important;
-        border: 2px solid rgba(0, 212, 255, 0.3) !important;
-        border-radius: 1rem !important;
-        padding: 1.5rem !important;
-        box-shadow: 0 4px 16px rgba(0, 212, 255, 0.1) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    [data-testid="metric-container"]:hover {
-        border-color: rgba(0, 212, 255, 0.5) !important;
-        box-shadow: 0 8px 24px rgba(0, 212, 255, 0.2) !important;
-        transform: translateY(-2px) !important;
-    }
-    
-    [data-testid="metric-container"] .metric-label {
-        font-size: 0.85rem !important;
-        color: #cbd5e1 !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
-        letter-spacing: 0.05em !important;
-    }
-    
-    [data-testid="metric-container"] .metric-value {
-        font-size: 1.875rem !important;
-        font-weight: 800 !important;
-        background: linear-gradient(135deg, #00D4FF 0%, #0099FF 100%) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-    }
-    
-    /* ===== DATAFRAME STYLING ===== */
-    [data-testid="stDataFrame"] {
-        background: linear-gradient(135deg, rgba(0, 99, 255, 0.08) 0%, rgba(0, 212, 255, 0.05) 100%) !important;
-        border: 1px solid rgba(0, 212, 255, 0.2) !important;
-        border-radius: 0.75rem !important;
-        overflow: hidden !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-    }
-    
-    [data-testid="stDataFrame"] table {
-        background: transparent !important;
-    }
-    
-    [data-testid="stDataFrame"] thead th {
-        background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 99, 255, 0.15) 100%) !important;
-        color: #00D4FF !important;
-        font-weight: 700 !important;
-        border-bottom: 2px solid rgba(0, 212, 255, 0.3) !important;
-    }
-    
-    [data-testid="stDataFrame"] tbody td {
-        background: transparent !important;
-        border-bottom: 1px solid rgba(0, 212, 255, 0.1) !important;
-        color: #cbd5e1 !important;
-    }
-    
-    [data-testid="stDataFrame"] tbody tr:hover {
-        background: rgba(0, 212, 255, 0.08) !important;
-    }
-    
-        h1 {
-            font-size: 1.875rem;
-        }
-
-        h2 {
-            font-size: 1.5rem;
-        }
-
-        h3 {
-            font-size: 1.25rem;
-        }
-
-        .card, .stat-box, .resource-card {
-            padding: 1rem;
-        }
-        
-        .kpi-value {
-            font-size: 1.875rem;
-        }
-    }
-    
-    </style>
-""", unsafe_allow_html=True)
+# Load centralized CSS
+load_css("styles/main.css")
 
 # ============================================================================
 # API CONFIGURATION
@@ -867,7 +45,7 @@ API_URL = "http://localhost:8000"
 # CACHED API FUNCTIONS (Optimized for Performance)
 # ============================================================================
 
-@st.cache_data(ttl=300)  # Cache for 5 minutes
+@st.cache_data(ttl=300, show_spinner=False)  # Cache for 5 minutes
 def fetch_analytics_data(token):
     """Fetch analytics data with caching"""
     headers = {"Authorization": f"Bearer {token}"}
@@ -878,7 +56,7 @@ def fetch_analytics_data(token):
         return {"error": "Unauthorized"}
     return None
 
-@st.cache_data(ttl=300)  # Cache for 5 minutes
+@st.cache_data(ttl=300, show_spinner=False)  # Cache for 5 minutes
 def fetch_resumes_data(token, limit=100, offset=0):
     """Fetch resumes data with caching and pagination"""
     headers = {"Authorization": f"Bearer {token}"}
@@ -889,7 +67,7 @@ def fetch_resumes_data(token, limit=100, offset=0):
         return {"error": "Unauthorized"}
     return None
 
-@st.cache_data(ttl=3600)  # Cache for 1 hour
+@st.cache_data(ttl=3600, show_spinner=False)  # Cache for 1 hour
 def fetch_courses():
     try:
         response = requests.get(f"{API_URL}/courses", timeout=5)
@@ -897,7 +75,7 @@ def fetch_courses():
     except: pass
     return {}
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, show_spinner=False)
 def fetch_videos():
     try:
         response = requests.get(f"{API_URL}/videos", timeout=5)
@@ -946,12 +124,25 @@ if 'current_page' not in st.session_state:
 if 'analysis_result' not in st.session_state:
     st.session_state.analysis_result = None
 
-# Set admin token from portal if provided
-if 'admin_token' not in st.session_state or st.session_state.admin_token is None:
-    if portal_atoken:
-        st.session_state.admin_token = portal_atoken
-    else:
-        st.session_state.admin_token = None
+# Initialize session state keys
+if 'admin_token' not in st.session_state:
+    st.session_state.admin_token = None
+if 'login_failed' not in st.session_state:
+    st.session_state.login_failed = False
+if 'login_source' not in st.session_state:
+    st.session_state.login_source = 'manual'
+
+# Unified Auth: Read query parameters from portal
+if hasattr(st, "query_params"):
+    p_atoken = st.query_params.get("atoken", "")
+    p_token = st.query_params.get("token", "")
+    portal_token_val = p_atoken if p_atoken else p_token
+    
+    if portal_token_val and st.session_state.admin_token is None:
+        # Only set if we haven't explicitly failed in this session
+        if not st.session_state.login_failed:
+            st.session_state.admin_token = portal_token_val
+            st.session_state.login_source = 'portal'
 
 # Store portal user info in session state
 if 'portal_user' not in st.session_state:
@@ -967,45 +158,31 @@ if 'portal_user' not in st.session_state:
 
 def render_header(title: str, subtitle: str = ""):
     """Render premium rockstar page header"""
-    subtitle_html = f'<p class="rockstar-page-subtitle">{subtitle}</p>' if subtitle else ''
+    subtitle_html = f'<p class="rockstar-page-subtitle" style="color: var(--text-tertiary); opacity: 0.9; font-size: 1rem; margin-top: 0.5rem;">{subtitle}</p>' if subtitle else ''
     st.markdown(f"""
-        <style>
-            .rockstar-page-header {{
-                display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
-                margin-bottom: 2rem;
-                padding: 2rem;
-                background: linear-gradient(135deg, rgba(0, 255, 136, 0.08) 0%, rgba(0, 212, 255, 0.06) 50%, rgba(0, 99, 255, 0.05) 100%);
-                border: 2px solid rgba(0, 255, 136, 0.25);
-                border-radius: 1rem;
-                box-shadow: 0 0 40px rgba(0, 255, 136, 0.15), 0 0 20px rgba(0, 212, 255, 0.1), inset 0 0 20px rgba(0, 255, 136, 0.04);
-                backdrop-filter: blur(10px);
-                position: relative;
-            }}
-            .rockstar-page-title {{
-                font-size: 2.25rem;
-                font-weight: 950;
-                color: #00FF88 !important; /* Explosive high-contrast solid green/cyan */
-                margin: 0;
-                line-height: 1.1;
-                letter-spacing: -0.02em;
-                text-shadow: 0 0 20px rgba(0, 255, 136, 0.5), 0 0 10px rgba(0, 212, 255, 0.3);
-            }}
-            .rockstar-page-subtitle {{
-                font-size: 1rem;
-                color: #00D4FF;
-                font-weight: 600;
-                margin: 0;
-                letter-spacing: 0.05em;
-                text-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
-            }}
-        </style>
-        <div class="rockstar-page-header">
-            <h1 class="rockstar-page-title">{title}</h1>
+        <div class="rockstar-page-header" style="margin-bottom: 3rem; padding-left: 1rem; border-left: 4px solid var(--accent-primary);">
+            <h1 class="rockstar-page-title" style="margin: 0; font-size: 2.75rem; font-weight: 800; letter-spacing: -0.02em; color: #FFFFFF;">{title}</h1>
             {subtitle_html}
         </div>
     """, unsafe_allow_html=True)
+
+def render_radial_gauge(label: str, value: float, color: str = "var(--accent-primary)"):
+    """Render a premium radial gauge using SVG"""
+    percentage = min(max(value, 0), 100)
+    dash_array = (percentage / 100) * 283
+    
+    html = f"""
+    <div class='gauge-container'>
+        <svg class='gauge-svg' viewBox='0 0 100 100'>
+            <circle class='gauge-bg' cx='50' cy='50' r='45'></circle>
+            <circle class='gauge-fill' cx='50' cy='50' r='45' 
+                style='stroke-dasharray: {dash_array} 283; stroke: {color};'></circle>
+        </svg>
+        <div class='gauge-value'>{int(percentage)}%</div>
+        <div style='text-align: center; font-size: 0.8rem; font-weight: 800; color: #FFFFFF; text-transform: uppercase; margin-top: 10px; letter-spacing: 0.05em;'>{label}</div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
 
 def render_kpi_card(label: str, value: str, change: str = ""):
     """Render KPI card"""
@@ -1033,96 +210,46 @@ def get_score_badge(score: float):
 # ============================================================================
 
 with st.sidebar:
-    # Render rockstar premium brand header with intense glow
+    # Render minimalist premium brand header
     st.markdown("""
-        <style>
-            @keyframes rockstar_pulse {
-                0% { transform: scale(1) rotate(0deg); }
-                25% { transform: scale(1.15) rotate(5deg); }
-                50% { transform: scale(1) rotate(0deg); }
-                75% { transform: scale(1.15) rotate(-5deg); }
-                100% { transform: scale(1) rotate(0deg); }
-            }
-            .rockstar-header {
-                display: flex;
-                align-items: center;
-                gap: 1.2rem;
-                margin-bottom: 2.5rem;
-                padding: 1.5rem;
-                background: linear-gradient(135deg, rgba(0, 255, 136, 0.12) 0%, rgba(0, 212, 255, 0.08) 50%, rgba(0, 99, 255, 0.08) 100%);
-                border: 3px solid rgba(0, 255, 136, 0.3);
-                border-radius: 1.2rem;
-                box-shadow: 0 0 50px rgba(0, 255, 136, 0.25), 0 0 30px rgba(0, 212, 255, 0.2), inset 0 0 30px rgba(0, 255, 136, 0.08);
-                backdrop-filter: blur(12px);
-                position: relative;
-            }
-            .rockstar-icon {
-                font-size: 3rem;
-                text-shadow: 0 0 30px rgba(0, 255, 136, 0.6), 0 0 60px rgba(0, 212, 255, 0.4);
-                animation: rockstar_pulse 2.5s ease-in-out infinite;
-            }
-            .rockstar-title {
-                font-size: 1.8rem;
-                font-weight: 900;
-                background: linear-gradient(90deg, #00FF88, #00FFD4, #00D4FF, #0099FF);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                margin: 0;
-                line-height: 1;
-                letter-spacing: -0.03em;
-            }
-            .rockstar-subtitle {
-                font-size: 0.75rem;
-                background: linear-gradient(90deg, #00FF88, #00D4FF);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                font-weight: 900;
-                text-transform: uppercase;
-                letter-spacing: 0.2em;
-                margin: 0.4rem 0 0 0;
-                font-family: "Courier New", monospace;
-            }
-        </style>
-        <div class="rockstar-header">
-            <div class="rockstar-icon">📄</div>
-            <div>
-                <h2 class="rockstar-title">Resume AI</h2>
-                <p class="rockstar-subtitle">✨ AI Analysis Platform ✨</p>
+        <div style='padding: 1rem 0; margin-bottom: 2rem;'>
+            <div style='display: flex; align-items: center; gap: 0.75rem;'>
+                <div class='sidebar-logo-animated' style='font-size: 2rem;'>📄</div>
+                <div>
+                    <h2 style='margin: 0; font-size: 1.25rem; font-weight: 800; color: #fff; letter-spacing: -0.02em;'>RESUME <span style='color: var(--accent-primary);'>ANALYSIS</span></h2>
+                    <p style='margin: 0; font-size: 0.65rem; color: var(--text-tertiary); font-weight: 700; letter-spacing: 0.1em;'>INTELLIGENT ANALYSIS</p>
+                </div>
             </div>
         </div>
     """, unsafe_allow_html=True)
 
     # Navigation section
-    st.markdown("<div class='nav-section-title'>NAVIGATION</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size: 0.65rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.15em; margin-bottom: 1rem;'>MAIN MENU</div>", unsafe_allow_html=True)
 
-    if st.button("📤 Upload Resume", use_container_width=True, key="nav_upload", help="Submit and analyze your resume"):
+    if st.button("📤 Upload Resume", use_container_width=True, key="nav_upload"):
         st.session_state.current_page = "Upload Resume"
         st.session_state.analysis_result = None
         st.session_state.resume_id = None
         st.rerun()
     
-    if st.button("📊 Dashboard", use_container_width=True, key="nav_dashboard", help="View your analysis dashboard"):
+    if st.button("📊 Dashboard", use_container_width=True, key="nav_dashboard"):
         st.session_state.current_page = "Dashboard"
         st.rerun()
     
-    if st.button("📚 Resources", use_container_width=True, key="nav_resources", help="Learning materials and guides"):
+    if st.button("📚 Resources", use_container_width=True, key="nav_resources"):
         st.session_state.current_page = "Resources"
         st.rerun()
 
     # Settings section
-    st.markdown("<div class='nav-section-title' style='margin-top: 2rem;'>SETTINGS</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size: 0.65rem; font-weight: 700; color: var(--text-muted); letter-spacing: 0.15em; margin: 2rem 0 1rem 0;'>PREFERENCES</div>", unsafe_allow_html=True)
 
-    settings_cols = st.columns(2, gap="small")
+    if st.button("⚙️ System Settings", use_container_width=True, key="nav_settings"):
+        st.session_state.current_page = "Settings"
+        st.rerun()
     
-    with settings_cols[0]:
-        if st.button("⚙️ Settings", use_container_width=True, key="nav_settings", help="User preferences"):
-            st.session_state.current_page = "Settings"
-            st.rerun()
-    
-    with settings_cols[1]:
-        if st.button("❓ Help", use_container_width=True, key="nav_help", help="Help and support"):
-            st.session_state.current_page = "Help"
-            st.rerun()
+    if st.button("❓ Support", use_container_width=True, key="nav_help"):
+        st.session_state.current_page = "Help"
+        st.rerun()
 
     # Add spacing after navigation
     st.markdown("<div style='margin-bottom: 2rem;'></div>", unsafe_allow_html=True)
@@ -1133,207 +260,96 @@ with st.sidebar:
 
 if st.session_state.current_page == "Upload Resume":
     render_header(
-        "📤 Upload Resume",
-        "Get AI-powered analysis of your resume in seconds"
+        "Professional Analysis Hub",
+        "Strategic AI synthesis for elite career acceleration"
     )
     
-    st.markdown("<div class='section-header'><span class='section-header-title'>Submit Your Resume</span></div>", unsafe_allow_html=True)
-    
-    with st.form("resume_upload_form"):
-        # Information is automatically pulled from User Profile (Integration)
-        portal_name = st.session_state.portal_user.get("name", "")
-        portal_email = st.session_state.portal_user.get("email", "")
-        portal_uid = st.session_state.portal_user.get("uid", "")
-        
-        user_name = portal_name if portal_name else "Guest User"
-        email = portal_email if portal_email and "@" in portal_email else "guest@example.com"
-        phone = "Not Provided"
-        user_id = portal_uid if portal_uid else "guest"
-        
+    # Pre-calculated Identity info
+    portal_name = st.session_state.portal_user.get("name", "")
+    portal_email = st.session_state.portal_user.get("email", "")
+    portal_uid = st.session_state.portal_user.get("uid", "")
+    user_name = portal_name if portal_name else "Professional Candidate"
+    email = portal_email if portal_email and "@" in portal_email else "guest@example.com"
+    phone = "Not Provided"
+    user_id = portal_uid if portal_uid else "guest"
+
+    # Calculate Verification Badge
+    is_guest = user_id == "guest" or "Guest" in user_name
+    if is_guest:
+        verification_badge = """
+<div style='background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(239, 68, 68, 0.2); letter-spacing: 0.05em;'>
+NOT VERIFIED
+</div>
+"""
+    else:
+        verification_badge = """
+<div style='background: rgba(16, 185, 129, 0.1); color: #10b981; padding: 0.4rem 1rem; border-radius: 8px; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(16, 185, 129, 0.2); letter-spacing: 0.05em;'>
+VERIFIED
+</div>
+"""
+
+    # MAIN HUB LAYOUT
+    col_empty1, col_hub_main, col_empty2 = st.columns([0.05, 0.9, 0.05])
+
+    with col_hub_main:
+        # UNIFIED GLASS HUB ARCHITECTURE
         st.markdown(f"""
-            <div style='
-                background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 99, 255, 0.05) 100%);
-                border: 1.5px solid rgba(0, 212, 255, 0.3);
-                border-radius: 1rem;
-                padding: 1rem 1.5rem;
-                margin-bottom: 2rem;
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-            '>
-                <div style='font-size: 1.5rem;'>✓</div>
-                <div>
-                    <h4 style='margin: 0; color: #00D4FF; font-size: 1rem;'>Profile Synced</h4>
-                    <p style='margin: 0; color: #cbd5e1; font-size: 0.85rem;'>Proceeding as <strong style='color:#E8F0FE;'>{user_name}</strong></p>
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("""
-            <p style='font-size: 14px; font-weight: 700; color: var(--text-primary); margin: 24px 0 16px 0;'>Upload Document</p>
-        """, unsafe_allow_html=True)
+<div class='glass-hologram-layer'>
+<div style='padding: 0 2rem;'>
+<div style='margin-bottom: 2.5rem;'>
+<h1 class='hologram-title'>RESUME ANALYSIS</h1>
+<p class='hologram-subtitle'>Strategic AI synthesis for elite career acceleration</p>
+</div>
+<div class='hub-profile-card'>
+<div style='display: flex; align-items: center; justify-content: space-between; width: 100%;'>
+<div style='display: flex; align-items: center; gap: 1.25rem;'>
+<div style='width: 48px; height: 48px; background: rgba(99, 102, 241, 0.2); border: 1px solid var(--accent-primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;'>👤</div>
+<div>
+<p style='margin: 0; font-size: 1.1rem; color: #FFFFFF; font-weight: 700;'>{user_name}</p>
+</div>
+</div>
+{verification_badge}
+</div>
+</div>
+<div class='upload-hub-card'>
+""", unsafe_allow_html=True)
+
+        status_placeholder = st.empty()
         
         uploaded_file = st.file_uploader(
-            "Select your resume (PDF or DOCX)",
+            "Drop your PDF or DOCX file here",
             type=["pdf", "docx", "doc"],
-            help="Maximum file size: 10MB"
+            label_visibility="collapsed"
         )
         
         if uploaded_file:
             st.markdown(f"""
-                <div style='
-                    background: linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 212, 255, 0.1) 100%);
-                    border: 2px solid rgba(0, 255, 136, 0.4);
-                    border-radius: 1rem;
-                    padding: 1.25rem 1.5rem;
-                    margin: 1.5rem 0;
-                    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.1);
-                    backdrop-filter: blur(10px);
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    animation: pulse-glow 2s ease-in-out infinite;
-                '>
-                    <div style='
-                        font-size: 1.5rem;
-                        text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-                        animation: bounce 1s ease-in-out infinite;
-                    '>✓</div>
+                <div style='background: rgba(16, 185, 129, 0.05); border: 1px dashed #10b981; border-radius: 12px; padding: 1.25rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem;'>
+                    <div style='font-size: 1.5rem;'>📄</div>
                     <div>
-                        <p style='
-                            font-size: 0.9375rem;
-                            font-weight: 700;
-                            color: #00FF88;
-                            margin: 0;
-                            text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
-                        '>{uploaded_file.name} selected</p>
-                        <p style='
-                            font-size: 0.75rem;
-                            color: #00D4FF;
-                            margin: 0.25rem 0 0 0;
-                            font-weight: 600;
-                        '>Ready for analysis</p>
+                        <p style='margin: 0; color: #10b981; font-weight: 700; font-size: 0.9rem;'>{uploaded_file.name}</p>
+                        <p style='margin: 0; color: var(--text-tertiary); font-size: 0.75rem;'>Document ready for neural scanning</p>
                     </div>
                 </div>
-                <style>
-                    @keyframes pulse-glow {{
-                        0%, 100% {{ box-shadow: 0 0 20px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.1); }}
-                        50% {{ box-shadow: 0 0 30px rgba(0, 255, 136, 0.5), inset 0 0 25px rgba(0, 255, 136, 0.15); }}
-                    }}
-                    @keyframes bounce {{
-                        0%, 100% {{ transform: translateY(0); }}
-                        50% {{ transform: translateY(-4px); }}
-                    }}
-                </style>
             """, unsafe_allow_html=True)
-        
-        st.markdown("""
-            <style>
-                button[data-testid="FormSubmitButton"] {
-                    width: 100% !important;
-                    padding: 1rem 2rem !important;
-                    background: linear-gradient(135deg, rgba(0, 255, 136, 0.25) 0%, rgba(0, 212, 255, 0.2) 100%) !important;
-                    border: 2px solid rgba(0, 255, 136, 0.5) !important;
-                    color: #00FF88 !important;
-                    font-size: 1.1rem !important;
-                    font-weight: 900 !important;
-                    text-shadow: 0 0 15px rgba(0, 255, 136, 0.5) !important;
-                    box-shadow: 0 0 50px rgba(0, 255, 136, 0.3), 0 0 25px rgba(0, 212, 255, 0.2), inset 0 0 20px rgba(0, 255, 136, 0.08) !important;
-                    backdrop-filter: blur(10px) !important;
-                    border-radius: 0.75rem !important;
-                    letter-spacing: 0.05em !important;
-                    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-                }
-                button[data-testid="FormSubmitButton"]:hover {
-                    background: linear-gradient(135deg, rgba(0, 255, 136, 0.4) 0%, rgba(0, 212, 255, 0.35) 100%) !important;
-                    box-shadow: 0 0 80px rgba(0, 255, 136, 0.5), 0 0 40px rgba(0, 212, 255, 0.35), inset 0 0 25px rgba(0, 255, 136, 0.15) !important;
-                    transform: translateY(-3px) scale(1.02) !important;
-                    border-color: rgba(0, 255, 136, 0.8) !important;
-                }
-                button[data-testid="FormSubmitButton"]:active {
-                    transform: translateY(0) scale(0.98) !important;
-                }
-            </style>
-        """, unsafe_allow_html=True)
-        
-        st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
-        submitted = st.form_submit_button("🚀 Analyze Resume", use_container_width=True)
-    
-    if submitted:
-        if not user_name or not email or not uploaded_file:
-            st.markdown("""
-                <div style='
-                    background: linear-gradient(135deg, rgba(255, 62, 68, 0.15) 0%, rgba(255, 120, 0, 0.1) 100%);
-                    border: 2px solid rgba(255, 62, 68, 0.4);
-                    border-radius: 1rem;
-                    padding: 1.25rem 1.5rem;
-                    margin: 1.5rem 0;
-                    box-shadow: 0 0 20px rgba(255, 62, 68, 0.3), inset 0 0 20px rgba(255, 62, 68, 0.1);
-                    backdrop-filter: blur(10px);
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    animation: pulse-error 2s ease-in-out infinite;
-                '>
-                    <div style='font-size: 1.5rem; text-shadow: 0 0 10px rgba(255, 62, 68, 0.5);'>⚠️</div>
-                    <div>
-                        <p style='font-size: 0.9375rem; font-weight: 700; color: #FF3E44; margin: 0; text-shadow: 0 0 8px rgba(255, 62, 68, 0.4);'>Please select a resume</p>
-                        <p style='font-size: 0.75rem; color: #FFB800; margin: 0.25rem 0 0 0; font-weight: 600;'>A resume document is required</p>
+            
+            st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
+            if st.button("🚀 START RESUME ANALYSIS", use_container_width=True, type="primary"):
+                # Analysis Animation Placeholder (Now below button)
+                status_placeholder = st.empty()
+                
+                # Simplified Loading State
+                status_placeholder.markdown(f"""
+                    <div style='margin-top: 2rem; text-align: center; padding: 2rem; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(44, 154, 255, 0.1); border-radius: 1.5rem;'>
+                        <div style='color: #FFFFFF; font-weight: 800; font-size: 1.25rem; letter-spacing: 0.02em;'>Analysing your resume</div>
+                        <div style='color: var(--accent-primary); font-weight: 700; font-size: 0.9rem; margin-top: 0.5rem; letter-spacing: 0.05em;'>PROCESSING: {uploaded_file.name}</div>
+                        <p style='color: var(--text-tertiary); font-size: 0.8rem; margin-top: 1.5rem;'>Synthesizing professional vectors...</p>
                     </div>
-                </div>
-
-                <style>
-                    @keyframes pulse-error {{
-                        0%, 100% {{ box-shadow: 0 0 20px rgba(255, 62, 68, 0.3), inset 0 0 20px rgba(255, 62, 68, 0.1); }}
-                        50% {{ box-shadow: 0 0 30px rgba(255, 62, 68, 0.5), inset 0 0 25px rgba(255, 62, 68, 0.15); }}
-                    }}
-                </style>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-                <div style='
-                    background: linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(0, 99, 255, 0.1) 100%);
-                    border: 2px solid rgba(0, 212, 255, 0.4);
-                    border-radius: 1rem;
-                    padding: 1.5rem;
-                    margin: 1.5rem 0;
-                    box-shadow: 0 0 25px rgba(0, 212, 255, 0.4), inset 0 0 25px rgba(0, 212, 255, 0.15);
-                    backdrop-filter: blur(10px);
-                    text-align: center;
-                    animation: pulse-loading 1.5s ease-in-out infinite;
-                '>
-                    <div style='
-                        display: inline-block;
-                        font-size: 2rem;
-                        margin-bottom: 0.75rem;
-                        animation: spin 2s linear infinite;
-                    '>🚀</div>
-                    <p style='
-                        font-size: 1rem;
-                        font-weight: 700;
-                        color: #00D4FF;
-                        margin: 0;
-                        text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-                    '>Analyzing your resume...</p>
-                    <p style='
-                        font-size: 0.8125rem;
-                        color: #cbd5e1;
-                        margin: 0.5rem 0 0 0;
-                        font-weight: 600;
-                    '>AI is reviewing your skills and experience</p>
-                </div>
-                <style>
-                    @keyframes pulse-loading {{
-                        0%, 100% {{ box-shadow: 0 0 25px rgba(0, 212, 255, 0.4), inset 0 0 25px rgba(0, 212, 255, 0.15); }}
-                        50% {{ box-shadow: 0 0 35px rgba(0, 212, 255, 0.6), inset 0 0 30px rgba(0, 212, 255, 0.25); }}
-                    }}
-                    @keyframes spin {{
-                        from {{ transform: rotate(0deg); }}
-                        to {{ transform: rotate(360deg); }}
-                    }}
-                </style>
-            """, unsafe_allow_html=True)
-            with st.spinner(""):
+                """, unsafe_allow_html=True)
+                
+                import time
+                time.sleep(2.5) # Scanning duration for visual feedback
+                
                 try:
                     files = {'file': (uploaded_file.name, uploaded_file.getvalue())}
                     data = {'user_name': user_name, 'email': email, 'phone': phone, 'user_id': user_id}
@@ -1343,996 +359,295 @@ if st.session_state.current_page == "Upload Resume":
                         result = response.json()
                         st.session_state.analysis_result = result['analysis']
                         st.session_state.resume_id = result.get('resume_id')
-                        st.markdown("""
-                            <div style='
-                                background: linear-gradient(135deg, rgba(0, 255, 136, 0.15) 0%, rgba(0, 212, 255, 0.1) 100%);
-                                border: 2px solid rgba(0, 255, 136, 0.4);
-                                border-radius: 1rem;
-                                padding: 1.25rem 1.5rem;
-                                margin: 1.5rem 0;
-                                box-shadow: 0 0 20px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.1);
-                                backdrop-filter: blur(10px);
-                                display: flex;
-                                align-items: center;
-                                gap: 1rem;
-                                animation: pulse-success 1s ease-in-out;
-                            '>
-                                <div style='font-size: 1.5rem; text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);'>✓</div>
-                                <div>
-                                    <p style='font-size: 0.9375rem; font-weight: 700; color: #00FF88; margin: 0; text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);'>Resume analyzed successfully!</p>
-                                    <p style='font-size: 0.75rem; color: #00D4FF; margin: 0.25rem 0 0 0; font-weight: 600;'>Check the analysis results below</p>
-                                </div>
-                            </div>
-                            <style>
-                                @keyframes pulse-success {{
-                                    0% {{ opacity: 0; transform: scale(0.95); }}
-                                    50% {{ box-shadow: 0 0 30px rgba(0, 255, 136, 0.5), inset 0 0 25px rgba(0, 255, 136, 0.15); }}
-                                    100% {{ opacity: 1; transform: scale(1); }}
-                                }}
-                            </style>
-                        """, unsafe_allow_html=True)
+                        st.rerun()
                     else:
-                        error_msg = response.json().get('detail', 'Analysis failed')
-                        st.markdown(f"""
-                            <div style='
-                                background: linear-gradient(135deg, rgba(255, 62, 68, 0.15) 0%, rgba(255, 120, 0, 0.1) 100%);
-                                border: 2px solid rgba(255, 62, 68, 0.4);
-                                border-radius: 1rem;
-                                padding: 1.25rem 1.5rem;
-                                margin: 1.5rem 0;
-                                box-shadow: 0 0 20px rgba(255, 62, 68, 0.3), inset 0 0 20px rgba(255, 62, 68, 0.1);
-                                backdrop-filter: blur(10px);
-                                display: flex;
-                                align-items: center;
-                                gap: 1rem;
-                            '>
-                                <div style='font-size: 1.5rem; text-shadow: 0 0 10px rgba(255, 62, 68, 0.5);'>✗</div>
-                                <div>
-                                    <p style='font-size: 0.9375rem; font-weight: 700; color: #FF3E44; margin: 0; text-shadow: 0 0 8px rgba(255, 62, 68, 0.4);'>Error: {error_msg}</p>
-                                    <p style='font-size: 0.75rem; color: #FFB800; margin: 0.25rem 0 0 0; font-weight: 600;'>Please try again or contact support</p>
-                                </div>
-                            </div>
-                        """, unsafe_allow_html=True)
+                        st.error(f"Analysis failed: {response.status_code}")
                 except Exception as e:
-                    st.markdown(f"""
-                        <div style='
-                            background: linear-gradient(135deg, rgba(255, 62, 68, 0.15) 0%, rgba(255, 120, 0, 0.1) 100%);
-                            border: 2px solid rgba(255, 62, 68, 0.4);
-                            border-radius: 1rem;
-                            padding: 1.25rem 1.5rem;
-                            margin: 1.5rem 0;
-                            box-shadow: 0 0 20px rgba(255, 62, 68, 0.3), inset 0 0 20px rgba(255, 62, 68, 0.1);
-                            backdrop-filter: blur(10px);
-                            display: flex;
-                            align-items: center;
-                            gap: 1rem;
-                        '>
-                            <div style='font-size: 1.5rem; text-shadow: 0 0 10px rgba(255, 62, 68, 0.5);'>✗</div>
-                            <div>
-                                <p style='font-size: 0.9375rem; font-weight: 700; color: #FF3E44; margin: 0; text-shadow: 0 0 8px rgba(255, 62, 68, 0.4);'>Connection error: {str(e)}</p>
-                                <p style='font-size: 0.75rem; color: #FFB800; margin: 0.25rem 0 0 0; font-weight: 600;'>Unable to reach the analysis server</p>
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
+                    st.error(f"Connection error: {str(e)}")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Security Footer
+        st.markdown("""
+            <div style='margin-top: 2rem; display: flex; justify-content: space-between; padding: 0 1rem;'>
+                <div style='display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.75rem;'>
+                    <span>🔒</span> End-to-end encrypted
+                </div>
+                <div style='display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.75rem;'>
+                    <span>⚡</span> Instant vectorization
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # CLOSE INNER MARGIN WRAPPER AND GLASS HOLOGRAM WRAPPER
+        st.markdown("</div></div>", unsafe_allow_html=True)
     
     # Analysis Results
     if st.session_state.analysis_result:
-        st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
-        st.markdown("<div class='section-header'><span class='section-header-title'>Analysis Results</span></div>", unsafe_allow_html=True)
-        
         analysis = st.session_state.analysis_result
-        scores = analysis['scores']
+        scores = analysis.get('scores', {})
+        ra = analysis.get('role_specific_advice', {})
         
-        kpi_cols = st.columns(5)
-        kpi_data = [
-            ("Overall Score", f"{scores['overall_score']:.0f}", scores['overall_score']),
-            ("Skills", f"{scores['skills_score']:.0f}", scores['skills_score']),
-            ("Experience", f"{scores['experience_score']:.0f}", scores['experience_score']),
-            ("Education", f"{scores['education_score']:.0f}", scores['education_score']),
-            ("Formatting", f"{scores['formatting_score']:.0f}", scores['formatting_score']),
-        ]
+        # --- PHASE 1: EXECUTIVE INTELLIGENCE ---
+        st.markdown("<div style='margin-top: 2rem;'></div>", unsafe_allow_html=True)
+        st.markdown("""
+            <div class='section-header' style='background: transparent; border-left: none; padding: 0;'>
+                <span class='section-header-title' style='font-size: 1.5rem; opacity: 0.9;'>Phase 01: Executive Intelligence</span>
+            </div>
+            <p style='color: var(--text-tertiary); margin-bottom: 2rem;'>Strategic performance metrics and executive overview</p>
+        """, unsafe_allow_html=True)
         
-        for col, (label, value, score) in zip(kpi_cols, kpi_data):
-            with col:
-                badge_type, badge_text = get_score_badge(score)
-                st.markdown(f"""
-                <div class='kpi-card'>
-                    <div class='kpi-label'>{label}</div>
-                    <div class='kpi-value'>{value}/100</div>
-                    <div style='margin-top: 8px;'><span class='badge badge-{badge_type}'>{badge_text}</span></div>
-                </div>
-                """, unsafe_allow_html=True)
-        
-        st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
-        
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📋 Summary", "🎯 Changes", "🔑 Keywords", "🛠️ ATS", "📚 Dev", "🎪 Roles"])
-        
-        with tab1:
-            st.markdown("### 📋 Profile Summary")
+        # Helper for Horizontal Metric Card HTML
+        def get_executive_card_html(label, value, color, insight, is_hero=False):
+            percentage = min(max(value, 0), 100)
+            dash_array = (percentage / 100) * 283
+            card_class = "executive-metric-card metric-hero-card" if is_hero else "executive-metric-card"
             
-            # Overall Strategy in Premium Full-Width Card
-            if analysis.get('overall_strategy'):
-                st.markdown(f"""
-                    <div style='
-                        background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%);
-                        border: 2px solid rgba(220, 38, 38, 0.35);
-                        border-radius: 1.5rem;
-                        padding: 2rem;
-                        margin-bottom: 3rem;
-                        box-shadow: 0 0 40px rgba(220, 38, 38, 0.15), inset 0 0 25px rgba(220, 38, 38, 0.05);
-                        backdrop-filter: blur(10px);
-                    '>
-                        <div style='
-                            display: flex;
-                            align-items: flex-start;
-                            gap: 1.5rem;
-                        '>
-                            <div style='
-                                width: 60px;
-                                height: 60px;
-                                background: linear-gradient(135deg, rgba(220, 38, 38, 0.4) 0%, rgba(220, 38, 38, 0.2) 100%);
-                                border: 2.5px solid rgba(220, 38, 38, 0.6);
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 1.75rem;
-                                box-shadow: 0 0 25px rgba(220, 38, 38, 0.4), inset 0 0 10px rgba(220, 38, 38, 0.2);
-                                flex-shrink: 0;
-                            '>🎯</div>
-                            <div style='flex: 1;'>
-                                <h3 style='
-                                    color: #DC2626;
-                                    margin: 0 0 0.5rem 0;
-                                    font-size: 1rem;
-                                    font-weight: 700;
-                                    text-transform: uppercase;
-                                    letter-spacing: 0.1em;
-                                    text-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
-                                '>Strategic Focus</h3>
-                                <p style='
-                                    color: #E8F0FE;
-                                    margin: 0;
-                                    font-size: 1rem;
-                                    line-height: 1.7;
-                                    font-weight: 500;
-                                '>{analysis['overall_strategy']}</p>
-                            </div>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-            
-            # Two Column Layout for Strengths and Skills
-            col1, col2 = st.columns(2, gap="large")
-            
-            with col1:
-                # Strengths Header
-                st.markdown("""
-                    <div style='
-                        display: flex;
-                        align-items: center;
-                        gap: 1rem;
-                        margin-bottom: 1.5rem;
-                        padding: 0;
-                    '>
-                        <div style='
-                            width: 50px;
-                            height: 50px;
-                            background: linear-gradient(135deg, rgba(34, 197, 94, 0.35) 0%, rgba(34, 197, 94, 0.15) 100%);
-                            border: 2px solid rgba(34, 197, 94, 0.5);
-                            border-radius: 0.75rem;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 1.5rem;
-                            box-shadow: 0 0 20px rgba(34, 197, 94, 0.25);
-                        '>✅</div>
-                        <div>
-                            <h3 style='
-                                color: #22C55E;
-                                margin: 0;
-                                font-size: 1.05rem;
-                                font-weight: 700;
-                                text-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
-                            '>Your Strengths</h3>
-                            <p style='
-                                color: #cbd5e1;
-                                margin: 0.25rem 0 0 0;
-                                font-size: 0.8rem;
-                            '>Key professional assets</p>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                # Strength Items
-                for s in analysis.get('strengths', [])[:3]:
-                    st.markdown(f"""
-                        <div style='
-                            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
-                            border: 1.5px solid rgba(34, 197, 94, 0.3);
-                            border-radius: 1rem;
-                            padding: 1.25rem;
-                            margin-bottom: 1rem;
-                            box-shadow: 0 0 15px rgba(34, 197, 94, 0.08);
-                            transition: all 0.3s ease;
-                        '>
-                            <div style='
-                                display: flex;
-                                gap: 0.75rem;
-                                align-items: flex-start;
-                            '>
-                                <div style='
-                                    color: #22C55E;
-                                    font-size: 1.1rem;
-                                    font-weight: 700;
-                                    margin-top: 0.1rem;
-                                    flex-shrink: 0;
-                                '>✓</div>
-                                <p style='
-                                    color: #E8F0FE;
-                                    margin: 0;
-                                    font-size: 0.95rem;
-                                    font-weight: 500;
-                                    line-height: 1.5;
-                                '>{s}</p>
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
-            
-            with col2:
-                # Skills Header
-                st.markdown("""
-                    <div style='
-                        display: flex;
-                        align-items: center;
-                        gap: 1rem;
-                        margin-bottom: 1.5rem;
-                        padding: 0;
-                    '>
-                        <div style='
-                            width: 50px;
-                            height: 50px;
-                            background: linear-gradient(135deg, rgba(0, 212, 255, 0.35) 0%, rgba(0, 212, 255, 0.15) 100%);
-                            border: 2px solid rgba(0, 212, 255, 0.5);
-                            border-radius: 0.75rem;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 1.5rem;
-                            box-shadow: 0 0 20px rgba(0, 212, 255, 0.25);
-                        '>📊</div>
-                        <div>
-                            <h3 style='
-                                color: #00D4FF;
-                                margin: 0;
-                                font-size: 1.05rem;
-                                font-weight: 700;
-                                text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-                            '>Your Skills</h3>
-                            <p style='
-                                color: #cbd5e1;
-                                margin: 0.25rem 0 0 0;
-                                font-size: 0.8rem;
-                            '>Standout technical abilities</p>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                # Skill Items
-                for sk in analysis.get('skills_to_emphasize', []):
-                    st.markdown(f"""
-                        <div style='
-                            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 212, 255, 0.05) 100%);
-                            border: 1.5px solid rgba(0, 212, 255, 0.3);
-                            border-radius: 1rem;
-                            padding: 1.25rem;
-                            margin-bottom: 1rem;
-                            box-shadow: 0 0 15px rgba(0, 212, 255, 0.08);
-                            transition: all 0.3s ease;
-                        '>
-                            <div style='
-                                display: flex;
-                                gap: 0.75rem;
-                                align-items: flex-start;
-                            '>
-                                <div style='
-                                    width: 28px;
-                                    height: 28px;
-                                    background: linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(0, 212, 255, 0.15) 100%);
-                                    border: 1px solid rgba(0, 212, 255, 0.4);
-                                    border-radius: 0.4rem;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    font-size: 0.65rem;
-                                    flex-shrink: 0;
-                                    box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
-                                '>→</div>
-                                <p style='
-                                    color: #E8F0FE;
-                                    margin: 0;
-                                    font-size: 0.95rem;
-                                    font-weight: 600;
-                                    line-height: 1.5;
-                                '>{sk}</p>
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
-        
-        with tab2:
-            st.markdown("### 🎯 Priority Changes")
-            st.markdown("""
-                <p style='
-                    color: #cbd5e1;
-                    font-size: 0.9rem;
-                    margin-bottom: 1.5rem;
-                '>Focus on these critical improvements to maximize your resume impact:</p>
-            """, unsafe_allow_html=True)
-            
-            for i, change in enumerate(analysis.get('priority_changes', []), 1):
-                st.markdown(f"""
-                    <div style='
-                        background: linear-gradient(135deg, rgba(251, 146, 60, 0.12) 0%, rgba(251, 146, 60, 0.08) 100%);
-                        border: 2px solid rgba(251, 146, 60, 0.3);
-                        border-radius: 1.25rem;
-                        padding: 1.75rem;
-                        margin-bottom: 1.25rem;
-                        box-shadow: 0 0 25px rgba(251, 146, 60, 0.1), inset 0 0 15px rgba(251, 146, 60, 0.03);
-                        backdrop-filter: blur(10px);
-                    '>
-                        <div style='
-                            display: flex;
-                            align-items: flex-start;
-                            gap: 1rem;
-                            margin-bottom: 1rem;
-                        '>
-                            <div style='
-                                width: 44px;
-                                height: 44px;
-                                background: linear-gradient(135deg, rgba(251, 146, 60, 0.3) 0%, rgba(251, 146, 60, 0.15) 100%);
-                                border: 2px solid rgba(251, 146, 60, 0.5);
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-weight: 700;
-                                color: #FB923C;
-                                font-size: 1.1rem;
-                                box-shadow: 0 0 15px rgba(251, 146, 60, 0.3);
-                                flex-shrink: 0;
-                            '>{i}</div>
-                            <div style='flex: 1;'>
-                                <h4 style='
-                                    color: #FB923C;
-                                    margin: 0;
-                                    font-size: 1rem;
-                                    font-weight: 700;
-                                    text-shadow: 0 0 8px rgba(251, 146, 60, 0.25);
-                                '>{change.get('change', 'Change')}</h4>
-                            </div>
-                        </div>
-                        <div style='
-                            display: flex;
-                            flex-direction: column;
-                            gap: 1rem;
-                        '>
-                            <div>
-                                <h5 style='
-                                    color: #FFB800;
-                                    margin: 0 0 0.5rem 0;
-                                    font-size: 0.85rem;
-                                    font-weight: 700;
-                                    text-transform: uppercase;
-                                    letter-spacing: 0.05em;
-                                '>Why This Matters</h5>
-                                <p style='
-                                    color: #E8F0FE;
-                                    margin: 0;
-                                    font-size: 0.95rem;
-                                    line-height: 1.5;
-                                '>{change.get('why', '')}</p>
-                            </div>
-                            <div style='
-                                padding-top: 0.75rem;
-                                border-top: 1px solid rgba(251, 146, 60, 0.2);
-                            '>
-                                <h5 style='
-                                    color: #FFB800;
-                                    margin: 0 0 0.5rem 0;
-                                    font-size: 0.85rem;
-                                    font-weight: 700;
-                                    text-transform: uppercase;
-                                    letter-spacing: 0.05em;
-                                '>How to Implement</h5>
-                                <p style='
-                                    color: #E8F0FE;
-                                    margin: 0;
-                                    font-size: 0.95rem;
-                                    line-height: 1.5;
-                                '>{change.get('how', '')}</p>
-                            </div>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-        
-        with tab3:
-            st.markdown("### 🔑 Keywords & Metrics")
-            
-            col1, col2 = st.columns(2, gap="large")
-            
-            with col1:
-                st.markdown("""
-                    <div style='
-                        display: flex;
-                        align-items: center;
-                        gap: 1rem;
-                        margin-bottom: 1.5rem;
-                    '>
-                        <div style='
-                            width: 50px;
-                            height: 50px;
-                            background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(239, 68, 68, 0.15) 100%);
-                            border: 2px solid rgba(239, 68, 68, 0.5);
-                            border-radius: 0.75rem;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 1.5rem;
-                            box-shadow: 0 0 20px rgba(239, 68, 68, 0.25);
-                        '>🔍</div>
-                        <div>
-                            <h3 style='
-                                color: #EF4444;
-                                margin: 0;
-                                font-size: 1.05rem;
-                                font-weight: 700;
-                                text-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
-                            '>Missing Keywords</h3>
-                            <p style='
-                                color: #cbd5e1;
-                                margin: 0.25rem 0 0 0;
-                                font-size: 0.8rem;
-                            '>Add these to boost ATS score</p>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                for kw in analysis.get('missing_keywords', []):
-                    keyword = kw.get('keyword', '') if isinstance(kw, dict) else kw
-                    st.markdown(f"""
-                        <div style='
-                            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
-                            border: 1.5px solid rgba(239, 68, 68, 0.3);
-                            border-radius: 1rem;
-                            padding: 1rem;
-                            margin-bottom: 0.75rem;
-                            box-shadow: 0 0 12px rgba(239, 68, 68, 0.08);
-                        '>
-                            <div style='
-                                display: flex;
-                                gap: 0.75rem;
-                                align-items: center;
-                            '>
-                                <div style='
-                                    color: #EF4444;
-                                    font-size: 1rem;
-                                    flex-shrink: 0;
-                                '>+</div>
-                                <p style='
-                                    color: #E8F0FE;
-                                    margin: 0;
-                                    font-size: 0.95rem;
-                                    font-weight: 500;
-                                '>{keyword}</p>
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown("""
-                    <div style='
-                        display: flex;
-                        align-items: center;
-                        gap: 1rem;
-                        margin-bottom: 1.5rem;
-                    '>
-                        <div style='
-                            width: 50px;
-                            height: 50px;
-                            background: linear-gradient(135deg, rgba(34, 197, 94, 0.35) 0%, rgba(34, 197, 94, 0.15) 100%);
-                            border: 2px solid rgba(34, 197, 94, 0.5);
-                            border-radius: 0.75rem;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 1.5rem;
-                            box-shadow: 0 0 20px rgba(34, 197, 94, 0.25);
-                        '>📊</div>
-                        <div>
-                            <h3 style='
-                                color: #22C55E;
-                                margin: 0;
-                                font-size: 1.05rem;
-                                font-weight: 700;
-                                text-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
-                            '>Metrics to Add</h3>
-                            <p style='
-                                color: #cbd5e1;
-                                margin: 0.25rem 0 0 0;
-                                font-size: 0.8rem;
-                            '>Quantifiable achievements</p>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-                
-                for m in analysis.get('metrics_to_add', []):
-                    st.markdown(f"""
-                        <div style='
-                            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
-                            border: 1.5px solid rgba(34, 197, 94, 0.3);
-                            border-radius: 1rem;
-                            padding: 1rem;
-                            margin-bottom: 0.75rem;
-                            box-shadow: 0 0 12px rgba(34, 197, 94, 0.08);
-                        '>
-                            <div style='
-                                display: flex;
-                                gap: 0.75rem;
-                                align-items: center;
-                            '>
-                                <div style='
-                                    color: #22C55E;
-                                    font-size: 1rem;
-                                    flex-shrink: 0;
-                                '>✓</div>
-                                <p style='
-                                    color: #E8F0FE;
-                                    margin: 0;
-                                    font-size: 0.95rem;
-                                    font-weight: 500;
-                                '>{m}</p>
-                            </div>
-                        </div>
-                    """, unsafe_allow_html=True)
-        
-        with tab4:
-            st.markdown("### 🛠️ ATS Optimization")
-            st.markdown("""
-                <p style='
-                    color: #cbd5e1;
-                    font-size: 0.9rem;
-                    margin-bottom: 1.5rem;
-                '>Implement these ATS-friendly improvements to maximize applicant tracking system compatibility:</p>
-            """, unsafe_allow_html=True)
-            
-            for i, tip in enumerate(analysis.get('ats_optimization', []), 1):
-                st.markdown(f"""
-                    <div style='
-                        background: linear-gradient(135deg, rgba(0, 212, 255, 0.12) 0%, rgba(0, 99, 255, 0.08) 100%);
-                        border: 2px solid rgba(0, 212, 255, 0.3);
-                        border-radius: 1.25rem;
-                        padding: 1.75rem;
-                        margin-bottom: 1.25rem;
-                        box-shadow: 0 0 25px rgba(0, 212, 255, 0.1), inset 0 0 15px rgba(0, 212, 255, 0.03);
-                        backdrop-filter: blur(10px);
-                    '>
-                        <div style='
-                            display: flex;
-                            align-items: flex-start;
-                            gap: 1rem;
-                        '>
-                            <div style='
-                                width: 44px;
-                                height: 44px;
-                                background: linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(0, 212, 255, 0.15) 100%);
-                                border: 2px solid rgba(0, 212, 255, 0.5);
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-weight: 700;
-                                color: #00D4FF;
-                                font-size: 1.1rem;
-                                box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-                                flex-shrink: 0;
-                            '>{i}</div>
-                            <p style='
-                                color: #E8F0FE;
-                                margin: 0;
-                                font-size: 0.95rem;
-                                font-weight: 500;
-                                line-height: 1.6;
-                            '>{tip}</p>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-        
-        
-        with tab5:
-            st.markdown("### 🎯 Development Plan")
-            ra = analysis.get('role_specific_advice', {})
-            
-            # Development Plan Header
-            st.markdown("""
-                <div style='
-                    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 99, 255, 0.06) 100%);
-                    border-left: 5px solid #00D4FF;
-                    border-radius: 0.5rem;
-                    padding: 1.5rem;
-                    margin-bottom: 2rem;
-                    box-shadow: 0 0 25px rgba(0, 212, 255, 0.12), inset 0 0 15px rgba(0, 212, 255, 0.04);
-                    backdrop-filter: blur(10px);
-                '>
-                    <h3 style='
-                        color: #00D4FF;
-                        margin-top: 0;
-                        font-size: 1.35rem;
-                        font-weight: 700;
-                        text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-                    '>📋 Your Career Development Roadmap</h3>
-                    <p style='
-                        color: #cbd5e1;
-                        margin: 0.5rem 0 0 0;
-                        font-size: 0.95rem;
-                    '>Strategic insights to accelerate your professional growth</p>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            # Three Column Layout with Premium Design
-            col1, col2, col3 = st.columns(3, gap="medium")
-            
-            with col1:
-                target_role = ra.get('target_role', 'Research target roles')
-                st.markdown(f"""
-                    <div style='
-                        background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(220, 38, 38, 0.08) 100%);
-                        border: 2px solid rgba(220, 38, 38, 0.3);
-                        border-radius: 1.25rem;
-                        padding: 2rem 1.5rem;
-                        box-shadow: 0 0 30px rgba(220, 38, 38, 0.12), inset 0 0 20px rgba(220, 38, 38, 0.04);
-                        backdrop-filter: blur(10px);
-                        transition: all 0.3s ease;
-                        text-align: left;
-                    '>
-                        <div style='
-                            display: flex;
-                            align-items: center;
-                            gap: 1rem;
-                            margin-bottom: 1rem;
-                        '>
-                            <div style='
-                                width: 50px;
-                                height: 50px;
-                                background: linear-gradient(135deg, rgba(220, 38, 38, 0.3) 0%, rgba(220, 38, 38, 0.15) 100%);
-                                border: 2px solid rgba(220, 38, 38, 0.5);
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 1.5rem;
-                                box-shadow: 0 0 15px rgba(220, 38, 38, 0.3);
-                            '>🎯</div>
-                            <h4 style='
-                                color: #DC2626;
-                                margin: 0;
-                                font-size: 0.75rem;
-                                font-weight: 700;
-                                text-transform: uppercase;
-                                letter-spacing: 0.1em;
-                            '>Target Role</h4>
-                        </div>
-                        <p style='
-                            color: #E8F0FE;
-                            margin: 0;
-                            font-size: 1.15rem;
-                            font-weight: 600;
-                            line-height: 1.5;
-                        '>{target_role}</p>
-                    </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                skills_gap = ra.get('required_skills_gap', 'Identify key skills needed')
-                st.markdown(f"""
-                    <div style='
-                        background: linear-gradient(135deg, rgba(251, 146, 60, 0.15) 0%, rgba(251, 146, 60, 0.08) 100%);
-                        border: 2px solid rgba(251, 146, 60, 0.3);
-                        border-radius: 1.25rem;
-                        padding: 2rem 1.5rem;
-                        box-shadow: 0 0 30px rgba(251, 146, 60, 0.12), inset 0 0 20px rgba(251, 146, 60, 0.04);
-                        backdrop-filter: blur(10px);
-                        transition: all 0.3s ease;
-                        text-align: left;
-                    '>
-                        <div style='
-                            display: flex;
-                            align-items: center;
-                            gap: 1rem;
-                            margin-bottom: 1rem;
-                        '>
-                            <div style='
-                                width: 50px;
-                                height: 50px;
-                                background: linear-gradient(135deg, rgba(251, 146, 60, 0.3) 0%, rgba(251, 146, 60, 0.15) 100%);
-                                border: 2px solid rgba(251, 146, 60, 0.5);
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 1.5rem;
-                                box-shadow: 0 0 15px rgba(251, 146, 60, 0.3);
-                            '>⚡</div>
-                            <h4 style='
-                                color: #FB923C;
-                                margin: 0;
-                                font-size: 0.75rem;
-                                font-weight: 700;
-                                text-transform: uppercase;
-                                letter-spacing: 0.1em;
-                            '>Skills Gap</h4>
-                        </div>
-                        <p style='
-                            color: #E8F0FE;
-                            margin: 0;
-                            font-size: 1.15rem;
-                            font-weight: 600;
-                            line-height: 1.5;
-                        '>{skills_gap}</p>
-                    </div>
-                """, unsafe_allow_html=True)
-            
-            with col3:
-                st.markdown("""
-                    <div style='
-                        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(34, 197, 94, 0.08) 100%);
-                        border: 2px solid rgba(34, 197, 94, 0.3);
-                        border-radius: 1.25rem;
-                        padding: 2rem 1.5rem;
-                        box-shadow: 0 0 30px rgba(34, 197, 94, 0.12), inset 0 0 20px rgba(34, 197, 94, 0.04);
-                        backdrop-filter: blur(10px);
-                        transition: all 0.3s ease;
-                        text-align: left;
-                    '>
-                        <div style='
-                            display: flex;
-                            align-items: center;
-                            gap: 1rem;
-                            margin-bottom: 1rem;
-                        '>
-                            <div style='
-                                width: 50px;
-                                height: 50px;
-                                background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.15) 100%);
-                                border: 2px solid rgba(34, 197, 94, 0.5);
-                                border-radius: 50%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 1.5rem;
-                                box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
-                            '>✨</div>
-                            <h4 style='
-                                color: #22C55E;
-                                margin: 0;
-                                font-size: 0.75rem;
-                                font-weight: 700;
-                                text-transform: uppercase;
-                                letter-spacing: 0.1em;
-                            '>Positioning</h4>
-                        </div>
-                        <p style='
-                            color: #E8F0FE;
-                            margin: 0;
-                            font-size: 1.15rem;
-                            font-weight: 600;
-                            line-height: 1.5;
-                        '>Highlight relevant achievements</p>
-                    </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown("<div style='margin: 2rem 0;'></div>", unsafe_allow_html=True)
-            
-            # Certifications Section
-            st.markdown("""
-                <div style='
-                    background: linear-gradient(135deg, rgba(0, 212, 255, 0.08) 0%, rgba(0, 99, 255, 0.05) 100%);
-                    border-left: 4px solid #00FF88;
-                    border-radius: 0.5rem;
-                    padding: 1.25rem;
-                    margin-bottom: 1.5rem;
-                '>
-                    <h4 style='
-                        color: #00FF88;
-                        margin-top: 0;
-                        font-size: 1rem;
-                        font-weight: 700;
-                    '>🎓 Certifications to Consider</h4>
-                    <p style='
-                        color: #cbd5e1;
-                        margin: 0.75rem 0 0 0;
-                        font-size: 0.9rem;
-                        line-height: 1.6;
-                    '>Based on your target role, these certifications would strengthen your profile:</p>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            # Display certifications if available
-            certifications = ra.get('recommended_certifications', [])
-            if certifications:
-                for cert in certifications:
-                    st.markdown(f"""
-                        <div style='
-                            background: rgba(0, 255, 136, 0.05);
-                            border: 1px solid rgba(0, 255, 136, 0.2);
-                            border-radius: 0.5rem;
-                            padding: 1rem;
-                            margin-bottom: 0.75rem;
-                        '>
-                            <p style='
-                                color: #00FF88;
-                                font-weight: 600;
-                                margin: 0;
-                            '>✓ {cert}</p>
-                        </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.markdown("""
-                    <div style='
-                        background: rgba(0, 255, 136, 0.05);
-                        border: 1px solid rgba(0, 255, 136, 0.2);
-                        border-radius: 0.5rem;
-                        padding: 1rem;
-                        margin-bottom: 0.75rem;
-                    '>
-                        <p style='
-                            color: #00FF88;
-                            font-weight: 600;
-                            margin: 0;
-                        '>✓ AWS Solutions Architect Certification</p>
-                    </div>
-                    <div style='
-                        background: rgba(0, 255, 136, 0.05);
-                        border: 1px solid rgba(0, 255, 136, 0.2);
-                        border-radius: 0.5rem;
-                        padding: 1rem;
-                        margin-bottom: 0.75rem;
-                    '>
-                        <p style='
-                            color: #00FF88;
-                            font-weight: 600;
-                            margin: 0;
-                        '>✓ Google Cloud Professional Cloud Architect</p>
-                    </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown("<div style='margin: 2rem 0;'></div>", unsafe_allow_html=True)
-            
-            # Comparable Roles Section - Premium Design
-            st.markdown("""
-                <div style='
-                    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 99, 255, 0.06) 100%);
-                    border: 2px solid rgba(0, 212, 255, 0.25);
-                    border-radius: 1.25rem;
-                    padding: 2rem;
-                    margin-bottom: 2rem;
-                    box-shadow: 0 0 30px rgba(0, 212, 255, 0.15), inset 0 0 20px rgba(0, 212, 255, 0.04);
-                    backdrop-filter: blur(10px);
-                '>
-                    <div style='
-                        display: flex;
-                        align-items: center;
-                        gap: 1rem;
-                        margin-bottom: 1.5rem;
-                    '>
-                        <div style='
-                            width: 44px;
-                            height: 44px;
-                            background: linear-gradient(135deg, rgba(0, 212, 255, 0.3) 0%, rgba(0, 212, 255, 0.15) 100%);
-                            border: 2px solid rgba(0, 212, 255, 0.5);
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            font-size: 1.35rem;
-                            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
-                        '>🔄</div>
-                        <div>
-                            <h4 style='
-                                color: #00D4FF;
-                                margin: 0;
-                                font-size: 1.15rem;
-                                font-weight: 700;
-                                text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
-                            '>Comparable Career Paths</h4>
-                            <p style='
-                                color: #cbd5e1;
-                                margin: 0.25rem 0 0 0;
-                                font-size: 0.85rem;
-                            '>Explore related roles that match your skillset</p>
+            return f"""
+            <div class='{card_class}'>
+                <div class='metric-gauge-side'>
+                    <div style='position: relative; width: 100%; height: 100%;'>
+                        <svg viewBox='0 0 100 100' style='transform: rotate(-90deg); width: 100%; height: 100%;'>
+                            <circle cx='50' cy='50' r='45' fill='none' stroke='rgba(255,255,255,0.05)' stroke-width='8'></circle>
+                            <circle cx='50' cy='50' r='45' fill='none' stroke='{color}' stroke-width='8' 
+                                stroke-dasharray='{dash_array} 283' stroke-linecap='round' style='transition: stroke-dasharray 1.5s ease-out; filter: drop-shadow(0 0 8px {color});'></circle>
+                        </svg>
+                        <div style='position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;'>
+                            <div style='font-size: 1.25rem; font-weight: 800; color: #FFFFFF;'>{int(percentage)}%</div>
                         </div>
                     </div>
                 </div>
-            """, unsafe_allow_html=True)
+                <div class='metric-info-side'>
+                    <div class='metric-title'>{label}</div>
+                    <p class='metric-elaborated-insight'>{insight}</p>
+                </div>
+            </div>
+            """
+
+        # Dashboard Tiers
+        # TIER 1: OVERALL QUOTIENT HERO
+        st.markdown(get_executive_card_html(
+            "Overall Market Quotient", 
+            scores.get('overall_score', 0), 
+            "var(--accent-primary)", 
+            "Comprehensive market alignment quotient based on deep-neural semantic matching of your expertise against elite industry benchmarks.",
+            is_hero=True
+        ), unsafe_allow_html=True)
+        
+        # TIER 2 & 3: GRID
+        col_grid1, col_grid2 = st.columns(2, gap="medium")
+        
+        with col_grid1:
+            st.markdown(get_executive_card_html(
+                "Skills Match", 
+                scores.get('skills_score', 0), 
+                "#10b981", 
+                f"<b>{int(scores.get('skills_score', 0))}% density</b> found in required technical clusters and key industry vectors."
+            ), unsafe_allow_html=True)
             
-            # Display comparable roles in a 2-column grid
-            comparable_roles = ra.get('comparable_roles', [])
+            st.markdown("<div style='margin-bottom: 1.5rem;'></div>", unsafe_allow_html=True)
             
-            # Validate and prepare role data - ensure we have full role names
-            default_roles = [
-                'Senior Software Engineer',
-                'Technical Architect',
-                'DevOps Engineer',
-                'Solutions Architect',
-                'Engineering Lead',
-                'Platform Engineer'
-            ]
+            st.markdown(get_executive_card_html(
+                "Education Pedigree", 
+                scores.get('education_score', 0), 
+                "#f59e0b", 
+                f"Academic pedigree matches <b>{int(scores.get('education_score', 0))}%</b> of elite industry expectations."
+            ), unsafe_allow_html=True)
+
+        with col_grid2:
+            st.markdown(get_executive_card_html(
+                "Professional Exp", 
+                scores.get('experience_score', 0), 
+                "#818cf8", 
+                f"Strategic career progression at <b>{int(scores.get('experience_score', 0))}% performance</b> benchmark."
+            ), unsafe_allow_html=True)
             
-            # Use API roles if they're meaningful (length > 2), otherwise use defaults
-            if comparable_roles and all(isinstance(role, str) and len(role) > 2 for role in comparable_roles):
-                role_data = comparable_roles[:6]  # Limit to 6 roles
-            else:
-                role_data = default_roles
+            st.markdown("<div style='margin-bottom: 1.5rem;'></div>", unsafe_allow_html=True)
             
-            # Display in 2-column grid
-            cols = st.columns(2)
-            for idx, role in enumerate(role_data):
-                col_idx = idx % 2
-                with cols[col_idx]:
+            st.markdown(get_executive_card_html(
+                "Aesthetic Formatting", 
+                scores.get('formatting_score', 0), 
+                "#22d3ee", 
+                f"Professional aesthetic and parsing compliance verified at <b>{int(scores.get('formatting_score', 0))}% precision</b>."
+            ), unsafe_allow_html=True)
+            
+        # TIER 4: SUMMARY HERO
+        st.markdown(f"""
+            <div class='bento-card' style='margin-top: 2rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border-left: 5px solid var(--accent-primary); padding: 2rem;'>
+                <div style='display: flex; align-items: flex-start; gap: 1.5rem;'>
+                    <div style='font-size: 2rem; background: rgba(255, 255, 255, 0.05); width: 60px; height: 60px; border-radius: 1rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2);'>🏛️</div>
+                    <div>
+                        <h4 style='margin: 0 0 0.5rem 0; font-size: 1.2rem; color: #FFFFFF; font-weight: 700;'>Strategic Executive Summary</h4>
+                        <p style='margin: 0; color: #E2E8F0; font-size: 1rem; line-height: 1.7;'>{analysis.get('overall_strategy', 'Resume vectors successfully synthesized.')}</p>
+                    </div>
+                </div>
+            </div>
+            <div class='divider-glow'></div>
+        """, unsafe_allow_html=True)
+        
+        # --- PHASE 2: OPTIMIZATION PROTOCOL ---
+        st.markdown("""
+            <div class='section-header' style='background: transparent; border-left: none; padding: 0;'>
+                <span class='section-header-title' style='font-size: 1.5rem; opacity: 0.9;'>Phase 02: Optimization Protocol</span>
+            </div>
+            <p style='color: var(--text-tertiary); margin-bottom: 2.5rem;'>Critical adjustments and compliance standards</p>
+        """, unsafe_allow_html=True)
+        
+        col_opt1, col_opt2 = st.columns(2, gap="large")
+        
+        with col_opt1:
+            st.markdown("<h4 style='color: #f59e0b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;'>⚠️ Priority Adjustments</h4>", unsafe_allow_html=True)
+            for item in analysis.get('priority_changes', [])[:4]:
+                if isinstance(item, dict):
+                    change_text = item.get('change', 'N/A')
+                    why_text = item.get('why', '')
+                    how_text = item.get('how', '')
+                    content = f"<b>{change_text}</b>"
+                    if why_text: content += f"<br><span style='color: var(--text-tertiary); font-size: 0.85rem;'><b>WHY:</b> {why_text}</span>"
+                    if how_text: content += f"<br><span style='color: var(--accent-secondary); font-size: 0.85rem;'><b>HOW:</b> {how_text}</span>"
+                else:
+                    content = str(item)
+                
+                st.markdown(f"""
+                    <div style='background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem;'>
+                        <p style='margin: 0; color: #FFFFFF; font-size: 0.95rem; line-height: 1.6;'>{content}</p>
+                    </div>
+                """, unsafe_allow_html=True)
+        
+        with col_opt2:
+            st.markdown("<h4 style='color: #22d3ee; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;'>⚙️ ATS & Compliance</h4>", unsafe_allow_html=True)
+            for i, tip in enumerate(analysis.get('ats_optimization', [])[:4], 1):
+                st.markdown(f"""
+                    <div style='display: flex; gap: 1rem; margin-bottom: 1.25rem; background: rgba(34, 211, 238, 0.03); padding: 1rem; border-radius: 0.75rem;'>
+                        <div style='color: #22d3ee; font-weight: 800; font-size: 1.1rem;'>0{i}</div>
+                        <p style='margin: 0; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;'>{tip}</p>
+                    </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("<div class='divider-glow'></div>", unsafe_allow_html=True)
+
+        # --- PHASE 3: ASSET ASSESSMENT ---
+        st.markdown("""
+            <div class='section-header' style='background: transparent; border-left: none; padding: 0;'>
+                <span class='section-header-title' style='font-size: 1.5rem; opacity: 0.9;'>Phase 03: Professional Assets</span>
+            </div>
+            <p style='color: var(--text-tertiary); margin-bottom: 2.5rem;'>Verified strengths and quantifiable impact metrics</p>
+        """, unsafe_allow_html=True)
+        
+        col_asset1, col_asset2 = st.columns([0.6, 0.4], gap="large")
+        
+        with col_asset1:
+            st.markdown("<h4 style='color: #10b981; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;'>💎 Core Strengths</h4>", unsafe_allow_html=True)
+            cols_s = st.columns(2)
+            for i, strength in enumerate(analysis.get('strengths', [])[:6]):
+                with cols_s[i % 2]:
                     st.markdown(f"""
-                        <div style='
-                            background: linear-gradient(135deg, rgba(0, 212, 255, 0.12) 0%, rgba(0, 99, 255, 0.08) 100%);
-                            border: 2px solid rgba(0, 212, 255, 0.3);
-                            border-radius: 1rem;
-                            padding: 1.5rem;
-                            margin-bottom: 1rem;
-                            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1), inset 0 0 15px rgba(0, 212, 255, 0.03);
-                            backdrop-filter: blur(10px);
-                            transition: all 0.3s ease;
-                        '>
-                            <div style='
-                                display: flex;
-                                align-items: flex-start;
-                                gap: 1rem;
-                            '>
-                                <div style='
-                                    width: 40px;
-                                    height: 40px;
-                                    background: linear-gradient(135deg, rgba(0, 212, 255, 0.25) 0%, rgba(0, 212, 255, 0.1) 100%);
-                                    border: 1.5px solid rgba(0, 212, 255, 0.4);
-                                    border-radius: 0.5rem;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    font-size: 1.2rem;
-                                    flex-shrink: 0;
-                                    box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
-                                '>💼</div>
-                                <div style='flex: 1;'>
-                                    <p style='
-                                        color: #E8F0FE;
-                                        margin: 0;
-                                        font-size: 1rem;
-                                        font-weight: 600;
-                                        line-height: 1.3;
-                                    '>{role}</p>
-                                    <p style='
-                                        color: #00D4FF;
-                                        margin: 0.5rem 0 0 0;
-                                        font-size: 0.8rem;
-                                        font-weight: 700;
-                                    '>→ Explore this path</p>
-                                </div>
-                            </div>
+                        <div style='background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 1rem; padding: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 1rem;'>
+                            <div style='color: #10b981; font-weight: 900; background: rgba(16, 185, 129, 0.1); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;'>✓</div>
+                            <div style='color: #FFFFFF; font-weight: 500; font-size: 0.95rem;'>{strength}</div>
                         </div>
                     """, unsafe_allow_html=True)
         
-        with tab6:
-            st.markdown("### Predicted Roles")
+        with col_asset2:
+            st.markdown("<h4 style='color: var(--accent-primary); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;'>📈 Recommended Metrics</h4>", unsafe_allow_html=True)
+            for metric in analysis.get('metrics_to_add', [])[:4]:
+                st.markdown(f"""
+                    <div style='background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.15); border-radius: 0.75rem; padding: 1rem; margin-bottom: 0.75rem;'>
+                        <p style='margin: 0; color: #FFFFFF; font-size: 0.9rem; font-weight: 400;'>{metric}</p>
+                    </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("<div class='divider-glow'></div>", unsafe_allow_html=True)
+
+        # --- PHASE 4: KEYWORD INTELLIGENCE ---
+        st.markdown("""
+            <div class='section-header' style='background: transparent; border-left: none; padding: 0;'>
+                <span class='section-header-title' style='font-size: 1.5rem; opacity: 0.9;'>Phase 04: Keyword & Vector Intelligence</span>
+            </div>
+            <p style='color: var(--text-tertiary); margin-bottom: 2.5rem;'>Technical semantic analysis and keyword density</p>
+        """, unsafe_allow_html=True)
+        
+        # Keyword Cloud
+        st.markdown("""
+            <div style='margin-bottom: 2rem; background: rgba(255,255,255,0.02); padding: 2rem; border-radius: 1.5rem; border: 1px dashed rgba(255,255,255,0.1);'>
+                <p style='text-align: center; color: var(--text-tertiary); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem;'>Intelligence Vector keywords</p>
+                <div style='display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;'>
+        """, unsafe_allow_html=True)
+        
+        all_kws = analysis.get('skills_to_emphasize', [])
+        for kw in list(set(all_kws))[:18]:
+            st.markdown(f"<span class='badge' style='background: rgba(99, 102, 241, 0.1); color: #FFFFFF; border: 1px solid rgba(99, 102, 241, 0.2); padding: 0.5rem 1rem;'>{kw}</span>", unsafe_allow_html=True)
+        st.markdown("</div></div>", unsafe_allow_html=True)
+        
+        # Missing Keywords
+        st.markdown("<h4 style='color: #ef4444; margin: 2rem 0 1.5rem 0; display: flex; align-items: center; gap: 0.5rem;'>🚫 Missing Critical Keywords</h4>", unsafe_allow_html=True)
+        missing_cols = st.columns(3)
+        for i, kw_info in enumerate(analysis.get('missing_keywords', [])[:9]):
+            kw = kw_info['keyword'] if isinstance(kw_info, dict) else kw_info
+            with missing_cols[i % 3]:
+                st.markdown(f"""
+                    <div class='badge-red' style='padding: 0.75rem 1rem; border-radius: 0.75rem; margin-bottom: 1rem; font-size: 0.9rem; font-weight: 600; text-align: center;'>
+                        {kw}
+                    </div>
+                """, unsafe_allow_html=True)
+
+        st.markdown("<div class='divider-glow'></div>", unsafe_allow_html=True)
+
+        # --- PHASE 5: STRATEGIC CAREER PLANNING ---
+        st.markdown("""
+            <div class='section-header' style='background: transparent; border-left: none; padding: 0;'>
+                <span class='section-header-title' style='font-size: 1.5rem; opacity: 0.9;'>Phase 05: Strategic Career Planning</span>
+            </div>
+            <p style='color: var(--text-tertiary); margin-bottom: 2.5rem;'>Market alignment and future trajectory projections</p>
+        """, unsafe_allow_html=True)
+        
+        col_c1, col_c2 = st.columns([0.4, 0.6], gap="large")
+        
+        with col_c1:
+            st.markdown(f"""
+                <div class='bento-card' style='background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.2);'>
+                    <p style='margin: 0; font-size: 0.75rem; color: var(--accent-secondary); font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;'>🎯 Target Role Alignment</p>
+                    <h4 style='margin: 0.5rem 0 1rem 0; color: #FFFFFF; font-size: 1.25rem;'>{ra.get('target_role', 'Not Specified')}</h4>
+                    <hr style='opacity: 0.1; margin: 1rem 0;'>
+                    <p style='margin: 0; font-size: 0.75rem; color: var(--text-tertiary); font-weight: 700;'>MARKET VALUE</p>
+                    <p style='margin: 0.25rem 0 0 0; color: #FFFFFF; font-size: 0.95rem;'>{ra.get('market_alignment', 'Aligned')}</p>
+                    <hr style='opacity: 0.1; margin: 1rem 0;'>
+                    <p style='margin: 0; font-size: 0.75rem; color: var(--text-tertiary); font-weight: 700;'>SKILLS GAP</p>
+                    <p style='margin: 0.25rem 0 0 0; color: #FFFFFF; font-size: 0.95rem;'>{ra.get('required_skills_gap', 'None')}</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            # Comparable Roles
+            st.markdown("<h5 style='color: var(--text-secondary); margin: 2rem 0 1rem 0; font-size: 0.8rem; text-transform: uppercase;'>Comparable Paths</h5>", unsafe_allow_html=True)
+            for role in ra.get('comparable_roles', [])[:3]:
+                st.markdown(f"<div style='color: var(--text-primary); margin-bottom: 0.5rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;'><span>→</span> {role}</div>", unsafe_allow_html=True)
+
+        with col_c2:
+            st.markdown("<h4 style='color: #FFFFFF; margin-bottom: 1.5rem; font-size: 1rem;'>Predicted Role Match Score</h4>", unsafe_allow_html=True)
             if analysis.get('predicted_roles'):
                 roles_df = pd.DataFrame(analysis['predicted_roles'])
-                fig = px.bar(roles_df, x='match_score', y='role', orientation='h', color='match_score', color_continuous_scale=['#ef4444', '#f59e0b', '#10b981'])
-                fig.update_layout(height=400, plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', showlegend=False)
-                st.plotly_chart(fig, use_container_width=True)
+                fig = px.bar(
+                    roles_df, 
+                    x='match_score', 
+                    y='role', 
+                    orientation='h', 
+                    color='match_score',
+                    color_continuous_scale=['#ef4444', '#f59e0b', '#10b981'],
+                    labels={'match_score': 'Match %', 'role': 'Position'}
+                )
+                fig.update_layout(
+                    height=300, 
+                    margin=dict(l=0, r=0, t=0, b=0),
+                    plot_bgcolor='rgba(0,0,0,0)', 
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    font_color='#FFFFFF',
+                    xaxis_range=[0, 100],
+                    showlegend=False
+                )
+                fig.update_xaxes(showgrid=False, zeroline=False)
+                fig.update_yaxes(showgrid=False, zeroline=False)
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+
 
 # ============================================================================
 # PAGE: DASHBOARD
@@ -2341,7 +656,7 @@ if st.session_state.current_page == "Upload Resume":
 elif st.session_state.current_page == "Dashboard":
     render_header(
         "📊 Dashboard",
-        "Analytics and insights from all analyses"
+        "Executive metrics and user insights"
     )
     
     if not st.session_state.admin_token:
@@ -2473,13 +788,30 @@ elif st.session_state.current_page == "Dashboard":
                         st.warning("⚠️ Please enter both email and password")
     else:
         try:
-            # Use cached API calls for better performance
-            analytics = fetch_analytics_data(st.session_state.admin_token)
+            # UNIFIED DASHBOARD SYNCHRONIZATION
+            with st.spinner("🚀 Optimizing executive intelligence..."):
+                # Use cached API calls for better performance
+                analytics = fetch_analytics_data(st.session_state.admin_token)
+                resumes_response = fetch_resumes_data(st.session_state.admin_token)
             
             if analytics and "error" in analytics and analytics["error"] == "Unauthorized":
+                # If we came from portal and it failed immediately, just clear it silently
+                prev_source = st.session_state.get('login_source', 'manual')
                 st.session_state.admin_token = None
-                st.warning("⚠️ Admin Session Expired. Please log in again.")
+                st.session_state.login_failed = True
+                
+                if prev_source == 'manual':
+                    st.warning("⚠️ Admin Session Expired. Please log in again.")
+                
                 st.rerun()
+                
+            # Successfully fetched analytics - clear login_failed flag
+            st.session_state.login_failed = False
+            st.session_state.login_source = 'manual' # Promotion to active session
+            
+            if not analytics:
+                st.error("Failed to connect to the backend server. Please ensure the API is running.")
+                st.stop()
                 
             if analytics:
                 stats = analytics.get('stats', {})
@@ -2551,14 +883,12 @@ elif st.session_state.current_page == "Dashboard":
                 
                 st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
                 
-                @st.fragment
-                def render_dashboard_analytics(analytics_data):
+                def render_dashboard_analytics(analytics_data, resumes_response):
                     st.markdown("<div class='section-header'><span class='section-header-title'>Analytics & Intelligence</span></div>", unsafe_allow_html=True)
                     if not analytics_data:
                         return
                     
                     top_roles = analytics_data.get('top_roles', [])
-                    resumes_response = fetch_resumes_data(st.session_state.admin_token)
                     
                     col1, col2 = st.columns(2)
                     with col1:
@@ -2575,7 +905,7 @@ elif st.session_state.current_page == "Dashboard":
                             fig.update_layout(height=400, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', font=dict(color='#E8F0FE'))
                             st.plotly_chart(fig, use_container_width=True)
                 
-                render_dashboard_analytics(analytics)
+                render_dashboard_analytics(analytics, resumes_response)
                 
                 st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
                 st.markdown("<div class='section-header'><span class='section-header-title'>All Resume Records</span></div>", unsafe_allow_html=True)

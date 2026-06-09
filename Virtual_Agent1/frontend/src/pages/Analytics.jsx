@@ -9,8 +9,16 @@ import InterviewAnalytics from '../components/InterviewAnalytics';
 
 export default function AnalyticsPage() {
   const [, navigate] = useLocation();
+  const userId = localStorage.getItem('userId');
   const sessionId = localStorage.getItem('viewSessionId');
-  const userId = localStorage.getItem('userId') || 'demo-user';
+
+  useEffect(() => {
+    if (!userId) {
+      navigate('/login');
+    }
+  }, [userId, navigate]);
+
+  if (!userId) return null;
 
   if (!sessionId) {
     return (

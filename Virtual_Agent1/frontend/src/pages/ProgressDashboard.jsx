@@ -131,19 +131,21 @@ export default function ProgressDashboard() {
     </div>
   );
 
-  const SimpleLineChart = ({ scores }) => (
+  const SimpleLineChart = ({ dataPoints }) => (
     <div style={{
       display: 'flex',
       alignItems: 'flex-end',
       justifyContent: 'space-around',
-      height: '200px',
-      padding: '1.5rem',
+      height: '220px',
+      padding: '1.5rem 1rem 2.5rem 1rem',
       gap: '0.8rem',
       background: 'linear-gradient(180deg, rgba(168, 85, 247, 0.05), rgba(99, 102, 241, 0.03))',
       borderRadius: '0.75rem',
-      border: '1px solid rgba(168, 85, 247, 0.1)'
+      border: '1px solid rgba(168, 85, 247, 0.1)',
+      position: 'relative'
     }}>
-      {scores.map((score, idx) => {
+      {dataPoints.map((dp, idx) => {
+        const score = dp.score;
         let bgGradient, glowColor;
         if (score >= 80) {
           bgGradient = 'linear-gradient(180deg, rgba(168, 85, 247, 0.9), rgba(99, 102, 241, 0.7))';
@@ -164,14 +166,14 @@ export default function ProgressDashboard() {
             key={idx} 
             style={{
               flex: 1,
-              height: `${(score / 100) * 150}px`,
+              height: `${(score / 100) * 130}px`,
               background: bgGradient,
-              borderRadius: '0.5rem',
+              borderRadius: '0.5rem 0.5rem 0 0',
               transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
               cursor: 'pointer',
               position: 'relative',
               boxShadow: glowColor,
-              border: '1px solid rgba(255, 255, 255, 0.2)'
+              border: '1px solid rgba(255, 255, 255, 0.15)'
             }} 
             onMouseOver={(e) => {
               e.target.style.transform = 'translateY(-8px) scale(1.05)';
@@ -181,21 +183,33 @@ export default function ProgressDashboard() {
               e.target.style.transform = 'translateY(0) scale(1)';
               e.target.style.boxShadow = glowColor;
             }}
-            title={`Session ${idx + 1}: ${score}`}
+            title={`${dp.label}: ${score}`}
           >
             <div style={{
               position: 'absolute',
               top: '-1.5rem',
               left: '50%',
               transform: 'translateX(-50%)',
-              fontSize: '0.85rem',
+              fontSize: '0.8rem',
               fontWeight: 600,
-              color: 'var(--text-secondary)',
+              color: 'var(--text-primary)',
               opacity: 0,
               transition: 'opacity 0.3s',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap'
             }} className="score-tooltip">
               {score}
+            </div>
+            <div style={{
+              position: 'absolute',
+              bottom: '-1.8rem',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontSize: '0.75rem',
+              color: 'var(--text-secondary)',
+              whiteSpace: 'nowrap'
+            }}>
+              {dp.label}
             </div>
           </div>
         );
@@ -520,6 +534,39 @@ export default function ProgressDashboard() {
       
       <div style={{ maxWidth: '1200px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
         
+        {/* BACK BUTTON */}
+        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'flex-start' }}>
+          <button
+            onClick={() => navigate('/start')}
+            style={{
+              padding: '0.6rem 1.2rem',
+              background: 'rgba(59, 130, 246, 0.1)',
+              color: '#60a5fa',
+              border: '1px solid rgba(59, 130, 246, 0.3)',
+              borderRadius: '0.5rem',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)';
+              e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+              e.currentTarget.style.transform = 'translateX(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
+              e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+              e.currentTarget.style.transform = 'translateX(0)';
+            }}
+          >
+            <span>←</span> Back to Home
+          </button>
+        </div>
+
         {/* HEADER WITH PERSONALIZATION */}
         <div style={{
           background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.4), rgba(37, 99, 235, 0.2))',
@@ -639,7 +686,7 @@ export default function ProgressDashboard() {
               <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--text-primary)' }}>
                 📈 Performance Trend (Last 10 Sessions)
               </h3>
-              <SimpleLineChart scores={[62, 65, 68, 70, 72, 75, 74, 76, 78, 80]} />
+              <SimpleLineChart dataPoints={timeline && timeline.length > 0 ? timeline.slice(-10).map((s, idx) => ({ score: Math.round(s.avgScore || s.score || 0), label: s.date ? new Date(s.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : `Session ${idx + 1}` })) : [62, 65, 68, 70, 72, 75, 74, 76, 78, 80].map((s, idx) => ({ score: s, label: `S${idx + 1}` }))} />
             </div>
 
             {/* QUICK ACTIONS */}
@@ -1100,10 +1147,26 @@ export default function ProgressDashboard() {
                 🎯 Your Skills This Month
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <SkillBar label="Communication" value={78} benchmark={75} />
-                <SkillBar label="Technical Depth" value={72} benchmark={75} />
-                <SkillBar label="Structure & Clarity" value={68} benchmark={75} />
-                <SkillBar label="Confidence" value={81} benchmark={75} />
+                <SkillBar 
+                  label="Communication" 
+                  value={comparison.userSubScores?.communication || 0} 
+                  benchmark={comparison.peerSubScores?.communication || 75} 
+                />
+                <SkillBar 
+                  label="Technical Depth" 
+                  value={comparison.userSubScores?.technicalDepth || 0} 
+                  benchmark={comparison.peerSubScores?.technicalDepth || 75} 
+                />
+                <SkillBar 
+                  label="Structure & Clarity" 
+                  value={comparison.userSubScores?.structure || 0} 
+                  benchmark={comparison.peerSubScores?.structure || 75} 
+                />
+                <SkillBar 
+                  label="Confidence" 
+                  value={comparison.userSubScores?.confidence || 0} 
+                  benchmark={comparison.peerSubScores?.confidence || 75} 
+                />
               </div>
             </div>
 
@@ -1132,10 +1195,10 @@ export default function ProgressDashboard() {
                     Your Average
                   </div>
                   <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent)' }}>
-                    74.8
+                    {(comparison.userScore || 0).toFixed(1)}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                    From 12 sessions
+                    From {comparison.userSessions || 0} session{comparison.userSessions !== 1 ? 's' : ''}
                   </div>
                 </div>
                 <div style={{
@@ -1148,10 +1211,10 @@ export default function ProgressDashboard() {
                     Peer Average
                   </div>
                   <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-2)' }}>
-                    72.1
+                    {(comparison.peersAverage || 0).toFixed(1)}
                   </div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                    ✓ Above average!
+                    {comparison.userScore >= comparison.peersAverage ? '✓ Above average!' : 'Practice to improve!'}
                   </div>
                 </div>
               </div>
@@ -1174,7 +1237,7 @@ export default function ProgressDashboard() {
                 🔍 Insight of the Week
               </h3>
               <p style={{ fontSize: '0.95rem', lineHeight: '1.6', color: 'var(--text-secondary)' }}>
-                You tend to struggle with <strong>System Design</strong> questions. In the last 3 attempts, you skipped 2 of 3 system design questions. Consider dedicating focused practice to design patterns—this is a high-leverage skill for interviews.
+                {deepAnalytics.insight}
               </p>
               <button
                 onClick={() => {
@@ -1209,13 +1272,13 @@ export default function ProgressDashboard() {
                 📚 Topic Coverage
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <TopicCoverageBar topic="DSA & Algorithms" coverage={65} />
-                <TopicCoverageBar topic="System Design" coverage={40} />
-                <TopicCoverageBar topic="Behavioral (HR)" coverage={78} />
-                <TopicCoverageBar topic="Resume & Intro" coverage={85} />
+                <TopicCoverageBar topic="DSA & Algorithms" coverage={deepAnalytics.topicCoverage?.dsa || 0} />
+                <TopicCoverageBar topic="System Design" coverage={deepAnalytics.topicCoverage?.systemDesign || 0} />
+                <TopicCoverageBar topic="Behavioral (HR)" coverage={deepAnalytics.topicCoverage?.behavioral || 0} />
+                <TopicCoverageBar topic="Resume & Intro" coverage={deepAnalytics.topicCoverage?.resume || 0} />
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '1rem' }}>
-                💡 Pro tip: Focus on weak areas (System Design at 40%) to maximize improvement.
+                💡 Pro tip: Focus on weak areas to maximize improvement.
               </p>
             </div>
 
@@ -1235,9 +1298,27 @@ export default function ProgressDashboard() {
                   ✅ Top Strengths
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <StrengthItem label="Behavioral Questions" score={88} />
-                  <StrengthItem label="Communication" score={81} />
-                  <StrengthItem label="Confidence" score={80} />
+                  {deepAnalytics.strengths && deepAnalytics.strengths.length > 0 ? (
+                    deepAnalytics.strengths.map((str, idx) => (
+                      <div key={idx} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.75rem',
+                        background: 'rgba(0, 0, 0, 0.2)',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.9rem',
+                        color: 'var(--text-primary)'
+                      }}>
+                        <span>✨</span>
+                        <span>{str}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                      Complete an interview to see your strengths.
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1251,9 +1332,27 @@ export default function ProgressDashboard() {
                   ⚡ Areas to Improve
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <StrengthItem label="System Design" score={45} />
-                  <StrengthItem label="Low-Level Design" score={58} />
-                  <StrengthItem label="Edge Cases" score={62} />
+                  {deepAnalytics.weaknesses && deepAnalytics.weaknesses.length > 0 ? (
+                    deepAnalytics.weaknesses.map((weak, idx) => (
+                      <div key={idx} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.75rem',
+                        background: 'rgba(0, 0, 0, 0.2)',
+                        borderRadius: '0.375rem',
+                        fontSize: '0.9rem',
+                        color: 'var(--text-primary)'
+                      }}>
+                        <span>⚡</span>
+                        <span>{weak}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+                      Complete an interview to see areas for improvement.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1270,7 +1369,7 @@ export default function ProgressDashboard() {
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1rem' }}>
                 <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                  Do a 20-minute <strong>System Design mock interview</strong> focused on designing a cache layer (Redis/Memcached). This appeared in your last 3 sessions and you scored 42, 51, 58 respectively—showing improvement trend but still below target.
+                  {deepAnalytics.recommendation}
                 </p>
               </div>
               <div style={{

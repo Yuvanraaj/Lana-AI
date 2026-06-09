@@ -82,6 +82,7 @@ function signToken(payload, secret) {
 /**
  * GET /api/analytics/portal-token
  * Generate a token for unified login in integrated apps
+ * Supports both registered users and guest users
  */
 router.get('/portal-token', async (req, res) => {
   try {
@@ -91,6 +92,8 @@ router.get('/portal-token', async (req, res) => {
     }
 
     const db = require('../models/database').getDatabase();
+    
+    // Try to find registered user
     const user = await new Promise((resolve, reject) => {
       db.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) => {
         if (err) reject(err);
@@ -98,17 +101,32 @@ router.get('/portal-token', async (req, res) => {
       });
     });
 
-    if (!user) {
+    // Create payload for registered or guest user
+    let payload;
+    if (user) {
+      // Registered user
+      payload = {
+        email: user.email || `${user.username}@portal.local`,
+        user_id: user.id,
+        full_name: user.name || user.username,
+        role: user.role || 'user',
+        exp: Math.floor(Date.now() / 1000) + (30 * 60) // 30 mins
+      };
+      console.log('[Portal Token] Generated token for registered user:', user.id);
+    } else if (userId.startsWith('guest-')) {
+      // Guest user - allow without database lookup
+      payload = {
+        email: `${userId}@guest.local`,
+        user_id: userId,
+        full_name: 'Guest User',
+        role: 'guest',
+        exp: Math.floor(Date.now() / 1000) + (30 * 60) // 30 mins
+      };
+      console.log('[Portal Token] Generated token for guest user:', userId);
+    } else {
+      // Unknown user type
       return res.status(404).json({ ok: false, error: 'User not found' });
     }
-
-    const payload = {
-      email: user.email || `${user.username}@portal.local`,
-      user_id: user.id,
-      full_name: user.name || user.username,
-      role: user.role || 'user',
-      exp: Math.floor(Date.now() / 1000) + (30 * 60) // 30 mins
-    };
 
     const secret = process.env.PORTAL_SHARED_SECRET || 'fallback_secret';
     const token = signToken(payload, secret);
@@ -832,7 +850,7 @@ router.get('/user/:userId/progress', async (req, res) => {
            MAX(score) as daily_max,
            COUNT(*) as daily_count
          FROM interview_sessions
-         WHERE user_id = ? AND created_at >= datetime('now', '-30 days')
+         WHERE user_id = ? AND status = 'completed' AND created_at >= datetime('now', '-30 days')
          GROUP BY DATE(created_at)
          ORDER BY date DESC`,
         [userId],
@@ -908,7 +926,7 @@ router.get('/user/:userId/progress/timeline', async (req, res) => {
            MIN(score) as min_score,
            SUM(duration_seconds) as total_duration
          FROM interview_sessions
-         WHERE user_id = ? AND created_at >= datetime('now', '-' || ? || ' days')
+         WHERE user_id = ? AND status = 'completed' AND created_at >= datetime('now', '-' || ? || ' days')
          GROUP BY DATE(created_at)
          ORDER BY date ASC`,
         [userId, days],
@@ -985,13 +1003,97 @@ router.get('/user/:userId/progress/comparison', async (req, res) => {
         [user.average_score, user.target_role, user.target_role],
         (err, row) => {
           if (err) reject(err);
-          const percentile = roleStats.total_users > 0 
-            ? ((row?.better_count || 0) / roleStats.total_users * 100).toFixed(2)
-            : 0;
+          const total = roleStats.total_users || 0;
+          const better = row?.better_count || 0;
+          const percentile = total > 1
+            ? (((total - better) / total) * 100).toFixed(2)
+            : 100;
           resolve(percentile);
         }
       );
     });
+
+    // Fetch user sub-scores from actual interview sessions
+    const userSessions = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT sub_scores, score FROM interview_sessions WHERE user_id = ? AND status = 'completed'`,
+        [userId],
+        (err, rows) => {
+          if (err) reject(err);
+          resolve(rows || []);
+        }
+      );
+    });
+
+    let userTotalComm = 0, userTotalTech = 0, userTotalStruct = 0, userTotalConf = 0;
+    let userCount = 0;
+
+    userSessions.forEach(row => {
+      let sub = {};
+      try {
+        if (row.sub_scores) sub = JSON.parse(row.sub_scores);
+      } catch (e) {}
+
+      const score = row.score || 0;
+      const comm = sub.communication !== undefined ? sub.communication : Math.round(score * 0.9);
+      const tech = sub.technicalDepth !== undefined ? sub.technicalDepth : (sub.technical !== undefined ? sub.technical : Math.round(score * 0.95));
+      const struct = sub.problemSolving !== undefined ? sub.problemSolving : (sub.structure !== undefined ? sub.structure : Math.round(score * 0.88));
+      const conf = sub.confidence !== undefined ? sub.confidence : Math.round(score * 0.92);
+
+      userTotalComm += comm;
+      userTotalTech += tech;
+      userTotalStruct += struct;
+      userTotalConf += conf;
+      userCount++;
+    });
+
+    const userSubScores = {
+      communication: userCount > 0 ? Math.round(userTotalComm / userCount) : 0,
+      technicalDepth: userCount > 0 ? Math.round(userTotalTech / userCount) : 0,
+      structure: userCount > 0 ? Math.round(userTotalStruct / userCount) : 0,
+      confidence: userCount > 0 ? Math.round(userTotalConf / userCount) : 0
+    };
+
+    // Fetch peer sub-scores
+    const peerSessions = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT sub_scores, score FROM interview_sessions WHERE user_id != ? AND status = 'completed'`,
+        [userId],
+        (err, rows) => {
+          if (err) reject(err);
+          resolve(rows || []);
+        }
+      );
+    });
+
+    let peerTotalComm = 0, peerTotalTech = 0, peerTotalStruct = 0, peerTotalConf = 0;
+    let peerCount = 0;
+
+    peerSessions.forEach(row => {
+      let sub = {};
+      try {
+        if (row.sub_scores) sub = JSON.parse(row.sub_scores);
+      } catch (e) {}
+
+      const score = row.score || 0;
+      const comm = sub.communication !== undefined ? sub.communication : Math.round(score * 0.9);
+      const tech = sub.technicalDepth !== undefined ? sub.technicalDepth : (sub.technical !== undefined ? sub.technical : Math.round(score * 0.95));
+      const struct = sub.problemSolving !== undefined ? sub.problemSolving : (sub.structure !== undefined ? sub.structure : Math.round(score * 0.88));
+      const conf = sub.confidence !== undefined ? sub.confidence : Math.round(score * 0.92);
+
+      peerTotalComm += comm;
+      peerTotalTech += tech;
+      peerTotalStruct += struct;
+      peerTotalConf += conf;
+      peerCount++;
+    });
+
+    const peerSubScores = {
+      communication: peerCount > 0 ? Math.round(peerTotalComm / peerCount) : 75,
+      technicalDepth: peerCount > 0 ? Math.round(peerTotalTech / peerCount) : 72,
+      structure: peerCount > 0 ? Math.round(peerTotalStruct / peerCount) : 70,
+      confidence: peerCount > 0 ? Math.round(peerTotalConf / peerCount) : 78
+    };
 
     res.json({
       ok: true,
@@ -1006,7 +1108,9 @@ router.get('/user/:userId/progress/comparison', async (req, res) => {
         percentile: parseFloat(percentile),
         totalUsersInRole: roleStats.total_users || 0,
         scoreVsAverage: (user.average_score - (roleStats.avg_score || 0)).toFixed(2),
-        recommendation: calculateRecommendation(user.average_score, roleStats.avg_score)
+        recommendation: calculateRecommendation(user.average_score, roleStats.avg_score),
+        userSubScores,
+        peerSubScores
       }
     });
   } catch (err) {
@@ -1035,7 +1139,7 @@ router.get('/user/:userId/progress/deep', async (req, res) => {
            MAX(score) as best_score,
            SUM(duration_seconds) as total_time
          FROM interview_sessions
-         WHERE user_id = ?
+         WHERE user_id = ? AND status = 'completed'
          GROUP BY role
          ORDER BY session_count DESC`,
         [userId],
@@ -1055,7 +1159,7 @@ router.get('/user/:userId/progress/deep', async (req, res) => {
            AVG(score) as avg_score,
            MAX(score) as peak_score
          FROM interview_sessions
-         WHERE user_id = ?
+         WHERE user_id = ? AND status = 'completed'
          GROUP BY week
          ORDER BY week DESC
          LIMIT 12`,
@@ -1067,14 +1171,119 @@ router.get('/user/:userId/progress/deep', async (req, res) => {
       );
     });
 
-    // Strengths and weaknesses (by average score per role)
-    const strengths = roleBreakdown
-      .filter(r => r.avg_score >= 75)
-      .map(r => ({ role: r.role, score: parseFloat(r.avg_score) }));
+    // Get all sessions to extract strengths, weaknesses, and topic coverage
+    const allUserSessions = await new Promise((resolve, reject) => {
+      db.all(
+        `SELECT session_type, role, score, strengths, improvements, completed_at 
+         FROM interview_sessions 
+         WHERE user_id = ? AND status = 'completed'`,
+        [userId],
+        (err, rows) => {
+          if (err) reject(err);
+          resolve(rows || []);
+        }
+      );
+    });
 
-    const weaknesses = roleBreakdown
-      .filter(r => r.avg_score < 70)
-      .map(r => ({ role: r.role, score: parseFloat(r.avg_score) }));
+    let userStrengths = [];
+    let userImprovements = [];
+
+    // Count topics
+    let dsaCount = 0;
+    let systemDesignCount = 0;
+    let behavioralCount = 0;
+    let resumeCount = 0;
+
+    allUserSessions.forEach(row => {
+      // Strengths & Improvements parsing
+      try {
+        if (row.strengths) {
+          const list = JSON.parse(row.strengths);
+          if (Array.isArray(list)) {
+            list.forEach(item => {
+              if (item && typeof item === 'string' && !userStrengths.includes(item)) {
+                userStrengths.push(item);
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
+      try {
+        if (row.improvements) {
+          const list = JSON.parse(row.improvements);
+          if (Array.isArray(list)) {
+            list.forEach(item => {
+              if (item && typeof item === 'string' && !userImprovements.includes(item)) {
+                userImprovements.push(item);
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
+      // Topic coverage classification
+      const roleLower = (row.role || '').toLowerCase();
+      const typeLower = (row.session_type || '').toLowerCase();
+
+      if (typeLower === 'resume_analysis') {
+        resumeCount++;
+      } else if (typeLower === 'chatbot') {
+        behavioralCount++;
+      } else {
+        // Mock interviews
+        if (roleLower.includes('system') || roleLower.includes('architecture') || roleLower.includes('devops')) {
+          systemDesignCount++;
+        } else if (roleLower.includes('behavioral') || roleLower.includes('hr') || roleLower.includes('product') || roleLower.includes('manager')) {
+          behavioralCount++;
+        } else {
+          dsaCount++;
+        }
+      }
+    });
+
+    // Calculate coverage percentages (caps at 100%)
+    const dsaCoverage = Math.min(100, dsaCount * 25);
+    const sysDesignCoverage = Math.min(100, systemDesignCount * 25);
+    const behavioralCoverage = Math.min(100, behavioralCount * 20);
+    const resumeCoverage = Math.min(100, resumeCount * 50);
+
+    // Fallbacks if no data found
+    if (userStrengths.length === 0) {
+      userStrengths = ["Clear Communication", "Logical structure in answering", "Confidence under questioning"];
+    }
+    if (userImprovements.length === 0) {
+      userImprovements = ["Explain technical constraints in more detail", "Use STAR framework for behavioral scenarios", "Structure system design component choices"];
+    }
+
+    // Dynamic Insight generation
+    let insight = "Welcome to your prep! Complete a few mock interviews to unlock advanced pattern insights.";
+    if (allUserSessions.length >= 2) {
+      const sorted = [...allUserSessions].sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
+      const latestScore = sorted[0].score || 0;
+      const averageScore = sorted.reduce((sum, s) => sum + (s.score || 0), 0) / sorted.length;
+      const diff = latestScore - averageScore;
+
+      if (diff > 5) {
+        insight = `Great job! Your latest interview score of ${Math.round(latestScore)} is higher than your average (${Math.round(averageScore)}). Your communication and confidence are trending upward.`;
+      } else if (diff < -5) {
+        insight = `Your latest interview score was slightly lower than your average. This is normal during active learning. Review the improvement points for "${sorted[0].role || 'your latest session'}" to bounce back.`;
+      } else {
+        insight = `Your performance is stable around ${Math.round(averageScore)}. To push your score higher, focus on detailing edge cases and diving deeper into system components during your mock sessions.`;
+      }
+    } else if (allUserSessions.length === 1) {
+      insight = `First session completed with a score of ${Math.round(allUserSessions[0].score || 0)}! Complete one more session to unlock performance trends and peer comparisons.`;
+    }
+
+    // Recommendation next action text
+    let recommendation = "Do a 20-minute System Design mock interview focused on designing a cache layer (Redis/Memcached) to improve backend scalability.";
+    if (systemDesignCount === 0 && dsaCount > 0) {
+      recommendation = "You have focused on coding sessions. We recommend trying a System Design mock interview to practice scalability and microservice architecture.";
+    } else if (allUserSessions.length === 0) {
+      recommendation = "Start with a 15-minute General mock interview to evaluate your current baseline and communication skills.";
+    } else if (userImprovements.length > 0) {
+      recommendation = `We recommend conducting a focused mock interview targeting: "${userImprovements[0]}" to directly boost your scores.`;
+    }
 
     res.json({
       ok: true,
@@ -1093,10 +1302,17 @@ router.get('/user/:userId/progress/deep', async (req, res) => {
           avgScore: parseFloat(w.avg_score || 0),
           peakScore: w.peak_score
         })),
-        strengths: strengths,
-        weaknesses: weaknesses,
-        totalSessionsTracked: roleBreakdown.reduce((sum, r) => sum + r.session_count, 0),
-        recommendation: generateRecommendation(roleBreakdown, weaknesses)
+        strengths: userStrengths.slice(0, 3),
+        weaknesses: userImprovements.slice(0, 3),
+        topicCoverage: {
+          dsa: dsaCoverage,
+          systemDesign: sysDesignCoverage,
+          behavioral: behavioralCoverage,
+          resume: resumeCoverage
+        },
+        insight,
+        recommendation,
+        totalSessionsTracked: roleBreakdown.reduce((sum, r) => sum + r.session_count, 0)
       }
     });
   } catch (err) {
