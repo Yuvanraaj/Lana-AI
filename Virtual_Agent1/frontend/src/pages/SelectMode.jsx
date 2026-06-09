@@ -175,24 +175,28 @@ export default function SelectMode() {
     <div>
       {/* Mode Choice Modal */}
       {showModeChoice && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '2rem', maxWidth: '700px', width: '90%', border: '1px solid var(--border-color)' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', textAlign: 'center' }}>Choose Interview Type</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', textAlign: 'center' }}>How would you like to be interviewed?</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-              <button onClick={handleChooseRole} style={{ padding: '2rem', borderRadius: '10px', border: '2px solid rgba(44, 154, 255, 0.4)', background: 'rgba(44, 154, 255, 0.05)', color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.3s', textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>👔</div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>By Role</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>Choose a target role (Backend, Frontend, etc.) and be interviewed for that position.</p>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '1.5rem', maxWidth: '700px', width: '100%', border: '1px solid var(--border-color)', marginTop: 'auto', marginBottom: 'auto' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.75rem', textAlign: 'center' }}>Choose Interview Type</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem', textAlign: 'center', fontSize: '0.9rem' }}>How would you like to be interviewed?</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.25rem' }}>
+              <button onClick={handleChooseRole} style={{ padding: '1.25rem', borderRadius: '10px', border: '2px solid rgba(44, 154, 255, 0.4)', background: 'rgba(44, 154, 255, 0.05)', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left' }}>
+                <div style={{ fontSize: '2rem', flexShrink: 0 }}>👔</div>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', margin: 0 }}>By Role</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.4', margin: '0.25rem 0 0 0' }}>Choose a target role and be interviewed for that position.</p>
+                </div>
               </button>
-              <button onClick={handleChooseResume} style={{ padding: '2rem', borderRadius: '10px', border: '2px solid rgba(34, 197, 94, 0.4)', background: 'rgba(34, 197, 94, 0.05)', color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.3s', textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>📄</div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '0.5rem' }}>By Resume</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.5' }}>Upload your resume and be interviewed based on your actual experience.</p>
+              <button onClick={handleChooseResume} style={{ padding: '1.25rem', borderRadius: '10px', border: '2px solid rgba(34, 197, 94, 0.4)', background: 'rgba(34, 197, 94, 0.05)', color: 'var(--text-primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '1rem', textAlign: 'left' }}>
+                <div style={{ fontSize: '2rem', flexShrink: 0 }}>📄</div>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem', margin: 0 }}>By Resume</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.4', margin: '0.25rem 0 0 0' }}>Upload your resume for a personalised interview.</p>
+                </div>
               </button>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <button onClick={() => setShowModeChoice(false)} style={{ padding: '0.75rem 1.5rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+              <button onClick={() => setShowModeChoice(false)} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
             </div>
           </div>
         </div>
@@ -200,53 +204,53 @@ export default function SelectMode() {
 
       {/* Role Selector Modal */}
       {showRoleSelector && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '2rem', maxWidth: '600px', width: '90%', border: '1px solid var(--border-color)' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.5rem' }}>Select Target Role</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '1.5rem', maxWidth: '600px', width: '100%', border: '1px solid var(--border-color)', marginTop: 'auto', marginBottom: 'auto' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1.25rem' }}>Select Target Role</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem', marginBottom: '1rem' }}>
               {roles.map((role) => (
-                <button key={role.id} onClick={() => handleRoleSelect(role.id)} style={{ padding: '1.25rem', borderRadius: '8px', border: selectedRole === role.id ? '2px solid var(--accent)' : '1px solid var(--border-color)', background: selectedRole === role.id ? 'rgba(44, 154, 255, 0.1)' : 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600, textAlign: 'center' }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>{role.icon}</div>
-                  <div>{role.label}</div>
+                <button key={role.id} onClick={() => handleRoleSelect(role.id)} style={{ padding: '1rem', borderRadius: '8px', border: selectedRole === role.id ? '2px solid var(--accent)' : '1px solid var(--border-color)', background: selectedRole === role.id ? 'rgba(44, 154, 255, 0.1)' : 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600, textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '0.4rem' }}>{role.icon}</div>
+                  <div style={{ fontSize: '0.85rem' }}>{role.label}</div>
                 </button>
               ))}
             </div>
-            <div style={{ padding: '1rem', borderRadius: '8px', border: selectedRole === 'custom' ? '2px solid var(--accent)' : '1px solid var(--border-color)', background: selectedRole === 'custom' ? 'rgba(44, 154, 255, 0.1)' : 'var(--bg-primary)', marginBottom: '1.5rem' }}>
-              <button onClick={() => handleRoleSelect('custom')} style={{ width: '100%', padding: '1rem', background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600, textAlign: 'left' }}>✨ Custom Role</button>
+            <div style={{ padding: '0.875rem', borderRadius: '8px', border: selectedRole === 'custom' ? '2px solid var(--accent)' : '1px solid var(--border-color)', background: selectedRole === 'custom' ? 'rgba(44, 154, 255, 0.1)' : 'var(--bg-primary)', marginBottom: '1.25rem' }}>
+              <button onClick={() => handleRoleSelect('custom')} style={{ width: '100%', padding: '0.5rem', background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600, textAlign: 'left', fontSize: '0.95rem' }}>✨ Custom Role</button>
               {selectedRole === 'custom' && (
-                <textarea placeholder="Describe your target role..." value={customJD} onChange={(e) => setCustomJD(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', marginTop: '0.75rem', minHeight: '80px' }} />
+                <textarea placeholder="Describe your target role..." value={customJD} onChange={(e) => setCustomJD(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', marginTop: '0.5rem', minHeight: '80px', boxSizing: 'border-box', fontSize: '0.9rem' }} />
               )}
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button onClick={() => setShowRoleSelector(false)} style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
-              <button onClick={handleConfirmRole} disabled={!selectedRole} style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: 'none', background: selectedRole ? 'var(--accent)' : 'var(--border-color)', color: 'white', cursor: selectedRole ? 'pointer' : 'not-allowed', fontWeight: 600 }}>Continue</button>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button onClick={() => setShowRoleSelector(false)} style={{ flex: 1, padding: '0.875rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+              <button onClick={handleConfirmRole} disabled={!selectedRole} style={{ flex: 1, padding: '0.875rem', borderRadius: '6px', border: 'none', background: selectedRole ? 'var(--accent)' : 'var(--border-color)', color: 'white', cursor: selectedRole ? 'pointer' : 'not-allowed', fontWeight: 600 }}>Continue →</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Resume Upload Modal - REFINED */}
+      {/* Resume Upload Modal */}
       {showResumeUpload && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '2rem', maxWidth: '500px', width: '90%', border: '1px solid var(--border-color)' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>📄 Resume Upload</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Lana will analyze your resume to generate personalized interview scenarios.</p>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0, 0, 0, 0.7)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 1000, overflowY: 'auto', padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '1.5rem', maxWidth: '500px', width: '100%', border: '1px solid var(--border-color)', marginTop: 'auto', marginBottom: 'auto' }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>📄 Resume Upload</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.25rem', fontSize: '0.9rem' }}>Lana will analyze your resume to generate personalized interview scenarios.</p>
 
             {resumeError && (
-              <div style={{ padding: '1rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5', marginBottom: '1rem', fontSize: '0.9rem' }}>✗ {resumeError}</div>
+              <div style={{ padding: '0.875rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#fca5a5', marginBottom: '1rem', fontSize: '0.85rem' }}>✗ {resumeError}</div>
             )}
 
-            <label style={{ display: 'block', padding: '2rem', borderRadius: '8px', border: '2px dashed rgba(44, 154, 255, 0.4)', background: 'rgba(44, 154, 255, 0.05)', cursor: resumeUploading ? 'not-allowed' : 'pointer', transition: 'all 0.3s', textAlign: 'center', opacity: resumeUploading ? 0.6 : 1 }}>
+            <label style={{ display: 'block', padding: '1.5rem', borderRadius: '8px', border: '2px dashed rgba(44, 154, 255, 0.4)', background: 'rgba(44, 154, 255, 0.05)', cursor: resumeUploading ? 'not-allowed' : 'pointer', transition: 'all 0.3s', textAlign: 'center', opacity: resumeUploading ? 0.6 : 1 }}>
               <input type="file" accept=".pdf,.docx" onChange={(e) => handleResumeUpload(e.target.files?.[0])} disabled={resumeUploading} style={{ display: 'none' }} />
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{resumeUploading ? '⏳' : resumeUploaded ? '✅' : '📤'}</div>
-              <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-                {resumeUploading ? 'Synthesizing...' : resumeUploaded ? 'Resume Uploaded' : 'Upload Resume'}
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>{resumeUploading ? '⏳' : resumeUploaded ? '✅' : '📤'}</div>
+              <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem', fontSize: '0.95rem' }}>
+                {resumeUploading ? 'Analyzing resume...' : resumeUploaded ? 'Resume Uploaded!' : 'Tap to upload resume'}
               </p>
-              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>PDF or DOCX (max 5MB)</p>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--text-secondary)' }}>PDF or DOCX • max 5MB</p>
             </label>
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-              <button onClick={() => { setShowResumeUpload(false); setResumeError(null); }} disabled={resumeUploading} style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+            <div style={{ marginTop: '1.25rem' }}>
+              <button onClick={() => { setShowResumeUpload(false); setResumeError(null); }} disabled={resumeUploading} style={{ width: '100%', padding: '0.875rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
             </div>
           </div>
         </div>

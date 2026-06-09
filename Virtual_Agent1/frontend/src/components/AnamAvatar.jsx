@@ -692,42 +692,24 @@ Keep practicing and best of luck with your interview preparation!
 
           const startInterview = async () => {
             try {
-              // Interview flow with pre-selected role from SelectMode
-              // No role selection dialog - proceed directly with interview
-              await speakText('Hello. I am Anam, your professional job interviewer.');
-              await speakText('What is your name?');
-              
-              // Brief pause to let user respond
-              await new Promise(r => setTimeout(r, 2000));
-              
-              // Acknowledge the role and start interview
-              if (isCustomRole) {
-                await speakText('I see you have selected a custom role. Let me confirm I understand your target role correctly.');
-                await speakText('Your target role: ' + customJD);
-                await speakText('Is this correct?');
-                await new Promise(r => setTimeout(r, 2000));
-              } else {
-                await speakText('Great. I will interview you for the ' + roleLabel + ' role.');
-                await new Promise(r => setTimeout(r, 1000));
-              }
-              
-              // Begin interview
-              await speakText('Thank you. Let us begin your interview.');
+              const greeting = isCustomRole
+                ? `Hello! I'm Anam, your interviewer today. I see you've selected a custom role. Your target position is: ${customJD}. Could you confirm that's correct? And please, go ahead and tell me your name to get started.`
+                : resumeData
+                ? `Hello! I'm Anam, your interviewer today. I've had a chance to review your resume and I'm impressed by your background. To get started, could you please tell me your name and confirm you're ready to begin?`
+                : `Hello! I'm Anam, your interviewer today. I'll be conducting your interview for the ${roleLabel} position. To get started, could you please tell me your name?`;
 
-              // Developer helper: speak an array of custom questions (non-blocking)
+              await speakText(greeting);
+
+              // Developer helper
               try {
                 window.__anamAsk = async (arr) => {
-                  if (!Array.isArray(arr)) {
-                    console.warn('window.__anamAsk expects an array of strings');
-                    return;
-                  }
+                  if (!Array.isArray(arr)) return;
                   for (const q of arr) {
-                    try { await speakText(q); } catch (e) { console.warn('⚠️ speakText failed for question', q, e); }
-                    // short pause between questions
-                    await new Promise(r => setTimeout(r, 600));
+                    try { await speakText(q); } catch (e) { console.warn('⚠️ speakText failed', e); }
+                    await new Promise(r => setTimeout(r, 800));
                   }
                 };
-              } catch (e) { console.warn('⚠️ failed to install window.__anamAsk helper', e); }
+              } catch (e) { /* ignore */ }
             } catch (e) {
               console.warn('⚠️ interview flow error', e);
             }
