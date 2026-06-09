@@ -58,7 +58,10 @@ export default function CodePractice() {
     let data;
     try {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      data = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+      const cleaned = (jsonMatch ? jsonMatch[0] : rawText)
+        .replace(/\bINT_MIN\b/g, '-2147483648')
+        .replace(/\bINT_MAX\b/g, '2147483647');
+      data = JSON.parse(cleaned);
     } catch {
       return formatHintResponse(rawText);
     }
