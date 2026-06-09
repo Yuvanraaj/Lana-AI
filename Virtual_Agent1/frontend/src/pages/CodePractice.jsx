@@ -132,9 +132,9 @@ export default function CodePractice() {
                     <div style={{ color: test.passed ? '#22c55e' : '#ef4444', fontWeight: 700, fontSize: '0.9rem', paddingTop: '1px' }}>{test.passed ? '✓' : '✗'}</div>
                     <div>
                       <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.82rem' }}>
-                        <span><span style={{ color: 'var(--text-secondary)' }}>Input: </span><span style={{ color: '#e2e8f0', fontFamily: 'monospace' }}>{test.input}</span></span>
-                        <span><span style={{ color: 'var(--text-secondary)' }}>Expected: </span><span style={{ color: '#a7f3d0', fontFamily: 'monospace' }}>{test.expected}</span></span>
-                        {!test.passed && <span><span style={{ color: 'var(--text-secondary)' }}>Got: </span><span style={{ color: '#fca5a5', fontFamily: 'monospace' }}>{test.actual}</span></span>}
+                        <span><span style={{ color: 'var(--text-secondary)' }}>Input: </span><span style={{ color: '#e2e8f0', fontFamily: 'monospace' }}>{typeof test.input === 'object' ? JSON.stringify(test.input) : String(test.input)}</span></span>
+                        <span><span style={{ color: 'var(--text-secondary)' }}>Expected: </span><span style={{ color: '#a7f3d0', fontFamily: 'monospace' }}>{typeof test.expected === 'object' ? JSON.stringify(test.expected) : String(test.expected)}</span></span>
+                        {!test.passed && <span><span style={{ color: 'var(--text-secondary)' }}>Got: </span><span style={{ color: '#fca5a5', fontFamily: 'monospace' }}>{typeof test.actual === 'object' ? JSON.stringify(test.actual) : String(test.actual)}</span></span>}
                       </div>
                       {test.note && <div style={{ color: 'var(--text-secondary)', fontSize: '0.77rem', marginTop: '0.2rem', fontStyle: 'italic' }}>{test.note}</div>}
                     </div>
