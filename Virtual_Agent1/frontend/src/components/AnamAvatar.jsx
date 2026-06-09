@@ -752,6 +752,29 @@ Keep practicing and best of luck with your interview preparation!
                 await new Promise(r => setTimeout(r, 600));
               }
             };
+
+            // Wait for video to actually be playing before Anam speaks
+            await new Promise((resolve) => {
+              const v = videoRef.current;
+              if (!v) return resolve();
+              if (v.readyState >= 3 && !v.paused) return resolve(); // already playing
+              const onPlaying = () => {
+                v.removeEventListener('playing', onPlaying);
+                v.removeEventListener('canplay', onCanPlay);
+                resolve();
+              };
+              const onCanPlay = () => {
+                v.removeEventListener('playing', onPlaying);
+                v.removeEventListener('canplay', onCanPlay);
+                v.play().catch(() => {});
+                resolve();
+              };
+              v.addEventListener('playing', onPlaying);
+              v.addEventListener('canplay', onCanPlay);
+              setTimeout(resolve, 10000); // fallback: start after 10s regardless
+            });
+            console.log('✅ Video is playing — starting interview');
+
             startInterview().catch((e) => console.warn('⚠️ startInterview failed', e));
             console.info('You can now use window.anamSay("Hello!") or window.anamAsk(["Q1","Q2"]) from anywhere to continue the conversation.');
           } else {
