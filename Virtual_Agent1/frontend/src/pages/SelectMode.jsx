@@ -42,11 +42,11 @@ const secondaryTools = [
   {
     label: "Resume Analyzer",
     path: "/resume-parse",
-    description: "Score vs target JD, skill gaps, and ATS match.",
+    description: "AI-powered resume scoring, skill gaps, ATS optimization, and career planning.",
     outcomes: [
-      "Identify missing skills for your target role",
-      "See prioritized edit suggestions for ATS optimization",
-      "Get keyword alignment report"
+      "5-dimension AI scoring: skills, experience, education, formatting & achievements",
+      "Missing keywords, ATS compliance tips, and priority adjustments",
+      "Role match predictions and personalized course recommendations"
     ],
     icon: "📊",
     badge: "ANALYSIS",

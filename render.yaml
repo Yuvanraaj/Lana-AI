@@ -1,13 +1,54 @@
 services:
+  # ── Python / FastAPI backend (Resume Analyzer) ──────────────────────────────
   - type: web
-    name: interview-bot-backend
-    env: node
+    name: lana-python-backend
+    env: docker
     plan: free
-    rootDir: Virtual_Agent/backend
-    buildCommand: npm install
-    startCommand: npm start
+    rootDir: AI-Resume-Analyzer/backend
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-3.5-turbo
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: 8000
+      - key: API_RELOAD
+        value: false
+
+  # ── Node.js / Express backend (Interview Bot) ────────────────────────────────
+  - type: web
+    name: lana-node-backend
+    env: docker
+    plan: free
+    rootDir: Virtual_Agent1/backend
+    dockerfilePath: Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 10000
+        value: 8001
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        value: alloy
+      - key: ANAM_API_KEY
+        sync: false
+      - key: ANAM_AVATAR_ID
+        sync: false
+      - key: ANAM_VOICE_ID
+        sync: false
+      - key: ANAM_LLM_ID
+        sync: false

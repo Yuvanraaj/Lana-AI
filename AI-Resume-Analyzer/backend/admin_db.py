@@ -3,7 +3,9 @@ Admin user management for database
 """
 from database import get_db_connection
 from auth import hash_password, verify_password
-from mysql.connector import Error
+import psycopg2
+import psycopg2.extras
+from psycopg2 import Error
 import logging
 
 logger = logging.getLogger(__name__)
@@ -55,7 +57,7 @@ def verify_admin_credentials(email: str, password: str) -> dict:
     """
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         cursor.execute("""
             SELECT id, email, full_name, hashed_password, is_active
@@ -133,7 +135,7 @@ def get_all_admin_users():
     """Get all admin users (for management purposes)"""
     try:
         connection = get_db_connection()
-        cursor = connection.cursor(dictionary=True)
+        cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         cursor.execute("""
             SELECT id, email, full_name, is_active, created_at, last_login

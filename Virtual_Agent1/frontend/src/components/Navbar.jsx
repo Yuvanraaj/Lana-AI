@@ -109,6 +109,12 @@ export default function Navbar() {
                     }} onMouseEnter={(e) => e.target.style.color = 'var(--accent)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}>
                       <span>🚀</span> New Interview
                     </Link>
+                    <Link href="/resume-parse" className="block px-4 py-3 text-sm transition-colors flex items-center gap-2" style={{
+                      color: 'var(--text-secondary)',
+                      borderBottom: '1px solid rgba(44, 154, 255, 0.1)'
+                    }} onMouseEnter={(e) => e.target.style.color = 'var(--accent)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}>
+                      <span>📊</span> Resume Analyzer
+                    </Link>
                     <button
                       onClick={() => {
                         setShowDropdown(false);

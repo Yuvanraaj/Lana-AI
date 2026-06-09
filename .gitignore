@@ -1,2 +1,34 @@
+# Environment files — NEVER commit these
 .env
+.env.local
+.env.*.local
+
+# Node
 node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Frontend build output
+Virtual_Agent1/frontend/dist/
+
+# SQLite databases
+*.db
+
+# Uploaded files
+uploads/
+
+# Docker
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db

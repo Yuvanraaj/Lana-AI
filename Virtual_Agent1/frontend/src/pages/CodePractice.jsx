@@ -52,6 +52,112 @@ export default function CodePractice() {
     }
   };
 
+  const formatTestResults = (rawText) => {
+    const langLabel = languages.find(l => l.id === selectedLanguage)?.label;
+
+    let data;
+    try {
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      data = JSON.parse(jsonMatch ? jsonMatch[0] : rawText);
+    } catch {
+      return formatHintResponse(rawText);
+    }
+
+    if (!data.language_valid) {
+      return (
+        <div style={{ padding: '1.5rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+            <span style={{ fontSize: '1.5rem' }}>🚫</span>
+            <span style={{ color: '#ef4444', fontWeight: 700, fontSize: '1.1rem' }}>Language Mismatch</span>
+          </div>
+          <p style={{ color: '#fca5a5', margin: 0, lineHeight: 1.6 }}>
+            Your code appears to be written in <strong>{data.language_detected}</strong>, but you selected <strong>{langLabel}</strong>.<br />
+            Switch to the correct language tab and resubmit.
+          </p>
+        </div>
+      );
+    }
+
+    const { summary, categories = [], complexity, overall_verdict, critical_issues = [] } = data;
+    const passRate = summary.total > 0 ? Math.round((summary.passed / summary.total) * 100) : 0;
+    const verdictColor = overall_verdict === 'PASS' ? '#22c55e' : overall_verdict === 'PARTIAL' ? '#f59e0b' : '#ef4444';
+
+    return (
+      <div>
+        {/* Summary bar */}
+        <div style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.3)', borderRadius: '10px', marginBottom: '1.25rem', border: `1px solid ${verdictColor}44` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <div>
+              <span style={{ fontSize: '1.5rem', fontWeight: 800, color: verdictColor }}>{summary.passed}</span>
+              <span style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>/{summary.total} passed</span>
+            </div>
+            <div style={{ padding: '0.3rem 0.9rem', background: `${verdictColor}18`, border: `1px solid ${verdictColor}55`, borderRadius: '6px', color: verdictColor, fontWeight: 700, fontSize: '0.85rem' }}>
+              {overall_verdict}
+            </div>
+          </div>
+          <div style={{ height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${passRate}%`, background: passRate >= 80 ? '#22c55e' : passRate >= 50 ? '#f59e0b' : '#ef4444', borderRadius: '3px', transition: 'width 0.4s ease' }} />
+          </div>
+          {summary.failed > 0 && (
+            <div style={{ marginTop: '0.5rem', color: '#fca5a5', fontSize: '0.82rem' }}>{summary.failed} test{summary.failed !== 1 ? 's' : ''} failed</div>
+          )}
+        </div>
+
+        {/* Critical issues */}
+        {critical_issues.length > 0 && (
+          <div style={{ padding: '1rem', background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.25)', borderRadius: '8px', marginBottom: '1.25rem' }}>
+            <div style={{ color: '#ef4444', fontWeight: 700, marginBottom: '0.5rem' }}>⚠️ Critical Issues</div>
+            {critical_issues.map((issue, i) => (
+              <div key={i} style={{ color: '#fca5a5', fontSize: '0.85rem', marginBottom: '0.25rem' }}>• {issue}</div>
+            ))}
+          </div>
+        )}
+
+        {/* Test categories */}
+        {categories.map((cat, ci) => {
+          const catPassed = cat.tests.filter(t => t.passed).length;
+          const catTotal = cat.tests.length;
+          return (
+            <div key={ci} style={{ marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.875rem', background: 'rgba(0,212,255,0.04)', border: '1px solid rgba(0,212,255,0.12)', borderRadius: '8px 8px 0 0', borderBottom: 'none' }}>
+                <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: '0.85rem' }}>{cat.name}</span>
+                <span style={{ color: catPassed === catTotal ? '#22c55e' : '#f59e0b', fontSize: '0.82rem', fontWeight: 600 }}>{catPassed}/{catTotal}</span>
+              </div>
+              <div style={{ border: '1px solid rgba(0,212,255,0.12)', borderRadius: '0 0 8px 8px', overflow: 'hidden' }}>
+                {cat.tests.map((test, ti) => (
+                  <div key={ti} style={{ display: 'grid', gridTemplateColumns: '28px 1fr', gap: '0.75rem', padding: '0.65rem 0.875rem', borderLeft: `3px solid ${test.passed ? '#22c55e' : '#ef4444'}`, borderBottom: ti < cat.tests.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', background: test.passed ? 'rgba(34,197,94,0.02)' : 'rgba(239,68,68,0.04)' }}>
+                    <div style={{ color: test.passed ? '#22c55e' : '#ef4444', fontWeight: 700, fontSize: '0.9rem', paddingTop: '1px' }}>{test.passed ? '✓' : '✗'}</div>
+                    <div>
+                      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.82rem' }}>
+                        <span><span style={{ color: 'var(--text-secondary)' }}>Input: </span><span style={{ color: '#e2e8f0', fontFamily: 'monospace' }}>{test.input}</span></span>
+                        <span><span style={{ color: 'var(--text-secondary)' }}>Expected: </span><span style={{ color: '#a7f3d0', fontFamily: 'monospace' }}>{test.expected}</span></span>
+                        {!test.passed && <span><span style={{ color: 'var(--text-secondary)' }}>Got: </span><span style={{ color: '#fca5a5', fontFamily: 'monospace' }}>{test.actual}</span></span>}
+                      </div>
+                      {test.note && <div style={{ color: 'var(--text-secondary)', fontSize: '0.77rem', marginTop: '0.2rem', fontStyle: 'italic' }}>{test.note}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Complexity */}
+        {complexity && (
+          <div style={{ padding: '1rem', background: 'rgba(44,154,255,0.04)', border: '1px solid rgba(44,154,255,0.15)', borderRadius: '8px', marginTop: '0.5rem' }}>
+            <div style={{ color: 'var(--accent)', fontWeight: 700, marginBottom: '0.5rem', fontSize: '0.88rem' }}>⚡ Complexity Analysis</div>
+            <div style={{ display: 'flex', gap: '2rem', marginBottom: '0.5rem' }}>
+              <span style={{ fontSize: '0.85rem' }}><span style={{ color: 'var(--text-secondary)' }}>Time: </span><span style={{ color: '#e2e8f0', fontFamily: 'monospace', fontWeight: 600 }}>{complexity.time}</span></span>
+              <span style={{ fontSize: '0.85rem' }}><span style={{ color: 'var(--text-secondary)' }}>Space: </span><span style={{ color: '#e2e8f0', fontFamily: 'monospace', fontWeight: 600 }}>{complexity.space}</span></span>
+              <span style={{ fontSize: '0.85rem', color: complexity.optimal ? '#22c55e' : '#f59e0b', fontWeight: 600 }}>{complexity.optimal ? '✓ Optimal' : '⚠ Not Optimal'}</span>
+            </div>
+            {complexity.notes && <div style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', lineHeight: 1.5 }}>{complexity.notes}</div>}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const formatHintResponse = (text) => {
     // Split response into sections and format with code blocks
     const sections = text.split(/(?=^##|\n##|^\d+\.|\\n\d+\.)/m);
@@ -183,73 +289,87 @@ export default function CodePractice() {
     setAiLoading(true);
     setResponseType(type);
 
+    const langLabel = languages.find(l => l.id === selectedLanguage)?.label;
+
     try {
       const systemPrompt = type === 'evaluate'
-        ? `You are a code reviewer and optimization expert. The user has submitted code for a LeetCode problem.
-           
-           CRITICAL RULE: First, verify if the submitted code matches the syntax of the selected language: ${languages.find(l => l.id === selectedLanguage)?.label}.
-           If the syntax does NOT match (e.g., Java code in a C++ section), your ENTIRE feedback should focus ONLY on this mismatch and explain why it is incorrect for the selected language. Do not evaluate logic if the language is wrong.
+        ? `You are a senior code reviewer and optimization expert conducting a technical interview.
 
-           If the language is correct, please analyze the code and provide feedback in the following structured format:
-           
+STEP 1 — LANGUAGE VALIDATION (mandatory):
+Selected language: ${langLabel}
+If the submitted code is NOT written in ${langLabel} syntax (e.g., Python indentation in a C++ submission, Java class declarations in a Python submission), your ENTIRE response must be ONLY:
+"LANGUAGE_MISMATCH: Your code appears to be [detected language], not ${langLabel}. Please switch to the correct language tab and resubmit."
+Do NOT evaluate logic if language is wrong.
+
+STEP 2 — CODE REVIEW (only if language matches):
+
 ## Code Correctness
-Analyze the logic and correctness of the submitted code.
+Trace the logic carefully. Is it correct for all cases?
 
 ## Complexity Analysis
-Provide Time and Space complexity assessment with explanation.
+Time complexity: O(?) with justification.
+Space complexity: O(?) with justification.
+Is this optimal? If not, what is the best possible?
 
 ## Optimizations
-Suggest improvements and optimizations (if any).
+Specific, concrete improvements with example code snippets.
 
 ## Best Practices
-Comment on best practices and code style.
+Code style, naming, readability issues specific to ${langLabel}.
 
-## Edge Cases
-List potential edge cases they should handle.
+## Edge Cases to Handle
+List cases the current code might miss or crash on.`
 
-Keep each section concise but thorough.`
         : type === 'test'
-        ? `You are a code tester. Analyze the submitted code against the problem examples and AT LEAST 10 comprehensive edge cases.
-           
-           CRITICAL RULE: First, verify if the submitted code matches the syntax of the selected language: ${languages.find(l => l.id === selectedLanguage)?.label}.
-           If the syntax does NOT match (e.g., Java code in a C++ section), fail ALL test cases immediately and state: "ERROR: Language Mismatch. Submitted code does not match ${languages.find(l => l.id === selectedLanguage)?.label} syntax."
+        ? `You are a rigorous automated test runner for a technical interview platform.
 
-           If the language is correct, test against:
-           1. The provided examples from the problem
-           2. Empty/null inputs (if applicable)
-           3. Single element (if applicable)
-           4. Large values/arrays
-           5. Negative numbers (if applicable)
-           6. Duplicate elements (if applicable)
-           7. Boundary conditions (min/max limits)
-           8. Special cases (all same, alternating, etc.)
-           9. Reverse/sorted variations
-           10. Random mixed data
-           
-Respond in this EXACT format:
+STEP 1 — LANGUAGE VALIDATION (do this FIRST, mandatory):
+Selected language: ${langLabel}
+Examine the code syntax strictly. Common signals:
+- Python: indentation, def/class keywords, no semicolons, print()
+- Java: public class, System.out, strong typing with explicit types
+- C++: #include, cout, int main(), semicolons, pointer syntax
+- JavaScript: const/let/var, =>, no type declarations
 
-## Test Results Summary
-**Passed:** X/Y
-**Failed:** Y-X/Y
+If the code does NOT match ${langLabel}, respond with ONLY this exact JSON (no other text):
+{"language_valid":false,"language_detected":"[name of detected language]"}
 
-## Detailed Test Cases
-### ✓ PASSED (X tests)
-- Case 1: [description] - Input: [input] → Output: [output]
-- Case 2: [description] - Input: [input] → Output: [output]
-(list all passed cases)
+STEP 2 — TEST EXECUTION (only if language is correct):
+Carefully trace the code logic step-by-step for each of the 30 test cases below.
+Do NOT guess — follow every branch, loop, and return statement mentally.
 
-### ✗ FAILED (Z tests)
-- Case 1: [description]
-  - Input: [input]
-  - Expected: [output]
-  - Got: [actual output]
-(list all failed cases with details)
+Generate exactly 30 test cases spread across these categories:
+- Category A (3 cases): The exact examples provided in the problem statement
+- Category B (3 cases): Empty input, null/None, zero
+- Category C (3 cases): Single element / minimal valid input
+- Category D (4 cases): Boundary values — INT_MIN (-2147483648), INT_MAX (2147483647), max array length, empty string
+- Category E (3 cases): Negative numbers, mixed positive/negative
+- Category F (3 cases): All identical elements, all zeros, all same character
+- Category G (3 cases): Already sorted (ascending), reverse sorted, nearly sorted
+- Category H (3 cases): Large inputs — simulate 50-100 element arrays / long strings
+- Category I (3 cases): High-complexity patterns — worst-case for the algorithm (e.g., palindromes for palindrome check, all same for sliding window)
+- Category J (2 cases): Random realistic inputs that a user would submit
 
-## Analysis
-Brief explanation of what the code does well and what edge cases it struggles with.`
+Respond with ONLY valid JSON, no markdown, no extra text:
+{
+  "language_valid": true,
+  "summary": {"passed": 0, "failed": 0, "total": 30},
+  "categories": [
+    {
+      "name": "Category A — Problem Examples",
+      "tests": [
+        {"id": 1, "input": "exact input", "expected": "expected output", "actual": "traced output", "passed": true, "note": ""}
+      ]
+    }
+  ],
+  "complexity": {"time": "O(?)", "space": "O(?)", "optimal": true, "notes": "brief explanation"},
+  "overall_verdict": "PASS",
+  "critical_issues": []
+}`
+
         : `You are a coding mentor. The user is stuck on a LeetCode problem and needs help.
            Provide guidance in a well-structured format with:
-           
+
 ## Algorithm Approach
 Explain the algorithm and approach to solve this problem.
 
@@ -267,10 +387,9 @@ Important patterns or tricks for this problem.
 
 Do NOT give the complete solution, only guide them forward.`;
 
-      const userMessage = `
-Problem: ${question.title}
-
+      const userMessage = `Problem: ${question.title}
 Difficulty: ${question.difficulty}
+Selected Language: ${langLabel}
 
 Description:
 ${question.description}
@@ -278,13 +397,11 @@ ${question.description}
 Examples:
 ${question.examples}
 
-User's ${type === 'evaluate' ? 'Submitted' : type === 'test' ? 'Submitted' : 'Partial'} Code (${languages.find(l => l.id === selectedLanguage)?.label}):
+Submitted Code (${langLabel}):
 \`\`\`${selectedLanguage}
 ${code}
 \`\`\`
-
-${type === 'evaluate' ? 'Please evaluate and suggest improvements.' : type === 'test' ? 'Test this code against the examples and common edge cases. Tell me if it passes or fails.' : 'Please provide structured hints and guidance as described above.'}
-      `;
+${type === 'test' ? 'Run all 30 test cases and return the JSON result.' : type === 'evaluate' ? 'Evaluate this code.' : 'Provide structured hints.'}`;
 
       const response = await fetch(`${API_BASE_URL}/api/openai-proxy`, {
         method: 'POST',
@@ -295,9 +412,9 @@ ${type === 'evaluate' ? 'Please evaluate and suggest improvements.' : type === '
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage }
           ],
-          model: 'gpt-3.5-turbo',
-          temperature: 0.7,
-          max_tokens: 1500
+          model: 'gpt-4o-mini',
+          temperature: type === 'test' ? 0.1 : 0.7,
+          max_tokens: type === 'test' ? 4000 : 1800
         })
       });
 
@@ -704,7 +821,7 @@ ${type === 'evaluate' ? 'Please evaluate and suggest improvements.' : type === '
               overflowY: 'auto',
               paddingRight: '0.5rem'
             }}>
-              {formatHintResponse(aiResponse)}
+              {responseType === 'test' ? formatTestResults(aiResponse) : formatHintResponse(aiResponse)}
             </div>
 
             {/* Action Buttons */}

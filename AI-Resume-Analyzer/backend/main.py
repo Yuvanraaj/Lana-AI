@@ -11,7 +11,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Form, Depends
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from mysql.connector import Error
+from psycopg2 import Error
 import pandas as pd
 import logging
 from datetime import datetime
@@ -96,18 +96,23 @@ class ErrorResponse(BaseModel):
 @app.on_event("startup")
 async def startup():
     """Initialize database and create necessary directories on startup"""
-    try:
-        # Create uploads directory
-        if not os.path.exists(UPLOAD_DIR):
-            os.makedirs(UPLOAD_DIR)
-            logger.info(f"Created uploads directory: {UPLOAD_DIR}")
-        
-        # Initialize database
-        initialize_database()
-        logger.info("Database initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize: {e}")
-        logger.warning("Server starting but some features may not work. Check configuration.")
+    import time
+
+    if not os.path.exists(UPLOAD_DIR):
+        os.makedirs(UPLOAD_DIR)
+        logger.info(f"Created uploads directory: {UPLOAD_DIR}")
+
+    # Retry DB init — MySQL may still be starting up when this container starts
+    for attempt in range(1, 11):
+        try:
+            initialize_database()
+            logger.info("Database initialized successfully")
+            return
+        except Exception as e:
+            logger.warning(f"DB init attempt {attempt}/10 failed: {e}. Retrying in {attempt * 2}s...")
+            time.sleep(attempt * 2)
+
+    logger.error("Could not initialize database after 10 attempts. Resume features will not work.")
 
 @app.get("/health")
 async def health_check() -> HealthCheckResponse:

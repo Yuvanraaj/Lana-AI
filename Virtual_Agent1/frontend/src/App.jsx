@@ -7,16 +7,12 @@ import UserProfile from "./pages/UserProfile";
 import SelectMode from "./pages/SelectMode";
 import Interview from "./pages/Interview";
 import AgentPage from "./pages/Agent";
-import ResumeParse from "./pages/ResumeParse";
+import ResumeAnalyzerPage from "./pages/ResumeAnalyzerPage";
 import Chatbot from "./pages/Chatbot";
 import AnalyticsPage from "./pages/Analytics";
 import ProgressDashboard from "./pages/ProgressDashboard";
 import JudgeView from "./pages/JudgeView";
 import CodePractice from "./pages/CodePractice";
-import PersistentIframe from "./components/PersistentIframe";
-
-// Note: UserProfile and ProgressDashboard handle their own authentication checks
-// in their useEffect hooks, so we don't need a wrapper component here
 
 function Router() {
   return (
@@ -25,20 +21,19 @@ function Router() {
       <Switch>
         <Route path="/" component={LandingPage} />
         <Route path="/login" component={Login} />
-        {/* Protected Routes - Handle auth internally */}
+        {/* Protected Routes - handle auth internally */}
         <Route path="/profile" component={UserProfile} />
         <Route path="/progress" component={ProgressDashboard} />
         {/* Public Routes */}
         <Route path="/start" component={SelectMode} />
         <Route path="/agent" component={AgentPage} />
         <Route path="/interview" component={Interview} />
-        <Route path="/resume-parse" component={ResumeParse} />
+        <Route path="/resume-parse" component={ResumeAnalyzerPage} />
         <Route path="/chatbot" component={Chatbot} />
         <Route path="/analytics" component={AnalyticsPage} />
         <Route path="/judge" component={JudgeView} />
         <Route path="/code-practice" component={CodePractice} />
       </Switch>
-      <PersistentIframe />
     </div>
   );
 }

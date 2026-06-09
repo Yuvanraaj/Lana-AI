@@ -1,18 +1,23 @@
-// Backend URL configuration for dev and production
+// Backend URL configuration
+//
+// Priority order:
+//   1. VITE_API_BASE_URL env var  (explicit override — Render/Vercel/staging)
+//   2. localhost:PORT              (local dev without Docker)
+//   3. ''  (empty string)          (Docker — nginx proxies /api/ → node-backend)
+//
 const isDev = import.meta.env.DEV;
 
-// In development: detect actual backend port (tries 8001, 8002, 8003)
-// In production: use Render backend URL
 const getBackendUrl = () => {
-  if (isDev) {
-    // Try to detect which port backend is actually running on
-    // Backend defaults to 8001 but can fallback to 8002, 8003 if ports are in use
-    const backendPort = import.meta.env.VITE_BACKEND_PORT || '8001';
-    return `http://localhost:${backendPort}`;
-  }
-  // Production: use Render backend
-  // NOTE: Use the current Render service URL (matches the service shown in Render dashboard)
-  return import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+  if (import.meta.env.VITE_API_BASE_URL) return import.meta.env.VITE_API_BASE_URL;
+  if (isDev) return `http://localhost:${import.meta.env.VITE_BACKEND_PORT || '8001'}`;
+  return ''; // Docker/nginx: requests to /api/... are proxied automatically
 };
 
 export const API_BASE_URL = getBackendUrl();
+
+// Resume Analyzer FastAPI backend
+// Docker/nginx: /resume-api/... is proxied to python-backend:8000
+// Local dev: direct to localhost:8000
+export const RESUME_API_URL =
+  import.meta.env.VITE_RESUME_API_URL ||
+  (isDev ? `http://localhost:${import.meta.env.VITE_RESUME_API_PORT || '8000'}` : '/resume-api');
