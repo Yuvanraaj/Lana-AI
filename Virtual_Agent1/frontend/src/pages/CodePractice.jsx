@@ -56,9 +56,15 @@ export default function CodePractice() {
     const langLabel = languages.find(l => l.id === selectedLanguage)?.label;
 
     const repairJson = (str) => {
-      // Count unclosed brackets/braces and append closing chars
+      // Step 1: insert missing ] before known top-level sibling keys of "categories"
+      // e.g. ...Category J obj},"complexity" → ...}],"complexity"
+      let fixed = str.replace(
+        /\}\s*,\s*"(complexity|overall_verdict|critical_issues)"/g,
+        '}],"$1"'
+      );
+      // Step 2: count remaining unclosed brackets/braces and append at end
       let braces = 0, brackets = 0, inStr = false, esc = false;
-      for (const ch of str) {
+      for (const ch of fixed) {
         if (esc) { esc = false; continue; }
         if (ch === '\\' && inStr) { esc = true; continue; }
         if (ch === '"') { inStr = !inStr; continue; }
@@ -66,10 +72,9 @@ export default function CodePractice() {
         if (ch === '{') braces++; else if (ch === '}') braces--;
         else if (ch === '[') brackets++; else if (ch === ']') brackets--;
       }
-      let out = str;
-      while (brackets-- > 0) out += ']';
-      while (braces-- > 0) out += '}';
-      return out;
+      while (brackets-- > 0) fixed += ']';
+      while (braces-- > 0) fixed += '}';
+      return fixed;
     };
 
     let data;
