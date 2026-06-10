@@ -92,7 +92,12 @@ export default function CodePractice() {
       return formatHintResponse(rawText);
     }
 
-    if (!data.language_valid) {
+    // Ignore false-positive: AI detected same language as selected
+    const detectedNorm = (data.language_detected || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const selectedNorm = (langLabel || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const isFalsePositive = detectedNorm === selectedNorm || detectedNorm.includes(selectedNorm) || selectedNorm.includes(detectedNorm);
+
+    if (!data.language_valid && !isFalsePositive) {
       return (
         <div style={{ padding: '1.5rem', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.35)', borderRadius: '10px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
@@ -348,16 +353,13 @@ List cases the current code might miss or crash on.`
         : type === 'test'
         ? `You are a rigorous automated test runner for a technical interview platform.
 
-STEP 1 — LANGUAGE VALIDATION (do this FIRST, mandatory):
+STEP 1 — LANGUAGE VALIDATION (do this FIRST):
 Selected language: ${langLabel}
-Examine the code syntax strictly. Common signals:
-- Python: indentation, def/class keywords, no semicolons, print()
-- Java: public class, System.out, strong typing with explicit types
-- C++: #include, cout, int main(), semicolons, pointer syntax
-- JavaScript: const/let/var, =>, no type declarations
-
-If the code does NOT match ${langLabel}, respond with ONLY this exact JSON (no other text):
-{"language_valid":false,"language_detected":"[name of detected language]"}
+Only flag a mismatch if the code is CLEARLY written in a DIFFERENT language (e.g. Python def/indentation submitted as C++, or Java class/System.out submitted as Python).
+Do NOT flag if the code is incomplete, empty, or uses generic syntax — only flag obvious cross-language mistakes.
+If the code is NOT in ${langLabel}, respond with ONLY this JSON:
+{"language_valid":false,"language_detected":"[detected language name]"}
+If it IS ${langLabel} (or you are unsure), proceed to STEP 2.
 
 STEP 2 — TEST EXECUTION (only if language is correct):
 Carefully trace the code logic step-by-step for each of the 30 test cases below.
