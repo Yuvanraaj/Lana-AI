@@ -14,9 +14,8 @@ from config import JWT_SECRET_KEY, JWT_ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, A
 
 logger = logging.getLogger(__name__)
 
-# Password hashing context - Using Argon2 (more secure and compatible than bcrypt)
 pwd_context = CryptContext(
-    schemes=["argon2"],
+    schemes=["bcrypt"],
     deprecated="auto"
 )
 

@@ -116,25 +116,28 @@ async def startup():
         logger.error("Could not initialize database after 10 attempts.")
         return
 
-    # Auto-create admin from env vars if no admin exists yet
-    admin_email = os.getenv("ADMIN_EMAIL")
+    # Always sync admin password from env vars on every startup
+    admin_email    = os.getenv("ADMIN_EMAIL")
     admin_password = os.getenv("ADMIN_PASSWORD")
-    admin_name = os.getenv("ADMIN_NAME", "Lana Admin")
+    admin_name     = os.getenv("ADMIN_NAME", "Lana Admin")
     if admin_email and admin_password:
         try:
-            from admin_db import admin_user_exists, create_admin_user
+            from admin_db import admin_user_exists, create_admin_user, update_password
+            from admin_db import get_all_admin_users
             if not admin_user_exists(admin_email):
                 ok = create_admin_user(admin_email, admin_password, admin_name)
-                if ok:
-                    logger.info(f"[STARTUP] Admin account created: {admin_email}")
-                else:
-                    logger.warning(f"[STARTUP] Failed to create admin account for {admin_email}")
+                logger.info(f"[STARTUP] Admin created: {admin_email} — ok={ok}")
             else:
-                logger.info(f"[STARTUP] Admin account already exists: {admin_email}")
+                # Force-reset password so hash scheme change (argon2→bcrypt) takes effect
+                users = get_all_admin_users()
+                uid = next((u['id'] for u in users if u['email'] == admin_email), None)
+                if uid:
+                    update_password(uid, admin_password)
+                    logger.info(f"[STARTUP] Admin password re-hashed with bcrypt: {admin_email}")
         except Exception as e:
-            logger.error(f"[STARTUP] Error seeding admin: {e}")
+            logger.error(f"[STARTUP] Error syncing admin: {e}", exc_info=True)
     else:
-        logger.warning("[STARTUP] ADMIN_EMAIL / ADMIN_PASSWORD not set — skipping admin seed")
+        logger.warning("[STARTUP] ADMIN_EMAIL / ADMIN_PASSWORD not set — skipping admin sync")
 
 @app.get("/health")
 async def health_check() -> HealthCheckResponse:
