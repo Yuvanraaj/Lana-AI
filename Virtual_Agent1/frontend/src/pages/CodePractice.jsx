@@ -380,20 +380,20 @@ If the code is NOT in ${langLabel}, respond with ONLY this JSON:
 If it IS ${langLabel} (or you are unsure), proceed to STEP 2.
 
 STEP 2 — TEST EXECUTION (only if language is correct):
-Carefully trace the code logic step-by-step for each of the 30 test cases below.
+Carefully trace the code logic step-by-step for each of the 15 test cases below.
 Do NOT guess — follow every branch, loop, and return statement mentally.
 
-Generate exactly 30 test cases spread across these categories:
-- Category A (3 cases): The exact examples provided in the problem statement
-- Category B (3 cases): Empty input, null/None, zero
-- Category C (3 cases): Single element / minimal valid input
-- Category D (4 cases): Boundary values — INT_MIN (-2147483648), INT_MAX (2147483647), max array length, empty string
-- Category E (3 cases): Negative numbers, mixed positive/negative
-- Category F (3 cases): All identical elements, all zeros, all same character
-- Category G (3 cases): Already sorted (ascending), reverse sorted, nearly sorted
-- Category H (3 cases): Large inputs — simulate 50-100 element arrays / long strings
-- Category I (3 cases): High-complexity patterns — worst-case for the algorithm (e.g., palindromes for palindrome check, all same for sliding window)
-- Category J (2 cases): Random realistic inputs that a user would submit
+Generate exactly 15 test cases spread across these categories:
+- Category A (2 cases): The exact examples provided in the problem statement
+- Category B (2 cases): Empty input, null/None, zero
+- Category C (2 cases): Single element / minimal valid input
+- Category D (2 cases): Boundary values — INT_MIN (-2147483648), INT_MAX (2147483647)
+- Category E (2 cases): Negative numbers, mixed positive/negative
+- Category F (1 case): All identical elements or all same character
+- Category G (1 case): Already sorted or reverse sorted
+- Category H (1 case): Large input — use SHORT representative literals (5-8 elements max)
+- Category I (1 case): Worst-case pattern for the algorithm
+- Category J (1 case): Random realistic input a user would submit
 
 STRICT JSON OUTPUT RULES — violations will break the parser:
 - Output ONLY valid RFC 8259 JSON. No markdown, no extra text before or after.
@@ -407,7 +407,7 @@ STRICT JSON OUTPUT RULES — violations will break the parser:
 Respond with ONLY valid JSON:
 {
   "language_valid": true,
-  "summary": {"passed": 0, "failed": 0, "total": 30},
+  "summary": {"passed": 0, "failed": 0, "total": 15},
   "categories": [
     {
       "name": "Category A — Problem Examples",
@@ -455,20 +455,23 @@ Submitted Code (${langLabel}):
 \`\`\`${selectedLanguage}
 ${code}
 \`\`\`
-${type === 'test' ? 'Run all 30 test cases and return the JSON result.' : type === 'evaluate' ? 'Evaluate this code.' : 'Provide structured hints.'}`;
+${type === 'test' ? 'Run all 15 test cases and return the JSON result.' : type === 'evaluate' ? 'Evaluate this code.' : 'Provide structured hints.'}`;
+
+      const isStreaming = type !== 'test';
+      const model = type === 'test' ? 'gpt-4.1-nano' : 'gpt-4.1-mini';
 
       const response = await fetch(`${API_BASE_URL}/api/openai-proxy`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          stream: false,
+          stream: isStreaming,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: userMessage }
           ],
-          model: 'gpt-4o-mini',
+          model,
           temperature: type === 'test' ? 0.1 : 0.7,
-          max_tokens: type === 'test' ? 4000 : 1800,
+          max_tokens: type === 'test' ? 2000 : 1800,
           cleanJson: type === 'test'
         })
       });
@@ -479,16 +482,33 @@ ${type === 'test' ? 'Run all 30 test cases and return the JSON result.' : type =
         throw new Error(`HTTP ${response.status}: ${errorData.error || response.statusText}`);
       }
 
-      const data = await response.json();
-      console.log('[CodePractice] OpenAI Response:', data);
-      
-      const content = data.choices?.[0]?.message?.content;
-      if (!content) {
-        console.error('[CodePractice] No content in response:', data);
-        throw new Error('No response content from OpenAI');
+      if (isStreaming) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulated = '';
+        let buf = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          const lines = buf.split('\n');
+          buf = lines.pop() ?? '';
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const payload = line.slice(6).trim();
+            if (payload === '[DONE]') continue;
+            try {
+              const delta = JSON.parse(payload).choices?.[0]?.delta?.content ?? '';
+              if (delta) { accumulated += delta; setAiResponse(accumulated); }
+            } catch {}
+          }
+        }
+      } else {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content;
+        if (!content) throw new Error('No response content from OpenAI');
+        setAiResponse(content);
       }
-      
-      setAiResponse(content);
     } catch (error) {
       console.error('[CodePractice] Error:', error);
       setAiResponse(`Error: ${error.message}`);
