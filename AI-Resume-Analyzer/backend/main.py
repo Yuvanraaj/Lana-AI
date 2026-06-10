@@ -24,8 +24,9 @@ from config import (
     RESUME_TIPS_DO, RESUME_TIPS_DONT
 )
 from database import (
-    initialize_database, insert_resume, insert_resume_analysis, 
-    get_all_resumes, get_analytics_data, get_db_connection
+    initialize_database, insert_resume, insert_resume_analysis,
+    get_all_resumes, get_analytics_data, get_db_connection,
+    insert_audit_log, get_audit_logs, get_login_logs
 )
 from nlp_processor import analyze_resume
 from file_processor import extract_text_from_file, save_uploaded_file
@@ -95,24 +96,44 @@ class ErrorResponse(BaseModel):
 
 @app.on_event("startup")
 async def startup():
-    """Initialize database and create necessary directories on startup"""
+    """Initialize database, create necessary directories, and seed default admin on startup"""
     import time
 
     if not os.path.exists(UPLOAD_DIR):
         os.makedirs(UPLOAD_DIR)
         logger.info(f"Created uploads directory: {UPLOAD_DIR}")
 
-    # Retry DB init — MySQL may still be starting up when this container starts
     for attempt in range(1, 11):
         try:
             initialize_database()
             logger.info("Database initialized successfully")
-            return
+            break
         except Exception as e:
             logger.warning(f"DB init attempt {attempt}/10 failed: {e}. Retrying in {attempt * 2}s...")
             time.sleep(attempt * 2)
+    else:
+        logger.error("Could not initialize database after 10 attempts.")
+        return
 
-    logger.error("Could not initialize database after 10 attempts. Resume features will not work.")
+    # Auto-create admin from env vars if no admin exists yet
+    admin_email = os.getenv("ADMIN_EMAIL")
+    admin_password = os.getenv("ADMIN_PASSWORD")
+    admin_name = os.getenv("ADMIN_NAME", "Lana Admin")
+    if admin_email and admin_password:
+        try:
+            from admin_db import admin_user_exists, create_admin_user
+            if not admin_user_exists(admin_email):
+                ok = create_admin_user(admin_email, admin_password, admin_name)
+                if ok:
+                    logger.info(f"[STARTUP] Admin account created: {admin_email}")
+                else:
+                    logger.warning(f"[STARTUP] Failed to create admin account for {admin_email}")
+            else:
+                logger.info(f"[STARTUP] Admin account already exists: {admin_email}")
+        except Exception as e:
+            logger.error(f"[STARTUP] Error seeding admin: {e}")
+    else:
+        logger.warning("[STARTUP] ADMIN_EMAIL / ADMIN_PASSWORD not set — skipping admin seed")
 
 @app.get("/health")
 async def health_check() -> HealthCheckResponse:
@@ -126,14 +147,12 @@ async def health_check() -> HealthCheckResponse:
 # ============ AUTHENTICATION ENDPOINTS ============
 
 @app.post("/auth/login")
-async def login(credentials: UserCredentials):
-    """
-    Login endpoint - Returns JWT tokens
-    Uses database for credential verification with bcrypt password hashing
-    """
+async def login(request: Request, credentials: UserCredentials):
+    """Login endpoint - Returns JWT tokens"""
     try:
-        # Verify credentials against database
-        admin_user = verify_admin_credentials(credentials.email, credentials.password)
+        ip = request.client.host if request.client else None
+        ua = request.headers.get("user-agent")
+        admin_user = verify_admin_credentials(credentials.email, credentials.password, ip, ua)
         
         if not admin_user:
             logger.warning(f"Failed login attempt for {credentials.email}")
@@ -161,14 +180,12 @@ async def login(credentials: UserCredentials):
         raise HTTPException(status_code=500, detail="Login failed")
 
 @app.post("/admin/login")
-async def admin_login(credentials: UserCredentials):
-    """
-    Admin login endpoint - Returns JWT tokens for admin users
-    Uses database verification with bcrypt hashing
-    """
+async def admin_login(request: Request, credentials: UserCredentials):
+    """Admin login endpoint - Returns JWT tokens for admin users"""
     try:
-        # Verify credentials against database
-        admin_user = verify_admin_credentials(credentials.email, credentials.password)
+        ip = request.client.host if request.client else None
+        ua = request.headers.get("user-agent")
+        admin_user = verify_admin_credentials(credentials.email, credentials.password, ip, ua)
         
         if not admin_user:
             logger.warning(f"Failed admin login attempt for {credentials.email}")
@@ -223,21 +240,20 @@ async def track_location(
         if not email or "@" not in email:
             raise HTTPException(status_code=400, detail="Invalid email")
         
-        # Try to update user location in database
         try:
             connection = get_db_connection()
             cursor = connection.cursor()
-            
+
             cursor.execute("""
                 INSERT INTO users (email, location, city, country, latitude, longitude, last_seen)
                 VALUES (%s, %s, %s, %s, %s, %s, NOW())
-                ON DUPLICATE KEY UPDATE
-                    location = VALUES(location),
-                    city = VALUES(city),
-                    country = VALUES(country),
-                    latitude = VALUES(latitude),
-                    longitude = VALUES(longitude),
-                    last_seen = NOW()
+                ON CONFLICT (email) DO UPDATE SET
+                    location   = EXCLUDED.location,
+                    city       = EXCLUDED.city,
+                    country    = EXCLUDED.country,
+                    latitude   = EXCLUDED.latitude,
+                    longitude  = EXCLUDED.longitude,
+                    last_seen  = NOW()
             """, (email, f"{city}, {country}", city, country, latitude, longitude))
             
             connection.commit()
@@ -418,7 +434,23 @@ async def upload_resume(
         insert_resume_analysis(resume_id, analysis_data)
         
         logger.info(f"Analysis completed for resume {resume_id} - Score: {analysis['scores']['overall_score']}")
-        
+
+        insert_audit_log(
+            action="RESUME_UPLOAD",
+            actor_email=email,
+            resource_type="resume",
+            resource_id=resume_id,
+            status="SUCCESS",
+            ip_address=client_ip,
+            details={
+                "user_name": user_name,
+                "file_name": safe_filename,
+                "overall_score": analysis['scores']['overall_score'],
+                "city": city,
+                "country": country,
+            }
+        )
+
         return ResumeUploadResponse(
             resume_id=resume_id,
             message="Resume uploaded and analyzed successfully",
@@ -516,6 +548,41 @@ async def export_resumes_csv(current_user: TokenData = Depends(get_current_user)
     except Exception as e:
         logger.error(f"Error exporting CSV: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to export CSV")
+
+@app.get("/admin/audit-logs")
+async def get_audit_log_list(
+    limit: int = 200,
+    offset: int = 0,
+    action: str = None,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get audit logs — admin only"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    try:
+        result = get_audit_logs(limit=min(limit, 500), offset=offset, action_filter=action)
+        return {"status": "success", **result}
+    except Exception as e:
+        logger.error(f"Error fetching audit logs: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch audit logs")
+
+
+@app.get("/admin/login-logs")
+async def get_login_log_list(
+    limit: int = 200,
+    offset: int = 0,
+    current_user: TokenData = Depends(get_current_user)
+):
+    """Get login attempt logs — admin only"""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    try:
+        result = get_login_logs(limit=min(limit, 500), offset=offset)
+        return {"status": "success", **result}
+    except Exception as e:
+        logger.error(f"Error fetching login logs: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch login logs")
+
 
 @app.get("/courses")
 async def get_course_recommendations():

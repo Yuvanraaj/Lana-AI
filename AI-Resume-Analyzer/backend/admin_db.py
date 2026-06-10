@@ -1,7 +1,7 @@
 """
 Admin user management for database
 """
-from database import get_db_connection
+from database import get_db_connection, insert_login_log
 from auth import hash_password, verify_password
 import psycopg2
 import psycopg2.extras
@@ -44,7 +44,7 @@ def create_admin_user(email: str, password: str, full_name: str = None):
         logger.error(f"Error creating admin user: {e}")
         return False
 
-def verify_admin_credentials(email: str, password: str) -> dict:
+def verify_admin_credentials(email: str, password: str, ip_address: str = None, user_agent: str = None) -> dict:
     """
     Verify admin credentials against database
     
@@ -71,16 +71,17 @@ def verify_admin_credentials(email: str, password: str) -> dict:
         
         if not user:
             logger.warning(f"Admin login attempt with non-existent email: {email}")
+            insert_login_log(email, False, ip_address, user_agent, "Email not found")
             return None
-        
+
         if not user['is_active']:
             logger.warning(f"Admin login attempt with inactive account: {email}")
+            insert_login_log(email, False, ip_address, user_agent, "Account inactive")
             return None
-        
-        # Verify password against hash
+
         if verify_password(password, user['hashed_password']):
-            # Update last_login timestamp
             update_last_login(user['id'])
+            insert_login_log(email, True, ip_address, user_agent)
             return {
                 "user_id": user['id'],
                 "email": user['email'],
@@ -88,8 +89,9 @@ def verify_admin_credentials(email: str, password: str) -> dict:
             }
         else:
             logger.warning(f"Failed admin login attempt (wrong password): {email}")
+            insert_login_log(email, False, ip_address, user_agent, "Wrong password")
             return None
-            
+
     except Error as e:
         logger.error(f"Error verifying admin credentials: {e}")
         return None

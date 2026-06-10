@@ -168,6 +168,62 @@ def initialize_database():
             )
         """)
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS login_logs (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255),
+                success BOOLEAN NOT NULL,
+                ip_address VARCHAR(45),
+                user_agent VARCHAR(500),
+                failure_reason VARCHAR(255),
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id SERIAL PRIMARY KEY,
+                action VARCHAR(100) NOT NULL,
+                actor_email VARCHAR(255),
+                resource_type VARCHAR(100),
+                resource_id VARCHAR(100),
+                status VARCHAR(20),
+                ip_address VARCHAR(45),
+                details JSONB,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
+
+        # Add missing columns to resume_analysis (idempotent via ALTER TABLE IF NOT EXISTS)
+        extra_cols = [
+            ("quick_wins",                    "JSONB"),
+            ("priority_changes",              "JSONB"),
+            ("ats_optimization",              "JSONB"),
+            ("skills_to_emphasize",           "JSONB"),
+            ("missing_keywords",              "JSONB"),
+            ("metrics_to_add",                "JSONB"),
+            ("role_specific_advice",          "JSONB"),
+            ("certifications_recommendations","JSONB"),
+            ("overall_strategy",              "TEXT"),
+        ]
+        for col, col_type in extra_cols:
+            cur.execute(f"""
+                ALTER TABLE resume_analysis ADD COLUMN IF NOT EXISTS {col} {col_type}
+            """)
+
+        # Add missing columns to users
+        user_extra = [
+            ("city",       "VARCHAR(100)"),
+            ("country",    "VARCHAR(100)"),
+            ("latitude",   "DECIMAL(10, 8)"),
+            ("longitude",  "DECIMAL(11, 8)"),
+            ("last_seen",  "TIMESTAMP"),
+        ]
+        for col, col_type in user_extra:
+            cur.execute(f"""
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {col_type}
+            """)
+
         conn.commit()
         cur.close()
         conn.close()
@@ -211,11 +267,17 @@ def insert_resume_analysis(resume_id, analysis_data):
         cur = conn.cursor()
 
         cur.execute("""
-            INSERT INTO resume_analysis
-                (resume_id, overall_score, skills_score, experience_score,
-                 education_score, formatting_score, extracted_skills, keywords,
-                 predicted_roles, strengths, weaknesses, suggestions)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO resume_analysis (
+                resume_id, overall_score, skills_score, experience_score,
+                education_score, formatting_score, extracted_skills, keywords,
+                predicted_roles, strengths, weaknesses, suggestions,
+                quick_wins, priority_changes, ats_optimization,
+                skills_to_emphasize, missing_keywords, metrics_to_add,
+                role_specific_advice, certifications_recommendations, overall_strategy
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s
+            )
         """, (
             resume_id,
             analysis_data.get("overall_score"),
@@ -229,6 +291,15 @@ def insert_resume_analysis(resume_id, analysis_data):
             json.dumps(analysis_data.get("strengths", [])),
             json.dumps(analysis_data.get("weaknesses", [])),
             json.dumps(analysis_data.get("suggestions", [])),
+            json.dumps(analysis_data.get("quick_wins", [])),
+            json.dumps(analysis_data.get("priority_changes", [])),
+            json.dumps(analysis_data.get("ats_optimization", [])),
+            json.dumps(analysis_data.get("skills_to_emphasize", [])),
+            json.dumps(analysis_data.get("missing_keywords", [])),
+            json.dumps(analysis_data.get("metrics_to_add", [])),
+            json.dumps(analysis_data.get("role_specific_advice", {})),
+            json.dumps(analysis_data.get("certifications_recommendations", [])),
+            analysis_data.get("overall_strategy", ""),
         ))
 
         conn.commit()
@@ -406,4 +477,82 @@ def get_analytics_data():
 
     except Error as e:
         logger.error(f"Error retrieving analytics data: {e}")
+        raise
+
+
+def insert_audit_log(action, actor_email=None, resource_type=None, resource_id=None,
+                     status="SUCCESS", ip_address=None, details=None):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO audit_logs (action, actor_email, resource_type, resource_id,
+                                    status, ip_address, details)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (action, actor_email, resource_type,
+              str(resource_id) if resource_id is not None else None,
+              status, ip_address, json.dumps(details or {})))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Error as e:
+        logger.error(f"Error inserting audit log: {e}")
+
+
+def insert_login_log(email, success, ip_address=None, user_agent=None, failure_reason=None):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO login_logs (email, success, ip_address, user_agent, failure_reason)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (email, success, ip_address, user_agent, failure_reason))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Error as e:
+        logger.error(f"Error inserting login log: {e}")
+
+
+def get_audit_logs(limit=200, offset=0, action_filter=None):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        if action_filter:
+            cur.execute("""
+                SELECT * FROM audit_logs WHERE action = %s
+                ORDER BY created_at DESC LIMIT %s OFFSET %s
+            """, (action_filter, limit, offset))
+        else:
+            cur.execute("""
+                SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT %s OFFSET %s
+            """, (limit, offset))
+        rows = [dict(r) for r in cur.fetchall()]
+        cur.execute("SELECT COUNT(*) AS total FROM audit_logs" +
+                    (" WHERE action = %s" if action_filter else ""),
+                    (action_filter,) if action_filter else ())
+        total = cur.fetchone()['total']
+        cur.close()
+        conn.close()
+        return {"logs": rows, "total": total, "limit": limit, "offset": offset}
+    except Error as e:
+        logger.error(f"Error retrieving audit logs: {e}")
+        raise
+
+
+def get_login_logs(limit=200, offset=0):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("""
+            SELECT * FROM login_logs ORDER BY created_at DESC LIMIT %s OFFSET %s
+        """, (limit, offset))
+        rows = [dict(r) for r in cur.fetchall()]
+        cur.execute("SELECT COUNT(*) AS total FROM login_logs")
+        total = cur.fetchone()['total']
+        cur.close()
+        conn.close()
+        return {"logs": rows, "total": total, "limit": limit, "offset": offset}
+    except Error as e:
+        logger.error(f"Error retrieving login logs: {e}")
         raise
