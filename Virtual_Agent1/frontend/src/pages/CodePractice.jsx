@@ -91,6 +91,12 @@ export default function CodePractice() {
         .replace(/\bINT_MAX\b/g, '2147483647')
         // Leading zeros on standalone zero runs: 0000 → 0
         .replace(/\b0{2,}\b/g, '0')
+        // Python string repetition: "x" * n → "xxx" (cap at 20 chars)
+        .replace(/"([^"]{1,10})"\s*\*\s*(\d+)/g, (_, str, n) => JSON.stringify(str.repeat(Math.min(parseInt(n), 20))))
+        // Python list repetition: [...] * n → just the list (drop the * n)
+        .replace(/(\])\s*\*\s*\d+/g, '$1')
+        // Python list concat: [...] + [...] → just remove the +
+        .replace(/(\])\s*\+\s*(\[)/g, ', ')
         // Trailing commas before } or ]
         .replace(/,\s*([}\]])/g, '$1');
 
@@ -389,7 +395,16 @@ Generate exactly 30 test cases spread across these categories:
 - Category I (3 cases): High-complexity patterns — worst-case for the algorithm (e.g., palindromes for palindrome check, all same for sliding window)
 - Category J (2 cases): Random realistic inputs that a user would submit
 
-Respond with ONLY valid JSON, no markdown, no extra text:
+STRICT JSON OUTPUT RULES — violations will break the parser:
+- Output ONLY valid RFC 8259 JSON. No markdown, no extra text before or after.
+- NEVER use Python/code expressions: no "a"*100, no ["x"]*50, no list+list, no f-strings.
+- ALL values must be LITERAL: write ["a","a","a"] not ["a"]*3, write "aaaa" not "a"*4.
+- For "large input" categories, use SHORT representative literals (5-10 elements max) — do NOT try to inline 50+ element arrays.
+- Use JSON null (not Python None), true/false (not True/False).
+- Do NOT use trailing commas. Close every [ with ] and every { with }.
+- The "categories" array MUST be closed with ] before "complexity".
+
+Respond with ONLY valid JSON:
 {
   "language_valid": true,
   "summary": {"passed": 0, "failed": 0, "total": 30},
