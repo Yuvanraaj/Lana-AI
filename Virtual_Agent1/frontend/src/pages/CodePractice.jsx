@@ -80,12 +80,21 @@ export default function CodePractice() {
     let data;
     try {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      const cleaned = (jsonMatch ? jsonMatch[0] : rawText)
-        .replace(/\bINT_MIN\b/g, '-2147483648')
-        .replace(/\bINT_MAX\b/g, '2147483647')
+      const sanitize = (s) => s
+        // Python / AI literals
         .replace(/\bNone\b/g, 'null')
         .replace(/\bTrue\b/g, 'true')
-        .replace(/\bFalse\b/g, 'false');
+        .replace(/\bFalse\b/g, 'false')
+        .replace(/\bundefined\b/g, 'null')
+        .replace(/\bNaN\b/g, 'null')
+        .replace(/\bINT_MIN\b/g, '-2147483648')
+        .replace(/\bINT_MAX\b/g, '2147483647')
+        // Leading zeros on standalone zero runs: 0000 → 0
+        .replace(/\b0{2,}\b/g, '0')
+        // Trailing commas before } or ]
+        .replace(/,\s*([}\]])/g, '$1');
+
+      const cleaned = sanitize(jsonMatch ? jsonMatch[0] : rawText);
       try {
         data = JSON.parse(cleaned);
       } catch {
