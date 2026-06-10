@@ -55,13 +55,34 @@ export default function CodePractice() {
   const formatTestResults = (rawText) => {
     const langLabel = languages.find(l => l.id === selectedLanguage)?.label;
 
+    const repairJson = (str) => {
+      // Count unclosed brackets/braces and append closing chars
+      let braces = 0, brackets = 0, inStr = false, esc = false;
+      for (const ch of str) {
+        if (esc) { esc = false; continue; }
+        if (ch === '\\' && inStr) { esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === '{') braces++; else if (ch === '}') braces--;
+        else if (ch === '[') brackets++; else if (ch === ']') brackets--;
+      }
+      let out = str;
+      while (brackets-- > 0) out += ']';
+      while (braces-- > 0) out += '}';
+      return out;
+    };
+
     let data;
     try {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       const cleaned = (jsonMatch ? jsonMatch[0] : rawText)
         .replace(/\bINT_MIN\b/g, '-2147483648')
         .replace(/\bINT_MAX\b/g, '2147483647');
-      data = JSON.parse(cleaned);
+      try {
+        data = JSON.parse(cleaned);
+      } catch {
+        data = JSON.parse(repairJson(cleaned));
+      }
     } catch {
       return formatHintResponse(rawText);
     }
@@ -162,125 +183,121 @@ export default function CodePractice() {
   };
 
   const formatHintResponse = (text) => {
-    // Split response into sections and format with code blocks
-    const sections = text.split(/(?=^##|\n##|^\d+\.|\\n\d+\.)/m);
-    
-    return sections.map((section, idx) => {
-      const lines = section.split('\n');
-      
-      // Extract section title (either from ## header or numbered point)
-      let sectionTitle = '';
-      let contentStartIdx = 0;
-      
-      if (lines[0].match(/^#+\s/)) {
-        sectionTitle = lines[0].replace(/^#+\s/, '').trim();
-        contentStartIdx = 1;
-      } else if (lines[0].match(/^\d+\.\s\*\*/)) {
-        sectionTitle = lines[0].replace(/^\d+\.\s\*\*/, '').replace(/\*\*:?$/,'').trim();
-        contentStartIdx = 1;
-      }
-      
-      const content = lines.slice(contentStartIdx).join('\n').trim();
+    // Split into fenced code blocks vs prose
+    const segments = [];
+    const codeRe = /```(\w*)\n?([\s\S]*?)```/g;
+    let last = 0, m;
+    while ((m = codeRe.exec(text)) !== null) {
+      if (m.index > last) segments.push({ type: 'prose', content: text.slice(last, m.index) });
+      segments.push({ type: 'code', lang: m[1] || selectedLanguage, content: m[2].trim() });
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) segments.push({ type: 'prose', content: text.slice(last) });
 
-      // Check if content contains code block markers
-      const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
-      const parts = [];
-      let lastIndex = 0;
-      let match;
+    // Render inline: **bold**, `code`, plain text
+    const renderInline = (line) => {
+      const parts = line.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+      return parts.map((p, i) => {
+        if (p.startsWith('**') && p.endsWith('**'))
+          return <strong key={i} style={{ color: 'var(--text-primary)' }}>{p.slice(2, -2)}</strong>;
+        if (p.startsWith('`') && p.endsWith('`'))
+          return <code key={i} style={{ background: 'rgba(0,212,255,0.1)', color: '#00d4ff', padding: '0.1em 0.35em', borderRadius: '3px', fontFamily: 'monospace', fontSize: '0.88em' }}>{p.slice(1, -1)}</code>;
+        return p;
+      });
+    };
 
-      while ((match = codeBlockRegex.exec(content)) !== null) {
-        // Add text before code block
-        if (match.index > lastIndex) {
-          parts.push({
-            type: 'text',
-            content: content.substring(lastIndex, match.index)
-          });
+    // Render a prose block line-by-line
+    const renderProse = (prose, baseIdx) => {
+      const lines = prose.split('\n');
+      const out = [];
+      let i = 0;
+      while (i < lines.length) {
+        const line = lines[i].trimEnd();
+        if (!line) { i++; continue; }
+
+        // ### or ## or # heading
+        const headMatch = line.match(/^(#{1,3})\s+(.*)/);
+        if (headMatch) {
+          const level = headMatch[1].length;
+          const title = headMatch[2];
+          out.push(
+            <div key={`${baseIdx}-h-${i}`} style={{ marginTop: '1.25rem', marginBottom: '0.6rem', paddingBottom: '0.4rem', borderBottom: '1px solid rgba(0,212,255,0.15)' }}>
+              <span style={{ color: 'var(--accent)', fontWeight: 700, fontSize: level === 1 ? '1.1rem' : level === 2 ? '1rem' : '0.95rem' }}>
+                {renderInline(title)}
+              </span>
+            </div>
+          );
+          i++; continue;
         }
-        // Add code block
-        parts.push({
-          type: 'code',
-          language: match[1] || selectedLanguage,
-          content: match[2].trim()
-        });
-        lastIndex = match.index + match[0].length;
-      }
 
-      // Add remaining text
-      if (lastIndex < content.length) {
-        parts.push({
-          type: 'text',
-          content: content.substring(lastIndex)
-        });
-      }
+        // Bullet list block
+        if (line.match(/^[-*]\s/)) {
+          const items = [];
+          while (i < lines.length && lines[i].trimEnd().match(/^[-*]\s/)) {
+            items.push(lines[i].trimEnd().replace(/^[-*]\s/, ''));
+            i++;
+          }
+          out.push(
+            <ul key={`${baseIdx}-ul-${i}`} style={{ margin: '0.4rem 0 0.75rem 0', paddingLeft: '1.25rem', listStyle: 'none' }}>
+              {items.map((item, ii) => (
+                <li key={ii} style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.65', marginBottom: '0.25rem', display: 'flex', gap: '0.5rem' }}>
+                  <span style={{ color: 'var(--accent)', flexShrink: 0 }}>›</span>
+                  <span>{renderInline(item)}</span>
+                </li>
+              ))}
+            </ul>
+          );
+          continue;
+        }
 
-      // If text only, handle as simple text
-      if (parts.length === 0) {
-        parts.push({
-          type: 'text',
-          content: content
-        });
-      }
+        // Numbered list block
+        if (line.match(/^\d+\.\s/)) {
+          const items = [];
+          while (i < lines.length && lines[i].trimEnd().match(/^\d+\.\s/)) {
+            items.push(lines[i].trimEnd().replace(/^\d+\.\s/, ''));
+            i++;
+          }
+          out.push(
+            <ol key={`${baseIdx}-ol-${i}`} style={{ margin: '0.4rem 0 0.75rem 0', paddingLeft: '1.5rem' }}>
+              {items.map((item, ii) => (
+                <li key={ii} style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.65', marginBottom: '0.3rem' }}>
+                  {renderInline(item)}
+                </li>
+              ))}
+            </ol>
+          );
+          continue;
+        }
 
-      return (
-        <div key={idx} style={{ marginBottom: '1.5rem' }}>
-          {sectionTitle && (
-            <h3 style={{
-              color: sectionTitle.includes('PASSED') ? '#22c55e' : sectionTitle.includes('FAILED') ? '#ef4444' : 'var(--accent)',
-              fontWeight: 700,
-              fontSize: sectionTitle.startsWith('###') || sectionTitle.match(/^#+/) && sectionTitle.split('#').length > 3 ? '1rem' : '1.1rem',
-              marginBottom: '0.75rem',
-              borderBottom: `2px solid ${sectionTitle.includes('PASSED') ? 'rgba(34, 197, 94, 0.3)' : sectionTitle.includes('FAILED') ? 'rgba(239, 68, 68, 0.3)' : 'rgba(0, 212, 255, 0.3)'}`,
-              paddingBottom: '0.5rem'
-            }}>
-              {sectionTitle}
-            </h3>
-          )}
-          {parts.map((part, pidx) => 
-            part.type === 'code' ? (
-              <div key={pidx} style={{
-                background: '#0f172a',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                borderRadius: '8px',
-                padding: '1rem',
-                marginBottom: '0.75rem',
-                overflow: 'auto',
-                maxHeight: '300px'
-              }}>
-                <div style={{
-                  color: 'rgba(0, 212, 255, 0.7)',
-                  fontSize: '0.75rem',
-                  marginBottom: '0.5rem',
-                  fontWeight: 600
-                }}>
-                  {part.language.toUpperCase()}
-                </div>
-                <pre style={{
-                  color: '#00d4ff',
-                  fontFamily: 'Monaco, Courier New, monospace',
-                  fontSize: '0.85rem',
-                  lineHeight: '1.5',
-                  margin: 0,
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word'
-                }}>
-                  {part.content}
-                </pre>
+        // Regular paragraph line
+        out.push(
+          <p key={`${baseIdx}-p-${i}`} style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.7', margin: '0 0 0.35rem 0' }}>
+            {renderInline(line)}
+          </p>
+        );
+        i++;
+      }
+      return out;
+    };
+
+    return (
+      <div>
+        {segments.map((seg, si) =>
+          seg.type === 'code' ? (
+            <div key={si} style={{ background: '#0d1117', border: '1px solid rgba(0,212,255,0.2)', borderRadius: '8px', marginBottom: '1rem', overflow: 'hidden' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.4rem 0.875rem', background: 'rgba(0,212,255,0.06)', borderBottom: '1px solid rgba(0,212,255,0.12)' }}>
+                <span style={{ color: 'rgba(0,212,255,0.7)', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{seg.lang || 'code'}</span>
               </div>
-            ) : (
-              <div key={pidx} style={{
-                color: 'var(--text-secondary)',
-                lineHeight: '1.6',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                marginBottom: '0.5rem'
-              }}>
-                {part.content}
-              </div>
-            )
-          )}
-        </div>
-      );
-    });
+              <pre style={{ color: '#e2e8f0', fontFamily: 'Monaco, Menlo, monospace', fontSize: '0.85rem', lineHeight: '1.6', margin: 0, padding: '0.875rem', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowX: 'auto' }}>
+                {seg.content}
+              </pre>
+            </div>
+          ) : (
+            <div key={si}>{renderProse(seg.content, si)}</div>
+          )
+        )}
+      </div>
+    );
   };
 
   const sendToOpenAI = async (type) => {
