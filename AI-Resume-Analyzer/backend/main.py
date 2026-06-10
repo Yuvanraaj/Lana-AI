@@ -26,7 +26,8 @@ from config import (
 from database import (
     initialize_database, insert_resume, insert_resume_analysis,
     get_all_resumes, get_analytics_data, get_db_connection,
-    insert_audit_log, get_audit_logs, get_login_logs
+    insert_audit_log, get_audit_logs, get_login_logs,
+    get_user_analyses, seed_demo_data
 )
 from nlp_processor import analyze_resume
 from file_processor import extract_text_from_file, save_uploaded_file
@@ -582,6 +583,32 @@ async def get_login_log_list(
     except Exception as e:
         logger.error(f"Error fetching login logs: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch login logs")
+
+
+@app.get("/my-analyses")
+async def get_my_analyses(portal_user_id: str = None, email: str = None, limit: int = 20):
+    """Return past resume analyses for a user — public, filtered by user ID or email."""
+    if not portal_user_id and not email:
+        raise HTTPException(status_code=400, detail="Provide portal_user_id or email")
+    try:
+        rows = get_user_analyses(portal_user_id=portal_user_id, email=email, limit=min(limit, 50))
+        return {"analyses": rows, "total": len(rows)}
+    except Exception as e:
+        logger.error(f"Error fetching user analyses: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch history")
+
+
+@app.post("/admin/seed-demo")
+async def seed_demo(current_user: TokenData = Depends(get_current_user)):
+    """Seed demo resume history for the configured DEMO_SEED_EMAIL — admin only."""
+    if current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    demo_email = os.getenv("DEMO_SEED_EMAIL", os.getenv("ADMIN_EMAIL", ""))
+    demo_name  = os.getenv("DEMO_SEED_NAME",  os.getenv("ADMIN_NAME", "Yuvanraaj"))
+    if not demo_email:
+        raise HTTPException(status_code=400, detail="Set DEMO_SEED_EMAIL env var first")
+    count = seed_demo_data(user_name=demo_name, email=demo_email)
+    return {"seeded": count, "email": demo_email}
 
 
 @app.get("/courses")

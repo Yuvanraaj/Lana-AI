@@ -480,6 +480,116 @@ def get_analytics_data():
         raise
 
 
+def get_user_analyses(portal_user_id=None, email=None, limit=20):
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur.execute("""
+            SELECT
+                r.id, r.user_name, r.email, r.file_name, r.upload_date,
+                r.city, r.country,
+                COALESCE(ra.overall_score, 0)    AS overall_score,
+                COALESCE(ra.skills_score, 0)     AS skills_score,
+                COALESCE(ra.experience_score, 0) AS experience_score,
+                COALESCE(ra.education_score, 0)  AS education_score,
+                COALESCE(ra.formatting_score, 0) AS formatting_score,
+                ra.predicted_roles,
+                ra.extracted_skills,
+                ra.strengths,
+                ra.overall_strategy
+            FROM resumes r
+            LEFT JOIN resume_analysis ra ON r.id = ra.resume_id
+            WHERE (%s IS NULL OR r.portal_user_id = %s)
+              AND (%s IS NULL OR r.email = %s)
+            ORDER BY r.upload_date DESC
+            LIMIT %s
+        """, (portal_user_id, portal_user_id, email, email, limit))
+        rows = [dict(r) for r in cur.fetchall()]
+        cur.close()
+        conn.close()
+        return rows
+    except Exception as e:
+        logger.error(f"Error fetching user analyses: {e}")
+        return []
+
+
+def seed_demo_data(user_name: str, email: str, portal_user_id: str = None):
+    """Insert 12 demo resume records for the given user if they have none yet."""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM resumes WHERE email = %s", (email,))
+        if cur.fetchone()[0] > 0:
+            cur.close()
+            conn.close()
+            logger.info(f"Demo data already exists for {email}, skipping seed")
+            return 0
+
+        import random
+        from datetime import timedelta
+
+        demo_entries = [
+            ("Resume_v1.pdf",        62.0, 55.0, 65.0, 70.0, 60.0, "Software Engineer",        "Chennai"),
+            ("Resume_Internship.pdf",48.0, 42.0, 30.0, 75.0, 55.0, "Junior Developer",          "Bangalore"),
+            ("Resume_Updated.pdf",   71.0, 68.0, 72.0, 80.0, 65.0, "Full Stack Developer",      "Chennai"),
+            ("SDE_Resume.pdf",       58.0, 62.0, 55.0, 60.0, 52.0, "Backend Engineer",           "Hyderabad"),
+            ("Resume_ML.pdf",        65.0, 70.0, 60.0, 55.0, 68.0, "ML Engineer",                "Chennai"),
+            ("CV_2024.pdf",          74.0, 72.0, 76.0, 82.0, 70.0, "Software Engineer",          "Bangalore"),
+            ("Resume_Final.pdf",     80.0, 78.0, 82.0, 85.0, 75.0, "Senior Software Engineer",   "Chennai"),
+            ("Resume_DataSci.pdf",   55.0, 60.0, 45.0, 65.0, 50.0, "Data Scientist",             "Pune"),
+            ("Resume_React.pdf",     69.0, 65.0, 68.0, 72.0, 64.0, "Frontend Developer",         "Chennai"),
+            ("Resume_Cloud.pdf",     76.0, 74.0, 78.0, 80.0, 72.0, "Cloud Engineer",             "Bangalore"),
+            ("Resume_v2.pdf",        83.0, 80.0, 85.0, 88.0, 78.0, "Senior Full Stack Developer","Chennai"),
+            ("Resume_Latest.pdf",    88.0, 85.0, 90.0, 92.0, 82.0, "Lead Software Engineer",     "Chennai"),
+        ]
+
+        base_date = datetime.now()
+        seeded = 0
+        for i, (fname, overall, skills, exp, edu, fmt, role, city) in enumerate(demo_entries):
+            days_ago = (len(demo_entries) - i) * 14  # spread ~6 months
+            upload_ts = base_date - timedelta(days=days_ago)
+
+            cur.execute("""
+                INSERT INTO resumes
+                    (user_name, email, phone, portal_user_id, file_name, file_path,
+                     file_size, city, country, upload_date, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+            """, (user_name, email, "0000000000", portal_user_id,
+                  fname, f"/uploads/demo/{fname}", random.randint(80000, 500000),
+                  city, "India", upload_ts, upload_ts))
+            resume_id = cur.fetchone()[0]
+
+            cur.execute("""
+                INSERT INTO resume_analysis
+                    (resume_id, overall_score, skills_score, experience_score,
+                     education_score, formatting_score, extracted_skills, keywords,
+                     predicted_roles, strengths, weaknesses, suggestions,
+                     quick_wins, overall_strategy)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                resume_id, overall, skills, exp, edu, fmt,
+                json.dumps(["Python", "JavaScript", "React", "Node.js", "SQL"]),
+                json.dumps(["software", "developer", "engineer", "python", "react"]),
+                json.dumps([{"role": role, "match_score": overall}]),
+                json.dumps(["Strong technical background", "Good project experience"]),
+                json.dumps(["Missing quantified achievements", "No certifications listed"]),
+                json.dumps(["Add metrics to experience bullets", "Include GitHub profile"]),
+                json.dumps([{"improvement": "Add measurable impact", "impact": "Increases ATS score"}]),
+                f"Well-structured resume targeting {role} roles with strong technical skills."
+            ))
+            seeded += 1
+
+        conn.commit()
+        cur.close()
+        conn.close()
+        logger.info(f"Seeded {seeded} demo records for {email}")
+        return seeded
+    except Exception as e:
+        logger.error(f"Error seeding demo data: {e}", exc_info=True)
+        return 0
+
+
 def insert_audit_log(action, actor_email=None, resource_type=None, resource_id=None,
                      status="SUCCESS", ip_address=None, details=None):
     try:

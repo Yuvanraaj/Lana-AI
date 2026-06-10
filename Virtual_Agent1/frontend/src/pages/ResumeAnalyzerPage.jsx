@@ -139,6 +139,10 @@ export default function ResumeAnalyzerPage() {
   const [tips, setTips] = useState({ do: [], dont: [] });
   const [resourcesLoaded, setResourcesLoaded] = useState(false);
 
+  // History state
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
   // Admin state
   const [adminToken, setAdminToken] = useState(null);
   const [adminEmail, setAdminEmail] = useState('');
@@ -159,9 +163,8 @@ export default function ResumeAnalyzerPage() {
   // ── Resources loading ──────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (activeTab === 'resources' && !resourcesLoaded) {
-      loadResources();
-    }
+    if (activeTab === 'resources' && !resourcesLoaded) loadResources();
+    if (activeTab === 'history') loadHistory();
   }, [activeTab]);
 
   async function loadResources() {
@@ -180,6 +183,34 @@ export default function ResumeAnalyzerPage() {
     } catch (e) {
       console.error('Failed to load resources:', e);
     }
+  }
+
+  // ── History ───────────────────────────────────────────────────────────────
+
+  async function loadHistory() {
+    if (!userId && !userEmail) return;
+    setHistoryLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (userId)    params.set('portal_user_id', userId);
+      if (userEmail) params.set('email', userEmail);
+      params.set('limit', '20');
+      const res = await fetch(`${RESUME_API_URL}/my-analyses?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistory(data.analyses || []);
+      }
+    } catch (e) {
+      console.error('Failed to load history:', e);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
+
+  // Also refresh history after a new analysis completes
+  function handleUploadSuccess(analysisData) {
+    setAnalysisResult(analysisData);
+    loadHistory();
   }
 
   // ── Admin ──────────────────────────────────────────────────────────────────
@@ -282,7 +313,7 @@ export default function ResumeAnalyzerPage() {
         throw new Error(err.detail || `Upload failed (${res.status})`);
       }
       const data = await res.json();
-      setAnalysisResult(data.analysis);
+      handleUploadSuccess(data.analysis);
     } catch (e) {
       setUploadError(e.message || 'Upload failed');
     } finally {
@@ -332,7 +363,12 @@ export default function ResumeAnalyzerPage() {
         {/* Top-level tab bar */}
         <div style={{ marginBottom: '2rem' }}>
           <TabBar
-            tabs={[{ id: 'analyze', label: 'Analyze Resume' }, { id: 'resources', label: 'Resources' }, { id: 'admin', label: 'Admin' }]}
+            tabs={[
+              { id: 'analyze',   label: 'Analyze Resume' },
+              { id: 'history',   label: 'History' },
+              { id: 'resources', label: 'Resources' },
+              { id: 'admin',     label: 'Admin' },
+            ]}
             active={activeTab}
             onChange={setActiveTab}
           />
@@ -723,6 +759,91 @@ export default function ResumeAnalyzerPage() {
                   </GlassCard>
                 )}
               </>
+            )}
+          </>
+        )}
+
+        {/* ══════════════════════════════════════════════════════════════════
+            TAB: HISTORY
+        ══════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'history' && (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.75rem' }}>
+              <div>
+                <h2 style={{ color: '#fff', fontWeight: 800, margin: 0, fontSize: '1.25rem' }}>Resume Analysis History</h2>
+                <p style={{ color: 'var(--text-secondary)', margin: '0.3rem 0 0', fontSize: '0.83rem' }}>
+                  All past analyses linked to your account
+                </p>
+              </div>
+              <button onClick={loadHistory} style={{ padding: '0.45rem 0.875rem', background: 'rgba(44,154,255,0.08)', border: '1px solid rgba(44,154,255,0.2)', borderRadius: '0.5rem', color: 'var(--accent)', fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem' }}>
+                Refresh
+              </button>
+            </div>
+
+            {historyLoading && (
+              <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>Loading history…</div>
+            )}
+
+            {!historyLoading && history.length === 0 && (
+              <GlassCard style={{ textAlign: 'center', padding: '3rem' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📂</div>
+                <div style={{ color: '#fff', fontWeight: 700, marginBottom: '0.4rem' }}>No analyses yet</div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                  Upload your resume on the Analyze tab to get started.
+                </div>
+              </GlassCard>
+            )}
+
+            {!historyLoading && history.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {history.map((item, i) => {
+                  const score = item.overall_score ?? 0;
+                  const scoreColor = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
+                  const topRole = (() => {
+                    try {
+                      const roles = typeof item.predicted_roles === 'string' ? JSON.parse(item.predicted_roles) : item.predicted_roles;
+                      return Array.isArray(roles) && roles.length > 0 ? (roles[0].role || '—') : '—';
+                    } catch { return '—'; }
+                  })();
+                  return (
+                    <GlassCard key={item.id ?? i} style={{ display: 'grid', gridTemplateColumns: '80px 1fr auto', gap: '1.25rem', alignItems: 'center', padding: '1.25rem 1.5rem' }}>
+                      {/* Score circle */}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                        <div style={{ width: '56px', height: '56px', borderRadius: '50%', border: `3px solid ${scoreColor}`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 12px ${scoreColor}44` }}>
+                          <span style={{ fontSize: '1rem', fontWeight: 800, color: scoreColor }}>{Math.round(score)}</span>
+                        </div>
+                        <span style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Score</span>
+                      </div>
+
+                      {/* Details */}
+                      <div>
+                        <div style={{ color: '#fff', fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.2rem' }}>{item.file_name}</div>
+                        <div style={{ color: 'var(--accent)', fontSize: '0.78rem', marginBottom: '0.4rem' }}>{topRole}</div>
+                        <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+                          {[
+                            ['Skills',    item.skills_score],
+                            ['Exp',       item.experience_score],
+                            ['Education', item.education_score],
+                            ['Format',    item.formatting_score],
+                          ].map(([lbl, val]) => (
+                            <span key={lbl} style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                              {lbl}: <span style={{ color: '#fff', fontWeight: 600 }}>{Math.round(val ?? 0)}%</span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Date */}
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
+                          {item.upload_date ? new Date(item.upload_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                        </div>
+                        {item.city && <div style={{ color: 'var(--text-secondary)', fontSize: '0.72rem', marginTop: '0.2rem' }}>{item.city}</div>}
+                      </div>
+                    </GlassCard>
+                  );
+                })}
+              </div>
             )}
           </>
         )}
