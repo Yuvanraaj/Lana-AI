@@ -82,7 +82,10 @@ export default function CodePractice() {
       const jsonMatch = rawText.match(/\{[\s\S]*\}/);
       const cleaned = (jsonMatch ? jsonMatch[0] : rawText)
         .replace(/\bINT_MIN\b/g, '-2147483648')
-        .replace(/\bINT_MAX\b/g, '2147483647');
+        .replace(/\bINT_MAX\b/g, '2147483647')
+        .replace(/\bNone\b/g, 'null')
+        .replace(/\bTrue\b/g, 'true')
+        .replace(/\bFalse\b/g, 'false');
       try {
         data = JSON.parse(cleaned);
       } catch {
