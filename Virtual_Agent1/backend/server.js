@@ -91,7 +91,65 @@ try {
   console.warn('[INIT] Failed to ensure uploads directory:', e.message);
 }
 
-// --- OpenAI Chat Route (using official SDK) ---
+// ── Helpers for cleaning AI-generated test JSON ─────────────────────────────
+
+function sanitizeTestJson(raw) {
+  const match = raw.match(/\{[\s\S]*\}/);
+  let s = match ? match[0] : raw;
+
+  // Python literals → JSON equivalents
+  s = s.replace(/\bNone\b/g, 'null');
+  s = s.replace(/\bTrue\b/g, 'true');
+  s = s.replace(/\bFalse\b/g, 'false');
+  s = s.replace(/\bundefined\b/g, 'null');
+  s = s.replace(/\bNaN\b/g, 'null');
+  s = s.replace(/\bINT_MIN\b/g, '-2147483648');
+  s = s.replace(/\bINT_MAX\b/g, '2147483647');
+
+  // Python string repetition: "x" * n → literal (3 passes handles nesting)
+  for (let p = 0; p < 3; p++) {
+    s = s.replace(/"([^"]{0,50})"\s*\*\s*(\d+)/g, (_, str, n) =>
+      JSON.stringify(str.repeat(Math.min(parseInt(n, 10), 20)))
+    );
+  }
+
+  // Python list repetition: [...] * n → [...] (3 passes)
+  for (let p = 0; p < 3; p++) {
+    s = s.replace(/(\])\s*\*\s*\d+/g, '$1');
+  }
+
+  // Python list concat: [...] + [...] → [..., ...]
+  s = s.replace(/(\])\s*\+\s*(\[)/g, ', ');
+
+  // Trailing commas before } or ]
+  s = s.replace(/,\s*([}\]])/g, '$1');
+
+  return s;
+}
+
+function repairTestJson(str) {
+  // Close categories array left open before top-level sibling keys
+  let fixed = str.replace(
+    /\}\s*,\s*"(complexity|overall_verdict|critical_issues)"/g,
+    '}],"$1"'
+  );
+  let braces = 0, brackets = 0, inStr = false, esc = false;
+  for (const ch of fixed) {
+    if (esc) { esc = false; continue; }
+    if (ch === '\\' && inStr) { esc = true; continue; }
+    if (ch === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === '{') braces++;
+    else if (ch === '}') braces--;
+    else if (ch === '[') brackets++;
+    else if (ch === ']') brackets--;
+  }
+  while (brackets-- > 0) fixed += ']';
+  while (braces-- > 0) fixed += '}';
+  return fixed;
+}
+
+// ── OpenAI Chat Route ────────────────────────────────────────────────────────
 app.post('/api/openai-proxy', async (req, res) => {
   try {
     console.log('[OpenAI Proxy] Request received');
@@ -102,7 +160,7 @@ app.post('/api/openai-proxy', async (req, res) => {
     }
 
     const openai = new OpenAI({ apiKey });
-    const { stream, messages, model = 'gpt-4o-mini', temperature = 0.7, max_tokens = 800 } = req.body;
+    const { stream, messages, model = 'gpt-4o-mini', temperature = 0.7, max_tokens = 800, cleanJson = false } = req.body;
 
     console.log('[OpenAI Proxy] Creating completion with model:', model);
     console.log('[OpenAI Proxy] Messages:', JSON.stringify(messages).substring(0, 200));
@@ -136,6 +194,26 @@ app.post('/api/openai-proxy', async (req, res) => {
         temperature,
         max_tokens
       });
+
+      if (cleanJson && completion.choices?.[0]?.message?.content) {
+        const raw = completion.choices[0].message.content;
+        let cleaned = sanitizeTestJson(raw);
+        // Validate; if still broken, apply structural repair
+        try {
+          JSON.parse(cleaned);
+        } catch {
+          try {
+            cleaned = repairTestJson(cleaned);
+            JSON.parse(cleaned); // confirm it parses now
+          } catch (e) {
+            console.warn('[OpenAI Proxy] JSON repair failed, returning raw:', e.message);
+            cleaned = raw; // fall back to raw so frontend can try
+          }
+        }
+        completion.choices[0].message.content = cleaned;
+        console.log('[OpenAI Proxy] JSON cleaned and validated server-side');
+      }
+
       console.log('[OpenAI Proxy] Completion successful, sending response');
       res.json(completion);
     }

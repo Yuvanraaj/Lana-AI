@@ -468,7 +468,8 @@ ${type === 'test' ? 'Run all 30 test cases and return the JSON result.' : type =
           ],
           model: 'gpt-4o-mini',
           temperature: type === 'test' ? 0.1 : 0.7,
-          max_tokens: type === 'test' ? 4000 : 1800
+          max_tokens: type === 'test' ? 4000 : 1800,
+          cleanJson: type === 'test'
         })
       });
 
